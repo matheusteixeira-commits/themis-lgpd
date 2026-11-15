@@ -25,6 +25,7 @@ import argparse
 import hashlib
 import json
 import platform
+import re
 import shutil
 import subprocess  # nosec B404 - executa o pip do próprio interpretador
 import sys
@@ -118,8 +119,10 @@ def _pip(*args: str) -> None:
 def montar(saida: Path, compactar: bool = True) -> Path:
     if sys.platform != "win32" or platform.architecture()[0] != "64bit":
         raise SystemExit("execute no Windows 64 bits, com o Python que irá no pacote")
-    sys.path.insert(0, str(RAIZ / "src"))
-    from themis_lgpd import __version__
+    # A versão é lida do arquivo, sem importar o pacote: o Python que monta o pacote não precisa ter as
+    # dependências do Themis instaladas.
+    texto_versao = (RAIZ / "src" / "themis_lgpd" / "_versao.py").read_text(encoding="utf-8")
+    __version__ = re.search(r'__version__ = "([^"]+)"', texto_versao).group(1)
 
     versao_py = platform.python_version()
     nome = f"themis-lgpd-{__version__}-windows-x64"
