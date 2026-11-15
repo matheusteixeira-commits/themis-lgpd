@@ -1,0 +1,37 @@
+{
+  "conjunto": "desenvolvimento",
+  "perfil": "lai",
+  "documentos": 1080,
+  "segundos_por_documento": 0.0112,
+  "recall": 1.0,
+  "recall_por_tipo": {
+    "CAR": 1.0,
+    "CERTIDAO": 1.0,
+    "CHASSI": 1.0,
+    "CONSELHO": 1.0,
+    "ENDERECO_NUMERADO": 1.0,
+    "ENDERECO_RODOVIA": 1.0,
+    "ENDERECO_RURAL": 1.0,
+    "ENDERECO_URBANO": 1.0,
+    "MATRICULA": 1.0,
+    "NB_INSS": 1.0,
+    "NOME": 1.0,
+    "PROCESSO": 1.0,
+    "PRONTUARIO": 1.0,
+    "RENAVAM": 1.0,
+    "RG": 1.0
+  },
+  "recall_por_regiao": {
+    "Norte": 1.0,
+    "Nordeste": 1.0,
+    "Centro-Oeste": 1.0,
+    "Sudeste": 1.0,
+    "Sul": 1.0
+  },
+  "documentos_com_vazamento": 0.0,
+  "textos_publicos": {
+    "documentos": 270,
+    "termos_preservados": 1.0,
+    "documentos_sem_tarja": 1.0
+  }
+}

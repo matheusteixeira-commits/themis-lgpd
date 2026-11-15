@@ -1,20 +1,43 @@
-"""Reconhecedores de endereço, CEP e localidade.
+"""Reconhecedores de endereço, CEP e localidade, com cobertura nacional.
 
-Além do formato "logradouro, número", o módulo reconhece o endereçamento próprio de Brasília e das
-regiões administrativas do Distrito Federal, baseado em siglas de setor e em quadra, conjunto e
-casa ("SQS 308 Bloco C Apto 602", "QNM 12 Conjunto B Casa 4"), que não contém logradouro nem
-número no sentido usual.
+Formatos de endereço reconhecidos:
 
-O nome de uma cidade ou região administrativa isolado é um quase-identificador
-(``LOCALIDADE``): por si só não identifica ninguém e, em geral, é apenas sinalizado. Quando aparece
-como local de residência ("moro em Taguatinga"), passa a ser tratado como endereço.
+* logradouro com nome e número, inclusive abreviado ("Av.", "Trav.", "Pça.", "Lgo.") e com número
+  de milhar ("1.234"), complementos ("apto 501", "Edifício Toronto, sala 202") e cauda com bairro,
+  cidade, UF e CEP;
+* logradouro numerado ou com letra ("Rua 15", "Rua A", "Avenida T-9"), comum em Goiânia, Palmas,
+  Manaus e em conjuntos habitacionais de todo o país, seguido de número ou de quadra e lote;
+* localidades rurais e regionais, que dispensam número: sítio, fazenda, chácara, povoado,
+  assentamento, aldeia, gleba, ramal, linha, loteamento, vicinal e semelhantes;
+* rodovias federais e estaduais das 27 UFs com quilômetro ("PE-060, km 10");
+* endereçamento de Brasília e das regiões administrativas do DF, baseado em siglas de setor e em
+  quadra, conjunto e casa ("SQS 308 Bloco C Apto 602", "QNM 12 Conjunto B Casa 4").
+
+O nome de um município (lista oficial do IBGE, em ``dados/municipios.txt``) ou de uma região
+administrativa do DF é um quase-identificador (``LOCALIDADE``): por si só não identifica ninguém e,
+em geral, é apenas sinalizado. Quando aparece como local de residência ("moro em Campinas"), passa a
+ser tratado como endereço.
 """
 
 from __future__ import annotations
 
+from functools import cache
+from importlib import resources
+
 import regex as re
 
+from ..texto import dobrar
 from .base import ANTES_NUM, CONTEXTUAL, DEPOIS_NUM, Deteccao, Padrao, ReconhecedorPadroes
+
+#: Siglas das 27 unidades da federação.
+UFS = ("AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI",
+       "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO")
+_UF = "(?:" + "|".join(UFS) + ")"
+#: Nomes dos estados, do mais longo ao mais curto ("Mato Grosso do Sul" antes de "Mato Grosso").
+ESTADOS = ("Rio Grande do Norte", "Rio Grande do Sul", "Mato Grosso do Sul", "Espírito Santo", "Rio de Janeiro",
+           "Santa Catarina", "Distrito Federal", "Minas Gerais", "Mato Grosso", "Pernambuco", "São Paulo", "Tocantins",
+           "Rondônia", "Maranhão", "Amazonas", "Alagoas", "Paraíba", "Roraima", "Sergipe", "Paraná", "Piauí", "Amapá",
+           "Bahia", "Ceará", "Goiás", "Acre", "Pará")
 
 #: Expressões que indicam local de residência; elevam a confiança dos endereços.
 CTX_RESIDENCIA = (
@@ -22,29 +45,65 @@ CTX_RESIDENCIA = (
     r"mora(?:mos)?", r"morador[a]?", r"reside", r"residimos", r"im[óo]vel", r"localizad[oa]",
 )
 
-#: Rótulo de um componente de endereço (conjunto, casa, lote, bloco, apartamento, quadra…).
-_COMPONENTE = (
+#: Rótulo de um componente de endereço cujo valor pode ser número ou letra (conjunto, casa, lote,
+#: bloco, apartamento, quadra…).
+_ROTULO_COMPONENTE = (
     r"\b(?:conjunto|conj\.?|cj\.?|casa|cs\.?|lote|lt\.?|bloco|bl\.?|apartamento|apto\.?|ap\.?|sala|loja|"
-    r"quadra|qd\.?|rua|alameda|al\.|avenida|av\.|travessa|ch[áa]cara|ch\.?|m[óo]dulo|proje[çc][ãa]o|edif[íi]cio|"
-    r"ed\.|andar|km|torre|unidade|trecho|(?:BR|DF|GO|MG)-?|n[º°o]\.?|n[úu]mero)"
+    r"quadra|qd\.?|rua|alameda|al\.|avenida|av\.|travessa|ch[áa]cara|ch\.?|m[óo]dulo|proje[çc][ãa]o|"
+    r"andar|km|torre|unidade|trecho|gleba|setor)"
 )
-#: Valor de um componente: número ("12", "602-A") ou letra isolada ("B"). Nunca uma palavra — o que
-#: impede que "ch" + "ão" de "chão" seja lido como "chácara ão".
-_VALOR_COMP = r"(?:\d[\dA-Z\-/]{0,5}|[A-Z](?:-?\d{1,4})?)(?![\wÀ-ú])"
+#: Rótulo cujo valor só pode ser número: "nº", "número" e rodovia ("BR-020", "GO-060"). Exigir o
+#: número impede que "mas" seja lido como "MA" + "s" ou "nos" como "nº" + "s".
+_ROTULO_NUMERICO = r"(?:\bn[º°o]\.?|\bn[úu]mero|\b(?-i:BR|" + "|".join(UFS) + r")-?)"
+#: Valor de um componente: número ("12", "602-A", "1.234") ou letra isolada ("B"). Nunca uma palavra
+#: — o que impede que "ch" + "ão" de "chão" seja lido como "chácara ão".
+_VALOR_COMP = r"(?:\d{1,3}(?:\.\d{3})+|\d[\dA-Z\-/]{0,5}|[A-Z](?:-?\d{1,4})?)(?![\wÀ-ú])"
+_VALOR_NUMERICO = r"(?:\d{1,3}(?:\.\d{3})+|\d[\dA-Z\-/]{0,5})(?![\wÀ-ú])"
+#: Componente de endereço com o seu valor ("casa 4", "Bloco C", "nº 230", "GO-060").
+_COMPONENTE = rf"(?:{_ROTULO_COMPONENTE}\s*{_VALOR_COMP}|{_ROTULO_NUMERICO}\s*{_VALOR_NUMERICO})"
+#: Componente cujo valor é um nome próprio ("Edifício Toronto", "Residencial Bela Vista").
+_COMPONENTE_NOMEADO = (r"\b(?:edif[íi]cio|ed\.|residencial|condom[íi]nio|bloco)\s+(?-i:[A-ZÀ-Ú][\wÀ-ú'’]+"
+                       r"(?:\s+(?:d[aeo]s?\s+)?[A-ZÀ-Ú][\wÀ-ú'’]+){0,3})")
 #: Sequência de até oito componentes após o início do endereço.
-_COMPONENTES = rf"(?:\s*[,\-–]?\s*{_COMPONENTE}\s*{_VALOR_COMP}){{0,8}}"
+_COMPONENTES = rf"(?:\s*[,\-–]?\s*(?:{_COMPONENTE}|{_COMPONENTE_NOMEADO})){{0,8}}"
 #: Nome do logradouro: não atravessa fim de frase; o ponto só é aceito após abreviações de títulos
 #: ("Rua Dr. Fulano", "Av. Gov. Beltrano").
 _NOME_LOGRADOURO = (r"(?:[^\n,;:()!?\d.]|(?<=\b(?:Dr|Dra|Prof|Gov|Pres|Sen|Dep|Mal|Gal|Cel|Cap|Ten|Sto|Sta|Pe|Fr|D|S))\.)"
                     r"{2,60}?")
-#: Complementos opcionais do endereço: bairro, cidade e UF, CEP (", Bairro Vila Nova",
-#: ", Joinville - SC", ", Brasília/DF, CEP 70000-000").
+#: Número do imóvel: com milhar ("1.234"), simples com letra ("230A") ou "s/n".
+_NUMERO = r"(?:n[º°o]?\.?\s*|n[úu]mero\s*)?(?:\d{1,3}(?:\.\d{3})+|\d{1,6}[A-Za-z]?|s/?n)(?![\w/])"
+#: Cidade seguida de UF ("Joinville - SC", "Goiânia/GO", "Recife (PE)").
+_CIDADE_UF = rf"[A-ZÀ-Ú][^\n,;.\d]{{1,35}}?\s*(?:[-/–,]\s*|\(\s*){_UF}\)?(?![\w])"
+#: Complementos opcionais do endereço: bairro (com ou sem a palavra "bairro", quando seguido de
+#: cidade e UF), cidade e UF, CEP (", Bairro Vila Nova", ", Centro, Porto Alegre/RS",
+#: ", Brasília/DF, CEP 70000-000").
 _CAUDA = (
     r"(?:\s*,\s*(?:bairro|setor|jardim|vila|parque|residencial|condom[íi]nio)\s+[^\n,;.\d]{2,40})?"
-    r"(?:\s*,\s*[A-ZÀ-Ú][^\n,;.\d]{1,35}?\s*[-/–,]\s*(?:AC|AL|AP|AM|BA|CE|DF|ES|GO|MA|MT|MS|MG|PA|PB|PR|PE|PI|RJ|RN|"
-    r"RS|RO|RR|SC|SP|SE|TO)(?![\w]))?"
+    rf"(?:\s*,\s*[A-ZÀ-Ú][^\n,;.\d]{{1,30}}?(?=\s*,\s*{_CIDADE_UF}))?"
+    rf"(?:\s*,\s*(?:(?:munic[íi]pio|cidade|zona\s+rural)\s+d[eo]\s+)?{_CIDADE_UF})?"
     r"(?:\s*,?\s*CEP\s*[:\-]?\s*\d{5}\s?-?\s?\d{3})?"
 )
+#: Tipos de logradouro urbano.
+_LOGRADOURO = (r"(?:rua|r\.|avenida|av\.?|alameda|al\.|travessa|trav\.?|tv\.|rodovia|rod\.?|estrada|estr\.?|"
+               r"pra[çc]a|p[çc]a\.?|largo|lgo\.?|viela|beco|servid[ãa]o|passagem|psg\.?|ladeira|vila|"
+               r"conjunto habitacional|condom[íi]nio|setor habitacional|quadra|via|marginal|vicinal)")
+#: Propriedades rurais, identificadas pelo nome, sem número: o nome designa o imóvel da família.
+_PROPRIEDADE_RURAL = (r"(?:s[íi]tio|fazenda|ch[áa]cara|granja|est[âa]ncia|gleba|n[úu]cleo rural|"
+                      r"col[ôo]nia(?: agr[íi]cola)?|vila rural|lote rural)")
+#: Localidades coletivas (povoados, comunidades, assentamentos, estradas vicinais): também aparecem em
+#: documentos de política pública, por isso só são endereço com expressão de residência por perto.
+_LOCALIDADE_COLETIVA = (r"(?:povoado|assentamento|aldeia|comunidade|quilombo|ramal|loteamento|acampamento|"
+                        r"distrito|ilha)")
+#: Termos institucionais que, logo após "fazenda", "distrito" ou "comunidade", indicam órgão ou
+#: conceito, não endereço ("Fazenda Pública", "Distrito Federal", "comunidade escolar").
+_NAO_LOCALIDADE = (r"(?!(?:P[úu]blica|Nacional|Estadual|Municipal|Federal|Escolar|Acad[êe]mica|Cient[íi]fica|"
+                   r"Internacional|Europeia|LGBT|Terap[êe]utica|Sanit[áa]ria|Policial)\b)"
+                   # "Fazenda do Distrito Federal", "Fazenda do Estado de Goiás", "Fazenda da Bahia": o órgão.
+                   r"(?!(?:d[aeo]s?\s+)?(?:Estado|Distrito\s+Federal|Munic[íi]pio|Uni[ãa]o|Rep[úu]blica|Prefeitura|"
+                   r"Governo|Secretaria|Minist[ée]rio|" + "|".join(ESTADOS) + r")\b)")
+#: Nome próprio de propriedade ou localidade: até cinco palavras iniciadas por maiúscula, com
+#: conectores ("Santa Rita", "Boa Esperança", "do Cupuaçu").
+_NOME_PROPRIO = (r"(?-i:(?:d[aeo]s?\s+)?[A-ZÀ-Ú][\wÀ-ú'’]+(?:\s+(?:d[aeo]s?\s+|e\s+)?[A-ZÀ-Ú0-9][\wÀ-ú'’]*){0,4})")
 
 #: Siglas de setores de Brasília e das regiões administrativas (SQS, SHIS, QNM, EQN…).
 _SIGLAS_DF = (
@@ -62,31 +121,58 @@ PADROES: list[Padrao] = [
            nome="cep:contexto"),
     # Tipo de logradouro, nome, número ou componente, complementos e cauda.
     Padrao("ENDERECO",
-           r"\b(?:rua|r\.|avenida|av\.?|alameda|al\.|travessa|tv\.|rodovia|rod\.|estrada|estr\.|pra[çc]a|largo|"
-           r"viela|beco|servid[ãa]o|vila|conjunto habitacional|condom[íi]nio|ch[áa]cara|"
-           r"s[íi]tio|fazenda|n[úu]cleo rural|col[ôo]nia agr[íi]cola|setor habitacional|acampamento)\s+"
-           + _NOME_LOGRADOURO + r"\s*,?\s*(?:(?:n[º°o]?\.?\s*|n[úu]mero\s*)?(?:\d{1,6}[A-Za-z]?|s/?n)(?![\w/])|"
-           + _COMPONENTE + r"\s*" + _VALOR_COMP + r")" + _COMPONENTES + _CAUDA,
+           r"\b" + _LOGRADOURO + r"\s+" + _NOME_LOGRADOURO + r"\s*,?\s*(?:" + _NUMERO + r"|" + _COMPONENTE + r")"
+           + _COMPONENTES + _CAUDA,
            0.85, contexto=CTX_RESIDENCIA, janela=60, nome="endereco:logradouro"),
+    # Logradouro numerado ou com letra ("Rua 15, nº 230", "Rua A, 15", "Avenida T-9, 1220", "Rua 04,
+    # Lote 15"), seguido obrigatoriamente de número ou componente.
+    Padrao("ENDERECO",
+           r"\b(?:rua|r\.|avenida|av\.?|alameda|travessa|trav\.?|tv\.)\s+(?:\d{1,4}[A-Z]?|[A-Z]{1,2}(?:-?\d{1,4})?|"
+           r"[IVXL]{1,6})(?![\wÀ-ú])\s*,?\s*(?:" + _NUMERO + r"|" + _COMPONENTE + r")"
+           + _COMPONENTES + _CAUDA, 0.85, contexto=CTX_RESIDENCIA, janela=60, nome="endereco:numerado"),
+    # Logradouro sem número, quando há expressão de residência ("moro na Rua XV de Novembro, no
+    # centro de Curitiba").
+    Padrao("ENDERECO",
+           r"\b(?:moro|resido|reside|mora|moramos|residente|domiciliad[oa]|morador(?:a)?)\s+(?:em|n[oa]s?|à|a)\s+"
+           r"(?P<v>" + _LOGRADOURO + r"\s+" + _NOME_PROPRIO + _COMPONENTES + _CAUDA + r")", 0.85, camada=CONTEXTUAL,
+           grupo="v", nome="endereco:residencia"),
+    # Propriedade rural pelo nome, sem número ("Sítio Boa Esperança, zona rural de Caruaru/PE",
+    # "Fazenda Santa Rita, município de Sorriso/MT").
+    Padrao("ENDERECO",
+           r"\b" + _PROPRIEDADE_RURAL + r"\s+" + _NAO_LOCALIDADE + _NOME_PROPRIO + _COMPONENTES + _CAUDA,
+           0.8, contexto=CTX_RESIDENCIA, janela=60, nome="endereco:rural"),
+    # Localidade coletiva com expressão de residência ("residente no Povoado Bela Vista", "moro no
+    # Assentamento Santa Rita, lote 12", "Ramal do Cupuaçu, km 8").
+    Padrao("ENDERECO",
+           r"\b" + _LOCALIDADE_COLETIVA + r"\s+" + _NAO_LOCALIDADE + _NOME_PROPRIO + _COMPONENTES + _CAUDA,
+           0.8, contexto=CTX_RESIDENCIA, contexto_obrigatorio=True, janela=60, nome="endereco:localidade-rural"),
+    # Linha e lote (Rondônia e Norte), travessão e vicinal com número ("Linha 7, Lote 7, Gleba 11").
+    Padrao("ENDERECO",
+           r"\b(?:linha|travess[ãa]o|vicinal|lote\s+rural)\s+[A-Z]?\d{1,4}[A-Z]?\s*,?\s*" + _COMPONENTE
+           + _COMPONENTES + _CAUDA, 0.85, contexto=CTX_RESIDENCIA, janela=60, nome="endereco:linha"),
     # Endereçamento do DF: até duas siglas de setor seguidas de sigla, quadra ou conjunto e número.
     # A confiança é ajustada pelo número de componentes (ver ReconhecedorEndereco).
     Padrao("ENDERECO",
            rf"\b(?:(?:{_SIGLAS_DF})\s+){{0,2}}(?:{_SIGLAS_DF}|quadra|qd\.?|q\.|conjunto|conj\.?|cj\.?)\s*\d{{1,4}}[A-Z]?"
            r"(?:\s+(?:sul|norte|leste|oeste))?\b" + _COMPONENTES + _CAUDA,
            0.6, contexto=CTX_RESIDENCIA, janela=60, nome="endereco:df"),
-    # Áreas rurais: rodovia e quilômetro, com chácara, sítio ou lote ("DF-001, km 12, Chácara 5").
+    # Áreas rurais: rodovia federal ou estadual (27 UFs) e quilômetro, com chácara, sítio ou lote
+    # ("DF-001, km 12, Chácara 5", "PE-060, km 10").
     Padrao("ENDERECO",
-           r"\b(?:BR|DF|GO|MG|SP|RJ|BA|PR|SC|RS|MT|MS|TO)[-\s]?\d{3}\s*,?\s*km\s*\d{1,4}(?:[.,]\d)?"
-           r"(?:\s*,\s*(?:ch[áa]cara|s[íi]tio|fazenda|lote|n[úu]cleo|condom[íi]nio)[^\n,;]{0,40})*", 0.8,
-           contexto=CTX_RESIDENCIA, janela=60, nome="endereco:rodovia"),
+           r"\b(?:BR|" + "|".join(UFS) + r")[-\s]?\d{3}\s*,?\s*(?i:km)\s*\d{1,4}(?:[.,]\d)?"
+           r"(?:\s*,\s*(?i:ch[áa]cara|s[íi]tio|fazenda|lote|n[úu]cleo|condom[íi]nio)[^\n,;]{0,40})*", 0.8,
+           ignorar_caixa=False, contexto=CTX_RESIDENCIA, janela=60, nome="endereco:rodovia"),
     Padrao("ENDERECO",
-           r"\bkm\s*\d{1,4}(?:[.,]\d)?\s+d[ao]\s+(?:rodovia\s+)?(?:BR|DF|GO|MG|SP|RJ|BA)[-\s]?\d{3}"
+           r"\bkm\s*\d{1,4}(?:[.,]\d)?\s+d[ao]\s+(?:rodovia\s+)?(?-i:BR|" + "|".join(UFS) + r")[-\s]?\d{3}"
            r"(?:\s*[,\-–]\s*(?:ch[áa]cara|s[íi]tio|fazenda|lote|n[úu]cleo(?:\s+rural)?|condom[íi]nio)[^\n,;.]{0,40})*",
            0.8, contexto=CTX_RESIDENCIA, janela=60, nome="endereco:km-rodovia"),
 ]
 
 #: Componente com valor, usado para medir quão completo é um endereço do DF.
-_COMP_RE = re.compile(_COMPONENTE + r"\s*" + _VALOR_COMP, re.IGNORECASE)
+_COMP_RE = re.compile(_COMPONENTE, re.IGNORECASE)
+_CTX_RESIDENCIA = re.compile(r"\b(?:" + "|".join(CTX_RESIDENCIA) + r")\b", re.IGNORECASE)
+_ORGAO_ANTES = re.compile(r"\b(?:secretaria|minist[ée]rio|procuradoria|delegacia|receita|conselho|tribunal|"
+                          r"superintend[êe]ncia|subsecretaria|ag[êe]ncia)\b[^.\n;]{0,40}?\bd[aeo]\s*$", re.IGNORECASE)
 
 #: Regiões administrativas do Distrito Federal e bairros de Brasília.
 REGIOES_DF = (
@@ -114,6 +200,14 @@ class ReconhecedorEndereco(ReconhecedorPadroes):
         """Achados de todas as regras, com a confiança do endereçamento do DF ajustada."""
         saida = []
         for d in super().detectar(texto):
+            # "Sítio Novo", "Fazenda Rio Grande", "Estância Velha": o nome do próprio município, citado
+            # sem expressão de residência, fica a cargo do reconhecedor de localidades.
+            if (d.origem == "endereco:rural" and municipio_em(texto, d.inicio) == d.fim
+                    and not _CTX_RESIDENCIA.search(texto, max(0, d.inicio - 60), d.inicio)):
+                continue
+            # "Secretaria de Estado de Fazenda …", "Ministério da Fazenda": órgão, não propriedade.
+            if d.origem == "endereco:rural" and _ORGAO_ANTES.search(texto, max(0, d.inicio - 60), d.inicio):
+                continue
             if d.origem == "endereco:df":
                 trecho = texto[d.inicio:d.fim]
                 componentes = len(_COMP_RE.findall(trecho))
@@ -133,12 +227,71 @@ _LOCALIDADES = re.compile(
 )
 
 
-class ReconhecedorLocalidade:
-    """Cidade ou região administrativa citada no texto.
+#: Expressão de residência imediatamente antes da localidade ("moro em", "residente no").
+_RESIDE = re.compile(r"\b(?:resido|moro|reside|mora|moramos|residente|domiciliad[oa]|morador(?:a)?)"
+                     r"(?:\s+(?:em|no|na|n[oa]s|d[aoe]))+\s*$", re.IGNORECASE)
+#: Designação explícita de município antes do nome ("município de", "cidade de").
+_MUNICIPIO_ANTES = re.compile(r"\b(?:munic[íi]pio|cidade|prefeitura\s+municipal)\s+d[eo]\s*$", re.IGNORECASE)
+#: UF logo após o nome ("/GO", " - SP", " (PE)", ", MG").
+_UF_DEPOIS = re.compile(rf"\s*(?:[-/–,]\s*|\(\s*)(?P<uf>{_UF})\)?(?![\w])")
+#: Palavra para a busca de municípios: letras, apóstrofo e hífen ("Olho d'Água", "Embu-Guaçu").
+_PALAVRA = re.compile(r"[\wÀ-ú'’-]+")
+#: Municípios cujo nome é também palavra comum; isolados (sem UF nem "município de"), não são sinalizados.
+_MUNICIPIOS_COMUNS = frozenset(dobrar(p) for p in (
+    "Alegre", "Alvorada", "Amparo", "Aurora", "Bandeirantes", "Barra", "Belém", "Bonito", "Central", "Colorado",
+    "Cruz", "Esperança", "Estrela", "Floresta", "Formosa", "Glória", "Guarani", "Jardim", "Lagoa", "Liberdade",
+    "Mirante", "Natal", "Nova", "Palmas", "Palmeira", "Paraíso", "Pedra", "Planalto", "Porto", "Primavera",
+    "Progresso", "Recreio", "Redenção", "Santana", "Saudade", "Serra", "Sossego", "Triunfo", "União", "Vale",
+    "Vitória", "Campos", "Ouro", "Prata", "Cristal", "Fortaleza", "Itu", "Socorro", "Salvador",
+))
 
-    Isolada, é quase-identificador (``LOCALIDADE``), sinalizado para revisão e tarjado apenas no
-    perfil de proteção máxima. Precedida de expressão de residência ("resido em Taguatinga"), é
-    local de moradia e recebe o tipo ``ENDERECO``.
+
+@cache
+def municipios() -> dict[str, frozenset[str]]:
+    """Municípios brasileiros (lista do IBGE) pelo nome em minúsculas e sem acentos, com as UFs."""
+    texto = resources.files("themis_lgpd.dados").joinpath("municipios.txt").read_text(encoding="utf-8")
+    por_nome: dict[str, set[str]] = {}
+    for linha in texto.splitlines():
+        if linha and not linha.startswith("#"):
+            nome, uf = linha.rsplit("|", 1)
+            por_nome.setdefault(" ".join(dobrar(nome).split()), set()).add(uf)
+    return {nome: frozenset(ufs) for nome, ufs in por_nome.items()}
+
+
+@cache
+def _palavras_por_inicio() -> dict[str, int]:
+    """Para cada primeira palavra de nome de município, o maior número de palavras dos nomes que ela inicia."""
+    indice: dict[str, int] = {}
+    for nome in municipios():
+        partes = nome.split()
+        indice[partes[0]] = max(indice.get(partes[0], 0), len(partes))
+    return indice
+
+
+@cache
+def _ambiguos() -> frozenset[str]:
+    """Palavras isoladas que também são prenome, sobrenome ou palavra comum."""
+    from .nomes import NAO_INICIAM_NOME, PALAVRAS_COMUNS, ambiguos, prenomes, sobrenomes
+
+    return frozenset(prenomes() | sobrenomes() | ambiguos() | PALAVRAS_COMUNS | NAO_INICIAM_NOME | _MUNICIPIOS_COMUNS)
+
+
+def _inicio_de_frase(texto: str, inicio: int) -> bool:
+    anterior = texto[:inicio].rstrip()
+    return not anterior or anterior[-1] in ".!?:;\n"
+
+
+class ReconhecedorLocalidade:
+    """Município brasileiro ou região administrativa do DF citado no texto.
+
+    Isolado, é quase-identificador (``LOCALIDADE``), sinalizado para revisão e tarjado apenas no
+    perfil de proteção máxima. Precedido de expressão de residência ("resido em Taguatinga", "moro em
+    campinas"), é local de moradia e recebe o tipo ``ENDERECO``.
+
+    Municípios são reconhecidos pela lista do IBGE nas formas "Cidade/UF", "Cidade - UF",
+    "Cidade (UF)", "município de Cidade" e após expressão de residência (inclusive em minúsculas). A
+    menção isolada só é sinalizada quando o nome começa com maiúscula, não abre a frase e não é
+    ambíguo (nomes compostos, ou palavra que não seja também prenome, sobrenome ou palavra comum).
     """
 
     nome = "localidade"
@@ -151,12 +304,78 @@ class ReconhecedorLocalidade:
                 saida.append(Deteccao(m.start(), m.end(), "ENDERECO", 0.75, "localidade:residencia"))
             else:
                 saida.append(Deteccao(m.start(), m.end(), "LOCALIDADE", 0.6, self.nome))
+        return saida + self._municipios(texto)
+
+    def _municipios(self, texto: str) -> list[Deteccao]:
+        palavras = list(_PALAVRA.finditer(texto))
+        saida: list[Deteccao] = []
+        i = 0
+        while i < len(palavras):
+            achado = _municipio_mais_longo(texto, palavras, i)
+            if achado is None:
+                i += 1
+                continue
+            fim, chave, n = achado
+            deteccao = self._classificar(texto, palavras[i].start(), fim, chave, n, municipios()[chave])
+            if deteccao is not None:
+                saida.append(deteccao)
+            i += n
         return saida
 
+    @staticmethod
+    def _classificar(texto: str, inicio: int, fim: int, chave: str, palavras: int,
+                     ufs: frozenset[str]) -> Deteccao | None:
+        janela = max(0, inicio - 40)
+        uf = _UF_DEPOIS.match(texto, fim)
+        fim_com_uf = uf.end() if uf else fim
+        # "Paraná", "Amapá", "São Paulo", "Goiás": sem UF, pode ser o estado, que não identifica ninguém.
+        estado = uf is None and chave in _NOMES_ESTADOS
+        if _RESIDE.search(texto, janela, inicio):
+            if estado:
+                return Deteccao(inicio, fim, "LOCALIDADE", 0.6, "localidade:residencia-estado", CONTEXTUAL)
+            return Deteccao(inicio, fim_com_uf, "ENDERECO", 0.75, "localidade:residencia-municipio", CONTEXTUAL)
+        maiuscula = texto[inicio].isupper()
+        if uf and maiuscula:
+            confere = uf.group("uf") in ufs
+            return Deteccao(inicio, fim_com_uf, "LOCALIDADE", 0.85 if confere else 0.65, "localidade:municipio-uf",
+                            validado=confere)
+        if _MUNICIPIO_ANTES.search(texto, janela, inicio):
+            return Deteccao(inicio, fim_com_uf, "LOCALIDADE", 0.8, "localidade:municipio", CONTEXTUAL)
+        ambiguo = estado or (palavras == 1 and (chave in _ambiguos() or len(chave) < 4))
+        # Parte do nome de um logradouro ("Rua dos Andradas", "Avenida Rui Barbosa") não é menção à cidade.
+        if maiuscula and not ambiguo and not _inicio_de_frase(texto, inicio) and not _LOGRADOURO_ANTES.search(
+                texto, janela, inicio):
+            return Deteccao(inicio, fim, "LOCALIDADE", 0.6, "localidade:municipio-isolado")
+        return None
 
-#: Expressão de residência imediatamente antes da localidade ("moro em", "residente no").
-_RESIDE = re.compile(r"\b(?:resido|moro|reside|mora|moramos|residente|domiciliad[oa]|morador(?:a)?)"
-                     r"(?:\s+(?:em|no|na|n[oa]s|d[aoe]))+\s*$", re.IGNORECASE)
+
+_NOMES_ESTADOS = frozenset(dobrar(e) for e in ESTADOS)
+#: Tipo de logradouro imediatamente antes de um nome ("Rua dos", "Avenida").
+_LOGRADOURO_ANTES = re.compile(r"\b" + _LOGRADOURO + r"(?:\s+d[aeo]s?)?\s*$", re.IGNORECASE)
+
+
+def _municipio_mais_longo(texto: str, palavras: list, i: int) -> tuple[int, str, int] | None:
+    """Município mais longo que começa na palavra ``i``: ``(fim, nome normalizado, nº de palavras)``."""
+    tabela = municipios()
+    maximo = _palavras_por_inicio().get(dobrar(palavras[i].group()), 0)
+    for n in range(min(maximo, len(palavras) - i), 0, -1):
+        trecho = palavras[i:i + n]
+        # As palavras do nome precisam estar separadas apenas por espaços.
+        if any(texto[a.end():b.start()].strip() for a, b in zip(trecho, trecho[1:])):
+            continue
+        chave = " ".join(dobrar(p.group()) for p in trecho)
+        if chave in tabela:
+            return trecho[-1].end(), chave, n
+    return None
+
+
+def municipio_em(texto: str, inicio: int) -> int | None:
+    """Fim do nome de município que começa exatamente em ``inicio``, ou ``None``."""
+    palavras = list(_PALAVRA.finditer(texto, inicio, min(len(texto), inicio + 80)))
+    if not palavras or palavras[0].start() != inicio:
+        return None
+    achado = _municipio_mais_longo(texto, palavras, 0)
+    return achado[0] if achado else None
 
 
 def reconhecedores():

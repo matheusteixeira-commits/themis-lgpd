@@ -8,6 +8,11 @@ Métricas calculadas:
   estrito* exige toda letra e todo dígito cobertos.
 * **Documentos com vazamento**: fração dos pedidos com dado pessoal em que ao menos uma entidade
   ficou visível. É a métrica mais próxima do risco real de publicação.
+* **Entidades não tarjadas, por causa**: as que ficaram visíveis se dividem em *sinalizadas para
+  revisão* (detectadas, mas que o perfil manda revisar em vez de tarjar — o revisor as vê
+  destacadas) e *não detectadas* (nenhum aviso: o risco que depende só da atenção humana).
+
+Para ajustar regras use a partição ``train``; a ``test`` fica reservada para os números publicados.
 * **Triagem** (o pedido contém dado pessoal?): precisão, recall e F1, comparáveis aos publicados
   para o BR-Access-NER no mesmo conjunto.
 * **Tarja fora do gabarito**: fração dos caracteres tarjados que não pertencem a nenhuma entidade
@@ -43,7 +48,7 @@ CACHE = Path(__file__).parent / ".cache"
 
 
 def carregar(split: str) -> list[dict]:
-    """Documentos da partição ``split`` (``train``, ``validation`` ou ``test``), com cache local."""
+    """Documentos da partição ``split`` (``train`` ou ``test``), com cache local."""
     CACHE.mkdir(exist_ok=True)
     arq = CACHE / f"esic-ner-{split}.jsonl"
     if not arq.exists():
@@ -93,6 +98,7 @@ def metricas(dados: list[dict], trechos: list[list[tuple[int, int, str]]], durac
         ``(métricas, vazamentos)``; cada vazamento é ``(rótulo, valor, contexto)``.
     """
     total, protegidas, estritas = Counter(), Counter(), Counter()
+    sinalizadas, nao_detectadas = Counter(), Counter()
     vp = fp = fn = 0
     docs_pii = docs_vazados = 0
     chars_tarjados = chars_fora = 0
@@ -123,7 +129,12 @@ def metricas(dados: list[dict], trechos: list[list[tuple[int, int, str]]], durac
                 estritas[e["type"]] += 1
             if all(coberto(texto, a, b, alvo) for a, b in occ):
                 protegidas[e["type"]] += 1
-            elif e["type"] not in SO_ALERTA:
+                continue
+            if all(coberto(texto, a, b, revisao) for a, b in occ):
+                sinalizadas[e["type"]] += 1
+            else:
+                nao_detectadas[e["type"]] += 1
+            if e["type"] not in SO_ALERTA:
                 vazou = True
                 erros.append((e["type"], e["value"], texto[max(0, occ[0][0] - 50): occ[0][1] + 50]))
         tem_pii, previu = bool(pessoais), any(mascara)
@@ -147,6 +158,11 @@ def metricas(dados: list[dict], trechos: list[list[tuple[int, int, str]]], durac
         "recall_estrito": round(sum(estritas.values()) / max(1, sum(total.values())), 4),
         "recall_estrito_por_rotulo": {k: round(estritas[k] / total[k], 4) for k in sorted(total)},
         "entidades_por_rotulo": dict(sorted(total.items())),
+        "nao_tarjadas": {
+            "sinalizadas_para_revisao": sum(sinalizadas.values()), "nao_detectadas": sum(nao_detectadas.values()),
+            "por_rotulo": {k: {"sinalizadas": sinalizadas[k], "nao_detectadas": nao_detectadas[k]}
+                           for k in sorted(set(sinalizadas) | set(nao_detectadas))},
+        },
         "documentos_com_vazamento": round(docs_vazados / max(1, docs_pii), 4),
         "triagem": {"precisao": round(precisao, 4), "recall": round(recall, 4), "f1": round(f1, 4)},
         "tarja_fora_do_gabarito": round(chars_fora / max(1, chars_tarjados), 4),
@@ -180,7 +196,7 @@ def main() -> None:
     resultado["dataset"] = f"EliMC/esic-ner ({args.split})"
     print(json.dumps(resultado, ensure_ascii=False, indent=2))
     if args.json:
-        args.json.write_text(json.dumps(resultado, ensure_ascii=False, indent=2), encoding="utf-8")
+        args.json.write_text(json.dumps(resultado, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     if args.erros:
         por_tipo = defaultdict(list)
         for t, v, ctx in erros:

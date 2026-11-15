@@ -82,15 +82,36 @@ TITULOS = re.compile(
 
 #: Palavras que, imediatamente antes de um nome próprio, indicam lei, logradouro ou instituição
 #: ("Lei Maria da Penha", "Escola Paulo Freire"): o nome homenageia alguém, não identifica o titular
-#: dos dados.
+#: dos dados. Entre a palavra e o nome pode haver um título ou patente do homenageado ("Rua Professora
+#: Maria Clara", "Avenida Governador Valadares", "Escola Estadual Coronel Antônio Pinheiro").
 _EXCECOES_ANTES = re.compile(
-    r"(?:\blei|\brua|\bavenida|\bav\.|\bpra[çc]a|\bescola|\bcol[ée]gio|\bhospital|\binstituto|\bfunda[çc][ãa]o|"
+    r"(?:\blei|\brua|\bavenida|\bav\.|\bpra[çc]a|\balameda|\btravessa|\blargo|\bestrada|\bescola|\bcol[ée]gio|"
+    r"\bhospital|\binstituto|\bfunda[çc][ãa]o|"
     r"\bedif[íi]cio|\bed\.|\bcentro|\bparque|\best[áa]dio|\bgin[áa]sio|\bviaduto|\bponte|\brodovia|\baeroporto|"
     r"\buniversidade|\bfaculdade|\bteatro|\bbiblioteca|\bmuseu|\bmemorial|\bpr[êe]mio|"
     r"\bprograma|\bprojeto|\bcondom[íi]nio|\bresidencial|\bvila|\bjardim|\bbairro|\bsetor|\bclube|"
-    r"\bigreja|\bpar[óo]quia|\bcreche|\bhemocentro|\bcomplexo|\bterminal|\besta[çc][ãa]o)\s*$",
+    r"\bigreja|\bpar[óo]quia|\bcreche|\bhemocentro|\bcomplexo|\bterminal|\besta[çc][ãa]o)"
+    r"(?:\s+(?:estadual|municipal|federal))?"
+    r"(?:\s+(?:professora?|prof[aª]?\.?|doutora?|dra?\.|coronel|cel\.|general|marechal|major|capit[ãa]o|tenente|"
+    r"almirante|brigadeiro|sargento|padre|pe\.|frei|irm[ãa]|monsenhor|c[ôo]nego|bispo|dom|dona|deputad[oa]|"
+    r"senador[a]?|governador[a]?|prefeit[oa]|presidente|desembargador[a]?|ministr[oa]|vereador[a]?|"
+    r"engenheir[oa]|maestro|bar[ãa]o|visconde|comendador[a]?|juiz|ju[íi]za))?\s*$",
     re.IGNORECASE,
 )
+#: Designação institucional de município antes do nome ("Prefeitura Municipal de", "Secretaria de
+#: Obras de", "Distrito Industrial de", "Comarca de"): o nome seguinte, se for de município da lista do
+#: IBGE ("Dom Eliseu", "Vitória do Jari", "Paulo Afonso"), é a cidade, não uma pessoa.
+_MUNICIPIO_INSTITUCIONAL = re.compile(
+    r"\b(?:prefeitura(?:\s+municipal)?|c[âa]mara\s+(?:municipal|de\s+vereadores)|munic[íi]pio|cidade|comarca|"
+    r"distrito\s+industrial|secretaria(?:\s+municipal)?(?:\s+d[eao]s?\s+[\wÀ-ú]+(?:\s+e\s+[\wÀ-ú]+)?)?|"
+    r"hospital(?:\s+(?:regional|municipal|geral))?|f[óo]rum|vara(?:\s+[\wÀ-ú]+){0,3}|regi[ãa]o|zona\s+rural|"
+    r"aeroporto|rodovi[áa]ria|campus)\s+d[eoa]\s*$",
+    re.IGNORECASE,
+)
+#: Título que inicia nomes de municípios ("Dom Eliseu", "Padre Bernardo", "Governador Valadares").
+_TITULO_ANTES = re.compile(r"\b(?:dom|dona|padre|frei|presidente|governador|senador|deputado|professor|coronel|"
+                           r"general|marechal|major|capit[ãa]o|tenente|doutor|bar[ãa]o|visconde|conde|almirante|"
+                           r"ministro|monsenhor|bispo)\s+$", re.IGNORECASE)
 #: "São Paulo", "Santa Maria": topônimos e santos. Sensível a maiúsculas, para não confundir com o
 #: verbo "são".
 _SANTOS_ANTES = re.compile(r"\b(?:São|Santa|Santo|SÃO|SANTA|SANTO)\s*$")
@@ -124,9 +145,14 @@ def _lista(nome: str) -> frozenset[str]:
     return frozenset(linha.strip() for linha in texto.splitlines() if linha.strip() and not linha.startswith("#"))
 
 
+@cache
 def prenomes() -> frozenset[str]:
-    """Prenomes brasileiros frequentes, sem acentos e em minúsculas."""
-    return _lista("prenomes.txt")
+    """Prenomes brasileiros frequentes, sem acentos e em minúsculas.
+
+    Une a lista geral à dos prenomes mais frequentes por sexo, década e UF no Censo 2010 do IBGE
+    (``prenomes_ibge.txt``, gerada por ``scripts/gerar_prenomes_ibge.py``).
+    """
+    return _lista("prenomes.txt") | _lista("prenomes_ibge.txt")
 
 
 def sobrenomes() -> frozenset[str]:
@@ -157,13 +183,71 @@ def _so_espaco(texto: str, a: int, b: int) -> bool:
     return 0 < len(trecho) <= 3 and trecho.strip(" \t") == ""
 
 
+@cache
+def _palavras_gramaticais() -> frozenset[str]:
+    """Palavras gramaticais do português (lista do spaCy), sem acentos."""
+    from spacy.lang.pt.stop_words import STOP_WORDS
+
+    return frozenset(dobrar(p) for p in STOP_WORDS)
+
+
+#: Terminações de palavras comuns — substantivos abstratos, particípios, gerúndios, infinitivos,
+#: profissões — que não completam um nome em CAIXA ALTA ("SOLICITAÇÃO", "INFORMOU", "PROCURADORA").
+_SUFIXOS_NAO_NOME = ("cao", "coes", "mente", "dade", "dades", "encia", "ancia", "ismo", "agem", "avel", "ivel",
+                     "dor", "dora", "dores", "doras", "ista", "istas", "ente", "entes", "ante", "antes", "ado", "ados",
+                     "ada", "adas", "ido", "idos", "ida", "idas", "ando", "endo", "indo", "aram", "eram", "iram",
+                     "ou", "ar", "ir")
+#: Verbos e qualificações que costumam seguir o nome em requerimentos ("FULANO SOLICITA", "FULANA
+#: BRASILEIRA CASADA").
+_NAO_COMPLETAM_NOME = frozenset({
+    "solicita", "requer", "informa", "declara", "pede", "encaminha", "reside", "brasileiro", "brasileira",
+    "casado", "casada", "solteiro", "solteira", "divorciado", "divorciada", "viuvo", "viuva", "portador",
+    "portadora", "inscrito", "inscrita", "nascido", "nascida", "esposa", "esposo", "marido", "conjuge",
+    "companheiro", "companheira", "menor", "maior", "cpf", "rg", "oab", "matricula", "siape",
+})
+
+
+def _desconhecida_pode_integrar(dob: str) -> bool:
+    return (len(dob) >= 3 and dob.isalpha() and dob not in _palavras_gramaticais() and dob not in PALAVRAS_COMUNS
+            and dob not in NAO_INICIAM_NOME and dob not in _NAO_COMPLETAM_NOME and not dob.endswith(_SUFIXOS_NAO_NOME))
+
+
+def _desconhecida_no_nome(texto: str, toks, j: int, pn: frozenset[str], sn: frozenset[str]) -> bool:
+    """Indica se a palavra ``j``, em CAIXA ALTA e fora das listas, ainda integra o nome em curso.
+
+    Integra quando fica entre palavras de nome ("RAIMUNDA NONATA BEZERRA", "WELLINGTON JHONATAN DE
+    SOUZA") ou quando o fecha: vem seguida de pontuação, quebra de linha, fim do texto, palavra em
+    minúsculas ou palavra gramatical ("BENEDITA FERREIRA LINS,", "JOSÉ DA SILVA TAVORA FOI"). Não
+    integra se for palavra gramatical, comum ou com terminação típica de substantivo ou verbo.
+    """
+    if not _desconhecida_pode_integrar(dobrar(toks[j][2])):
+        return False
+    k, desconhecidas = j + 1, 0
+    while k < len(toks) and k - j <= 4 and _so_espaco(texto, toks[k - 1][1], toks[k][0]):
+        tok, dob = toks[k][2], dobrar(toks[k][2])
+        if dob in CONECTORES:
+            k += 1
+            continue
+        if dob in pn or dob in sn:
+            return True
+        if not (tok.isupper() and desconhecidas == 0 and _desconhecida_pode_integrar(dob)):
+            break
+        desconhecidas += 1
+        k += 1
+    if j + 1 >= len(toks) or not _so_espaco(texto, toks[j][1], toks[j + 1][0]):
+        return True
+    seguinte = toks[j + 1][2]
+    return not seguinte[:1].isupper() or (dobrar(seguinte) in _palavras_gramaticais()
+                                          and dobrar(seguinte) not in CONECTORES)
+
+
 def _estender(texto: str, toks, i: int, modo_caixa: bool) -> int:
     """Estende um nome a partir do token ``i``, já aceito como início.
 
     Acrescenta palavras enquanto forem prenomes ou sobrenomes conhecidos — ou, com ``modo_caixa``,
     palavras capitalizadas — admitindo até dois conectores seguidos e no máximo nove palavras.
-    Em texto todo em CAIXA ALTA, em que qualquer palavra parece nome próprio, só nomes conhecidos
-    são aceitos.
+    Em texto todo em CAIXA ALTA, em que qualquer palavra parece nome próprio, uma palavra fora das
+    listas só é aceita nas condições de :func:`_desconhecida_no_nome`.
 
     Returns:
         Índice do último token do nome.
@@ -186,7 +270,7 @@ def _estender(texto: str, toks, i: int, modo_caixa: bool) -> int:
         ultimo_conector = ""
         nomeavel = dob in pn or dob in sn
         if modo_caixa and tok.isupper() and len(tok) > 1:
-            ok = nomeavel and dob not in NAO_INICIAM_NOME
+            ok = (nomeavel and dob not in NAO_INICIAM_NOME) or _desconhecida_no_nome(texto, toks, j, pn, sn)
         elif modo_caixa:
             ok = (_capitalizado(tok) and dob not in NAO_INICIAM_NOME and dob not in CONECTORES) or nomeavel
         else:
@@ -204,11 +288,24 @@ def _estender(texto: str, toks, i: int, modo_caixa: bool) -> int:
 def contexto_nao_pessoal(texto: str, inicio: int) -> bool:
     """Indica se a palavra em ``inicio`` integra o nome de um lugar, instituição ou norma.
 
-    Exemplos: "São Paulo", "Rua Paulo Freire", "Escola Maria Souza", "Lei Maria da Penha". A regra é a
-    mesma no reconhecimento de nomes, na propagação de valores tarjados e na verificação final.
+    Exemplos: "São Paulo", "Rua Paulo Freire", "Rua Professora Maria Clara", "Escola Maria Souza", "Lei
+    Maria da Penha", "Prefeitura Municipal de Dom Eliseu". A regra é a mesma no reconhecimento de
+    nomes, na propagação de valores tarjados e na verificação final.
     """
-    janela = max(0, inicio - 25)
-    return bool(_EXCECOES_ANTES.search(texto, janela, inicio) or _SANTOS_ANTES.search(texto, janela, inicio))
+    janela = max(0, inicio - 45)
+    if _EXCECOES_ANTES.search(texto, janela, inicio) or _SANTOS_ANTES.search(texto, janela, inicio):
+        return True
+    from .localizacao import municipio_em
+
+    # O nome do município pode começar por um título que o reconhecedor de nomes não inclui no
+    # trecho ("Secretaria de Obras de Dom Expedito Lopes", "Prefeitura de Governador Valadares").
+    titulo = _TITULO_ANTES.search(texto, max(0, inicio - 15), inicio)
+    for ini in ([titulo.start()] if titulo else []) + [inicio]:
+        if _MUNICIPIO_INSTITUCIONAL.search(texto, max(0, ini - 60), ini):
+            fim = municipio_em(texto, ini)
+            if fim is not None and fim > inicio:
+                return True
+    return False
 
 
 class ReconhecedorNomesLista:

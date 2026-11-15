@@ -92,12 +92,50 @@ PADROES: list[Padrao] = [
     # ---------------- Certidão civil: matrícula nacional de 32 dígitos (Provimento CNJ nº 3/2009)
     Padrao("CERTIDAO", ANTES_NUM + r"\d{6}\s?\d{2}\s?\d{2}\s?\d{4}\s?\d\s?\d{5}\s?\d{3}\s?\d{7}[-\s]?\d{2}" + DEPOIS_NUM,
            0.9),
-    # ---------------- Matrícula funcional / SIAPE
+    # ---------------- Matrícula funcional: SIAPE (União), MASP (MG), ID funcional (RJ, RS), registro e
+    # identidade funcional dos demais entes.
     Padrao("MATRICULA",
-           r"(?:matr[íi]cula(?:\s+(?:funcional|gdf|siape|do servidor|da servidora))?|\bmat\.|\bsiape)" + _SEP + _NUM +
+           r"(?:matr[íi]cula(?:\s+(?:funcional|gdf|siape|do servidor|da servidora))?|\bmat\.|\bsiape|\bMASP\b|"
+           r"\bID\s+funcional|\b(?:registro|identidade|identifica[çc][ãa]o)\s+funcional)" + _SEP + _NUM +
            _SEP + r"(?P<v>[A-Z]?\d{1,3}(?:\.\d{3}){1,2}(?:\s?-\s?[\dXx])?|[A-Z]?\d{4,10}(?:\s?-\s?[\dXx]|[A-Z])?)"
            + DEPOIS_NUM,
            0.9, camada=CONTEXTUAL, grupo="v"),
+    # ---------------- Número de benefício do INSS (NB), com dez dígitos.
+    Padrao("BENEFICIO",
+           r"(?:(?-i:\bNB\b)|\bn[úu]mero\s+do\s+benef[íi]cio|\bbenef[íi]cio(?:\s+(?:previdenci[áa]rio|assistencial|"
+           r"do\s+INSS|de\s+presta[çc][ãa]o\s+continuada))?(?=\s*(?:NB|n[º°o]|n[úu]mero|[:\-]|\d)))" + _SEP + _NUM +
+           _SEP + r"(?P<v>\d{3}\.?\d{3}\.?\d{3}-?\d)(?!\d)", 0.9, camada=CONTEXTUAL, grupo="v", nome="beneficio:nb"),
+    # ---------------- Registros de saúde: prontuário, declaração de nascido vivo (DNV), autorização de
+    # internação hospitalar (AIH) e cartão de vacinação.
+    Padrao("REGISTRO_SAUDE",
+           r"(?:\bprontu[áa]rio(?:\s+m[ée]dico)?|(?-i:\bDNV\b)|declara[çc][ãa]o\s+de\s+nascido\s+vivo|(?-i:\bAIH\b)|"
+           r"autoriza[çc][ãa]o\s+de\s+interna[çc][ãa]o(?:\s+hospitalar)?|cart[ãa]o\s+de\s+vacina(?:[çc][ãa]o)?)"
+           + _SEP + _NUM + _SEP + r"(?P<v>\d[\d.\-/]{2,20}\d)(?!\d)", 0.9, camada=CONTEXTUAL, grupo="v",
+           nome="saude:registro"),
+    # ---------------- Matrícula escolar e registro acadêmico (RA).
+    Padrao("MATRICULA_ESCOLAR",
+           r"(?:(?-i:\bR\.?A\.?)(?=\s*(?:n[º°o]|[:\-]|\d))|\bregistro\s+acad[êe]mico|\bmatr[íi]cula\s+(?:escolar|do\s+alun[oa]|"
+           r"da\s+alun[oa]|acad[êe]mica|do\s+estudante)|\bc[óo]digo\s+do\s+alun[oa])" + _SEP + _NUM + _SEP +
+           r"(?P<v>[A-Z]?\d{4,14}(?:-?[\dX])?)(?!\d)", 0.9, camada=CONTEXTUAL, grupo="v", nome="escolar:ra"),
+    # ---------------- Inscrição imobiliária (IPTU), índice cadastral e cadastro de contribuinte municipal.
+    Padrao("INSCRICAO_IMOVEL",
+           r"(?:\binscri[çc][ãa]o\s+(?:imobili[áa]ria|cadastral|do\s+im[óo]vel)|\b[íi]ndice\s+cadastral|(?-i:\bCCM\b)|"
+           r"\bn[úu]mero\s+de\s+contribuinte|\bcadastro\s+imobili[áa]rio|(?-i:\bIPTU\b))[^\d\n;]{0,25}?"
+           r"(?P<v>\d[\d.\-/]{4,24}\d)(?!\d)", 0.85, camada=CONTEXTUAL, grupo="v", nome="imovel:inscricao"),
+    # ---------------- Inscrição estadual abreviada ("IE 110.042.490.114"); por extenso, ver
+    # "documento:contexto".
+    Padrao("DOCUMENTO", r"(?-i:\bI\.?E\.?)" + _SEP + _NUM + _SEP + r"(?P<v>\d[\d.\-/]{6,18}\d)(?!\d)", 0.85,
+           camada=CONTEXTUAL, grupo="v", nome="documento:ie"),
+    # ---------------- RG com a palavra-chave depois do número ("12.345.678-9 (identidade)").
+    Padrao("RG", ANTES_NUM + r"\d{1,2}\.\d{3}\.\d{3}\s?-\s?[\dXx]" + DEPOIS_NUM, 0.85,
+           contexto=(r"rg", r"identidade", r"ssp", r"c[ée]dula"), contexto_obrigatorio=True, nome="rg:contexto-depois"),
+    # ---------------- Registro em cadastros profissionais não vinculados a conselho.
+    Padrao("REGISTRO_PROFISSIONAL", r"(?-i:\b(?:RNTRC|CADASTUR))" + _SEP + _NUM + _SEP + r"(?P<v>\d[\d.\-/]{4,16}\d)",
+           0.9, camada=CONTEXTUAL, grupo="v", nome="registro:cadastro"),
+    # ---------------- Certidão no formato antigo: número do termo, com livro e folha por perto.
+    Padrao("CERTIDAO", r"\btermo\s*(?:n[º°o]?\.?\s*)?(?P<v>\d[\d.]{1,9}\d|\d)(?![\d])", 0.85,
+           contexto=(r"livro", r"folhas?", r"fls?\."), contexto_obrigatorio=True, janela=60, camada=CONTEXTUAL,
+           grupo="v", nome="certidao:termo"),
     # ---------------- Registro em conselho profissional (OAB, CRM, CREA, CAU…): sigla e número, em
     # qualquer ordem. Siglas em maiúsculas, para não casar com palavras comuns. A sigla pode trazer
     # a UF ("OAB/SP") ou o número da região ("CRN-3", "CRP-06"), que não é o número do registro.

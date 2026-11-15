@@ -10,9 +10,10 @@ local.
 
 O Themis LGPD identifica e remove dados pessoais de textos, PDFs, documentos Word, planilhas e
 imagens — nomes, CPF, CNPJ (inclusive o alfanumérico), RG, CNH, PIS, título de eleitor, Cartão SUS,
-telefones, e-mails, endereços (inclusive o endereçamento do Distrito Federal), dados bancários,
-processos e dados pessoais sensíveis — e gera o relatório de tarjamento com a base legal de cada
-tarja, para acompanhar a resposta a pedidos de acesso à informação.
+benefício do INSS, RENAVAM, chassi, CAR, telefones, e-mails, endereços de todo o país (urbanos, rurais,
+rodovias das 27 UFs e o endereçamento do Distrito Federal), municípios, dados bancários, processos dos
+sistemas federais e estaduais e dados pessoais sensíveis — e gera o relatório de tarjamento com a base
+legal de cada tarja, para acompanhar a resposta a pedidos de acesso à informação.
 
 O Presidio fornece o motor de análise (registro de reconhecedores, motor spaCy, reforço de confiança
 por contexto, explicação das decisões) e o motor de substituição. O Themis acrescenta reconhecedores
@@ -141,19 +142,23 @@ Regras por categoria e catálogo de tipos: [docs/TIPOS_DE_DADOS.md](docs/TIPOS_D
 
 | Conjunto | Métrica | Themis | Presidio puro (pt) |
 |---|---|---|---|
-| esic-ner (975 pedidos, CC BY 4.0) | Entidades pessoais tarjadas | **94,5%** | 53,3% |
+| esic-ner (975 pedidos, CC BY 4.0) | Entidades pessoais tarjadas | **94,6%** | 53,3% |
 | | Nomes / documentos pessoais tarjados | **100% / 100%** | 98,9% / 7,9% |
-| | Pedidos com algum vazamento | **10,5%** | 93,3% |
-| | Triagem "contém dado pessoal?" (F1) | **0,944** | 0,733 |
+| | Pedidos com algum vazamento | **10,3%** | 93,3% |
+| | Triagem "contém dado pessoal?" (F1) | **0,945** | 0,733 |
 | | Tarja fora do gabarito (excesso) | **5,7%** | 30,8% |
 | Sintético (1.000 documentos) | Identificadores tarjados | **99,6%** | 57,7% |
 | | Documentos com vazamento | **3,3%** | 99,8% |
+| Nacional (1.080 documentos, 27 UFs) | Endereços e identificadores tarjados (validação) | **100%** | — |
+| | Textos públicos sem nenhuma tarja | **100%** | — |
 | Casos difíceis (1.000 casos) | Casos com identificador direto tarjados | **100%** | — |
 
 "Presidio puro" é o Presidio 2.2.366 configurado para português com o modelo `pt_core_news_lg` e os
 reconhecedores habilitados por padrão. No esic-ner, a maior parte do que não é tarjado são termos de
 saúde em pedidos estatísticos, que o perfil `lai` sinaliza para revisão em vez de tarjar. No conjunto
-sintético, todos os vazamentos ocorrem na variante com ruído de OCR simulado. Tempo médio: cerca de
+sintético, todos os vazamentos ocorrem na variante com ruído de OCR simulado. O conjunto nacional,
+gerado pelos autores, mede endereços e identificadores das 27 UFs e, em textos de interesse público,
+a ausência de tarja indevida; a versão 1.0.0 tarjava 64,5% desses dados. Tempo médio: cerca de
 20 ms por pedido em CPU comum. Metodologia e resultados por tipo:
 [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
 
@@ -170,14 +175,15 @@ Para relatar uma vulnerabilidade, consulte [SECURITY.md](SECURITY.md).
 
 ## Limitações
 
-- Manuscritos, assinaturas, rostos e carimbos não são detectados; imagens dentro de DOCX e XLSX não são
-  analisadas (o usuário é avisado).
+- Manuscritos, assinaturas, rostos e carimbos não são detectados.
 - Nomes incomuns sem contexto, em texto todo em minúsculas, podem não ser detectados.
-- Dados sensíveis são reconhecidos por vocabulário; sinônimos raros e nomes de medicamentos podem não
-  ser reconhecidos.
+- Dados sensíveis são reconhecidos por vocabulário; sinônimos raros e medicamentos fora da seleção da
+  DCB incluída no pacote podem não ser reconhecidos.
 - Números com letras no lugar de dígitos no primeiro caractere, comuns em OCR de baixa qualidade, podem
   não ser reconhecidos.
-- Localidades isoladas são reconhecidas para as regiões administrativas do Distrito Federal.
+- Bairros e distritos citados isoladamente, sem logradouro nem expressão de residência, não são
+  reconhecidos; municípios homônimos de palavras comuns ("Natal", "Bonito") só são sinalizados com a UF
+  ou a designação "município de".
 - Páginas de PDF com tarja tornam-se imagem com camada de texto invisível; o arquivo fica maior.
 - A decisão sobre o que é público ou restrito cabe à área responsável.
 

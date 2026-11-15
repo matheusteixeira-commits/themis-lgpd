@@ -507,8 +507,8 @@ class Anonimizador:
         """Normaliza a lista de entidades de um texto.
 
         Estende as tarjas às bordas dos tokens, elimina duplicatas, funde entidades do mesmo tipo
-        e remove do relatório os trechos já contidos em outro de prioridade igual ou maior. A
-        cobertura das tarjas nunca diminui nesta etapa.
+        e remove do relatório os trechos já contidos em outro de prioridade igual ou maior (entre
+        alertas, os contidos em outro alerta). A cobertura das tarjas nunca diminui nesta etapa.
         """
         tarjar = [e for e in entidades if e.acao == P.TARJAR]
         for e in tarjar:
@@ -531,7 +531,10 @@ class Anonimizador:
         outras.sort(key=lambda e: (-e.prioridade, -e.score))
         filtradas: list[Entidade] = []
         for e in outras:
-            if not any(e.inicio < f.fim and f.inicio < e.fim and f.acao == e.acao for f in filtradas):
+            # Um alerta contido em outro já aceito é redundante; o que o contém não é: a frase de um
+            # quase-identificador ("o atendente do guichê 4 na unidade de Campo Grande no dia…")
+            # continua sinalizada inteira mesmo que o município nela citado já tenha alerta próprio.
+            if not any(f.inicio <= e.inicio and e.fim <= f.fim and f.acao == e.acao for f in filtradas):
                 filtradas.append(e)
         return sorted(aceitas + filtradas, key=lambda e: (e.inicio, -e.fim))
 

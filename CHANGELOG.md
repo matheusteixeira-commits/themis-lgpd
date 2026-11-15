@@ -27,6 +27,41 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Detecção: "meu RG é o …", número do registro em conselhos com região ("CRN-3 88421"), registros
   profissionais em minúsculas, "sob o nº", e itens seguintes de enumerações ("as CDAs X e Y", "os CPFs
   X, Y e Z").
+- Nomes em CAIXA ALTA deixam de ser cortados na primeira palavra fora das listas ("BENEDITA FERREIRA
+  LINS" tinha "LINS" exposto): a palavra desconhecida integra o nome quando fica entre palavras de nome
+  ou o encerra antes de pontuação, minúscula ou palavra gramatical, e nunca quando é verbo, cargo ou
+  substantivo comum.
+- RENAVAM com dígito verificador inválido ao lado da palavra-chave passa a ser tarjado: a palavra-chave
+  exigida pela própria regra conta como contexto.
+
+### Adicionado — cobertura nacional
+
+- Endereços de todo o país: abreviações (Av., Trav., Pça., Lgo., Rod., Estr.), número com milhar,
+  ruas numeradas ou com letra ("Rua 15", "Rua B-15, Quadra 30"), endereço sem número após expressão
+  de residência, propriedades rurais (sítio, fazenda, chácara, granja, estância), localidades coletivas
+  com residência (povoado, assentamento, aldeia, comunidade, ramal, loteamento), linha e lote
+  (Rondônia), rodovias federais e estaduais das 27 UFs com quilômetro, e bairro antes de "Cidade/UF".
+- Municípios: os 5.570 municípios do IBGE (`dados/municipios.txt`, gerado por
+  `scripts/gerar_municipios.py`) reconhecidos como "Cidade/UF" (com conferência da UF), "município de
+  Cidade" e após expressão de residência, inclusive em minúsculas ("moro em campinas"). Municípios
+  homônimos de palavras comuns ou de estados só são sinalizados com contexto.
+- Identificadores: número de benefício do INSS, chassi (VIN), recibo do CAR, prontuário, DNV, AIH e
+  cartão de vacina, RA e matrícula escolar, inscrição imobiliária (IPTU), Inscrição Estadual abreviada,
+  MASP, ID e registro funcional, RNTRC, CADASTUR, MTB, DRT, CRB, termo de certidão, RG com a palavra-chave
+  depois do número, RENAVAM com a grafia "renavan".
+- Processos: NUP de 21 dígitos, SEI de Minas Gerais, Pernambuco, Bahia e Rio de Janeiro, PROA (RS),
+  eProtocolo (PR), SGPe (SC) e "Proc. Adm.".
+- Saúde: seleção de medicamentos da DCB e da Portaria SVS/MS nº 344/1998 (`dados/medicamentos.txt`),
+  com sal e dose ("cloridrato de metformina 500mg") e classes pelo sufixo (-mabe, -tinibe, -prazol,
+  -statina…); uso de medicamento ("faço uso de fluoxetina") na camada contextual; doenças, condições,
+  procedimentos, exames e especialidades ausentes; códigos da CID-11, "C.I.D." e listas de códigos.
+- Prenomes mais frequentes por sexo, década e UF no Censo 2010 (`dados/prenomes_ibge.txt`, gerado
+  por `scripts/gerar_prenomes_ibge.py` a partir da API de Nomes do IBGE).
+- Benchmark nacional (`benchmark/nacional.py`): 27 UFs, conjuntos de desenvolvimento e de validação e
+  textos de interesse público que não podem ser tarjados; trava no CI. Recall na validação: 64,5% na
+  versão 1.0.0, 100% agora; textos públicos sem tarja: 98,1% → 100%.
+- `benchmark/esic_ner.py` separa as entidades não tarjadas em sinalizadas para revisão e não
+  detectadas; partição de treino para desenvolvimento (`--split train`).
 
 ### Alterado
 
@@ -37,6 +72,12 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - `Anonimizador.analisar_lote` e `anonimizar_lote` aceitam valores tarjados em etapa anterior do mesmo
   arquivo (`externos`), entidades definidas para parte dos textos (`definidas`) e continuidade da
   numeração de pseudônimos (`continuar`).
+- Menos tarja indevida em texto público: municípios com nome de pessoa após designação institucional
+  ("Prefeitura de Dom Eliseu", "Secretaria de Obras de Dom Expedito Lopes"), homenageados com título em
+  nomes de rua ("Rua Professora Maria Clara"), órgãos fazendários ("Secretaria de Estado de Fazenda do
+  Distrito Federal") e naturalidade ("natural do Paraná") deixam de ser tarjados.
+- Um alerta só é descartado quando contido em outro: a frase de um quase-identificador continua
+  sinalizada inteira mesmo que contenha um município com alerta próprio.
 
 ## 1.0.0 — 2026-11-15
 

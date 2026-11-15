@@ -1,0 +1,283 @@
+# Medicamentos: seleção de Denominações Comuns Brasileiras (DCB), um nome por linha.
+# Inclui substâncias das listas de controle especial da Portaria SVS/MS nº 344/1998, componentes da
+# Relação Nacional de Medicamentos Essenciais (RENAME) e medicamentos do Componente Especializado da
+# Assistência Farmacêutica, frequentes em pedidos de fornecimento. Não é a lista completa da DCB.
+# Nomes que também são palavras comuns (lítio, ferro, cálcio) só aparecem acompanhados do sal.
+# Classes inteiras são cobertas pelo sufixo em reconhecedores/sensiveis.py (-mabe, -tinibe, -prazol…).
+# Psicofármacos, anticonvulsivantes e outros controlados
+alprazolam
+bromazepam
+clonazepam
+diazepam
+lorazepam
+midazolam
+flunitrazepam
+nitrazepam
+clobazam
+zolpidem
+zopiclona
+fluoxetina
+sertralina
+paroxetina
+citalopram
+escitalopram
+fluvoxamina
+venlafaxina
+desvenlafaxina
+duloxetina
+bupropiona
+amitriptilina
+nortriptilina
+imipramina
+clomipramina
+mirtazapina
+trazodona
+vortioxetina
+agomelatina
+quetiapina
+olanzapina
+risperidona
+paliperidona
+aripiprazol
+ziprasidona
+clozapina
+lurasidona
+haloperidol
+clorpromazina
+levomepromazina
+periciazina
+tioridazina
+carbonato de lítio
+ácido valproico
+valproato de sódio
+divalproato de sódio
+carbamazepina
+oxcarbazepina
+lamotrigina
+topiramato
+fenobarbital
+fenitoína
+gabapentina
+pregabalina
+levetiracetam
+lacosamida
+vigabatrina
+metilfenidato
+lisdexanfetamina
+atomoxetina
+modafinila
+donepezila
+rivastigmina
+galantamina
+memantina
+levodopa
+carbidopa
+pramipexol
+biperideno
+morfina
+codeína
+tramadol
+oxicodona
+metadona
+fentanil
+buprenorfina
+naltrexona
+cetamina
+dissulfiram
+canabidiol
+# Diabetes e endocrinologia
+metformina
+glibenclamida
+gliclazida
+glimepirida
+pioglitazona
+liraglutida
+semaglutida
+dulaglutida
+tirzepatida
+levotiroxina
+metimazol
+propiltiouracil
+somatropina
+cabergolina
+bromocriptina
+desmopressina
+testosterona
+estradiol
+progesterona
+# Cardiovascular
+losartana
+valsartana
+enalapril
+captopril
+ramipril
+anlodipino
+nifedipino
+hidroclorotiazida
+clortalidona
+furosemida
+espironolactona
+atenolol
+propranolol
+carvedilol
+metoprolol
+bisoprolol
+digoxina
+amiodarona
+sinvastatina
+atorvastatina
+rosuvastatina
+clopidogrel
+ticagrelor
+varfarina
+rivaroxabana
+apixabana
+dabigatrana
+heparina
+enoxaparina
+sacubitril
+# Imunossupressores, reumatologia e doenças inflamatórias
+metotrexato
+leflunomida
+hidroxicloroquina
+sulfassalazina
+mesalazina
+azatioprina
+ciclosporina
+tacrolimo
+micofenolato de mofetila
+micofenolato de sódio
+everolimo
+sirolimo
+etanercepte
+abatacepte
+tofacitinibe
+baricitinibe
+upadacitinibe
+fingolimode
+teriflunomida
+fumarato de dimetila
+glatirâmer
+acetato de glatirâmer
+interferona beta
+cladribina
+prednisona
+prednisolona
+dexametasona
+budesonida
+hidrocortisona
+# Oncologia e hematologia
+tamoxifeno
+anastrozol
+letrozol
+exemestano
+capecitabina
+ciclofosfamida
+cisplatina
+carboplatina
+oxaliplatina
+paclitaxel
+docetaxel
+doxorrubicina
+gencitabina
+fluoruracila
+temozolomida
+lenalidomida
+talidomida
+bortezomibe
+hidroxiureia
+alfaepoetina
+filgrastim
+eltrombopague
+deferasirox
+# Doenças raras
+nusinersena
+risdiplam
+onasemnogeno abeparvoveque
+imiglucerase
+alfagalsidase
+betagalsidase
+alglicosidase alfa
+idursulfase
+laronidase
+ivacaftor
+lumacaftor
+tezacaftor
+elexacaftor
+alfadornase
+dornase alfa
+# Infecções: HIV, hepatites, tuberculose, endemias
+tenofovir
+lamivudina
+zidovudina
+dolutegravir
+efavirenz
+raltegravir
+darunavir
+ritonavir
+atazanavir
+entricitabina
+sofosbuvir
+daclatasvir
+ledipasvir
+velpatasvir
+glecaprevir
+entecavir
+rifampicina
+isoniazida
+pirazinamida
+etambutol
+bedaquilina
+clofazimina
+dapsona
+benznidazol
+nifurtimox
+miltefosina
+antimoniato de meglumina
+anfotericina b
+primaquina
+cloroquina
+artemeter
+lumefantrina
+praziquantel
+oseltamivir
+aciclovir
+valaciclovir
+ganciclovir
+fluconazol
+itraconazol
+voriconazol
+# Outros de uso frequente
+omeprazol
+pantoprazol
+esomeprazol
+dipirona
+paracetamol
+ibuprofeno
+nimesulida
+diclofenaco
+cetoprofeno
+naproxeno
+ciclobenzaprina
+amoxicilina
+azitromicina
+cefalexina
+ciprofloxacino
+levofloxacino
+sulfametoxazol
+nitrofurantoína
+salbutamol
+fenoterol
+formoterol
+salmeterol
+tiotrópio
+beclometasona
+fluticasona
+montelucaste
+alopurinol
+colchicina
+alendronato de sódio
+anticoncepcional
+contraceptivo oral
+misoprostol
+mifepristona

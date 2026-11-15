@@ -70,9 +70,27 @@ VEICULOS: list[Padrao] = [
     Padrao("PLACA", r"(?<![\w-])[A-Za-z]{3}[-\s]?\d[A-Za-z0-9]\d{2}(?![\w])", 0.85,
            contexto=("placa", "ve[íi]culo", "carro", "moto(?:cicleta)?", "autom[óo]vel", "caminh[ãa]o"),
            contexto_obrigatorio=True, nome="placa:contexto"),
-    Padrao("RENAVAM", r"\brenavam\s*[:\-]?\s*" + _NUM + r"(?P<v>\d{9,11})(?!\d)", 0.9, camada=CONTEXTUAL,
-           grupo="v", nome="renavam"),
+    # RENAVAM: também com a grafia "renavan" e com pontuação ("2914.1777638"); o dígito verificador
+    # eleva a confiança, mas um número com dígito inválido ao lado da palavra-chave é tarjado assim mesmo.
+    Padrao("RENAVAM", r"\brenava[mn]\s*[:\-]?\s*" + _NUM + r"(?P<v>\d[\d.\-\s]{7,13}\d)(?![\d])", 0.9,
+           camada=CONTEXTUAL, grupo="v", validador=v.renavam_valido, score_invalido=0.85,
+           contexto=("renavam", "renavan"), nome="renavam"),
+    # Chassi (VIN, ISO 3779): 17 caracteres sem I, O e Q. Com a palavra-chave, qualquer fabricante;
+    # sem ela, apenas identificadores de fabricantes no Brasil (prefixo 9), com letras e dígitos.
+    Padrao("CHASSI", r"\b(?:chassis?|VIN)\s*[:\-]?\s*" + _NUM + r"(?P<v>[A-HJ-NPR-Z0-9]{17})(?![\w])", 0.95,
+           camada=CONTEXTUAL, grupo="v", nome="chassi:contexto"),
+    Padrao("CHASSI", r"(?<![\w-])9[A-HJ-NPR-Z0-9]{16}(?![\w])", 0.85, ignorar_caixa=False,
+           validador=lambda valor: _vin_plausivel(valor), nome="chassi:brasil"),
+    # Recibo de inscrição no Cadastro Ambiental Rural: UF, código IBGE do município e 32 caracteres
+    # hexadecimais em grupos de quatro ("MT-5107925-ABCD.1234.…").
+    Padrao("CAR", r"(?<![\w-])[A-Z]{2}-\d{7}-[0-9A-F]{4}(?:\.[0-9A-F]{4}){7}(?!\w|\.[0-9A-F])", 0.95,
+           nome="car:recibo"),
 ]
+
+
+def _vin_plausivel(valor: str) -> bool:
+    """Chassi com mistura de letras e dígitos (descarta sequências só de dígitos ou só de letras)."""
+    return sum(c.isdigit() for c in valor) >= 4 and sum(c.isalpha() for c in valor) >= 3
 
 #: Regras de números de processo judicial, processo administrativo e protocolo.
 PROCESSOS: list[Padrao] = [
@@ -89,10 +107,20 @@ PROCESSOS: list[Padrao] = [
            validador=v.ano_plausivel, nome="sei:nup"),
     Padrao("PROCESSO_ADMINISTRATIVO", ANTES_NUM + r"\d{3}\.\d{3}\.\d{3}/\d{4}-\d{2}" + DEPOIS_NUM, 0.8,
            validador=v.ano_plausivel, nome="sei:pontuado"),
-    # Qualquer número após a designação de processo, sindicância ou inquérito.
+    # Numerações de processo eletrônico de outros entes, reconhecidas pelo formato:
+    # NUP de 21 dígitos ("0000123.00012345/2024-11"), SEI de MG ("1500.01.0012345/2024-12"),
+    # de PE ("3900000017.000123/2023-45"), da BA ("019.1234.2024.0001234-56") e do RJ
+    # ("120001/001234/2024").
     Padrao("PROCESSO_ADMINISTRATIVO",
-           r"(?:\bprocesso(?:\s+(?:administrativo|disciplinar|sei|judicial|eletr[ôo]nico))*|\bautos|\bproc\.|"
-           r"\bPAD\b|\bsindic[âa]ncia|\binqu[ée]rito(?:\s+policial)?|\bNUP|\bSEI)" + _SEP + _NUM + _SEP +
+           ANTES_NUM + r"(?:\d{7}\.\d{8}/\d{4}-\d{2}|\d{4}\.\d{2}\.\d{7}/\d{4}-\d{2}|\d{10}\.\d{6}/\d{4}-\d{2}|"
+           r"\d{3}\.\d{4}\.\d{4}\.\d{7}-\d{2}|\d{6}/\d{6}/\d{4})" + DEPOIS_NUM, 0.85, validador=v.ano_plausivel,
+           nome="processo:estadual"),
+    # Qualquer número após a designação de processo, sindicância ou inquérito, inclusive dos sistemas
+    # de protocolo estaduais (PROA no RS, eProtocolo no PR, SGPe em SC).
+    Padrao("PROCESSO_ADMINISTRATIVO",
+           r"(?:\bprocesso(?:\s+(?:administrativo|disciplinar|sei|judicial|eletr[ôo]nico))*|\bautos|"
+           r"\bproc\.(?:\s*adm(?:inistrativo)?\.?)?|\bPAD\b|\bsindic[âa]ncia|\binqu[ée]rito(?:\s+policial)?|\bNUP|"
+           r"\bSEI|(?-i:\bPROA\b)|\be-?protocolo|(?-i:\bSGPe?\b)(?:\s+[A-Z]{2,5})?)" + _SEP + _NUM + _SEP +
            r"(?P<v>\d[\d./\-]{0,24}\d|\d)(?![\d])", 0.75, camada=CONTEXTUAL, grupo="v", nome="processo:contexto"),
     # Protocolos de ouvidoria e de pedidos de acesso. O prefixo alfabético ("OUV-") só é aceito em
     # maiúsculas, para não incorporar uma palavra da frase ao número.

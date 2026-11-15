@@ -50,9 +50,13 @@ coluna **Validação** indica o que é conferido além do formato.
 | `CNS` | Cartão Nacional de Saúde (SUS) | `[CARTÃO SUS]` | 95 | Módulo 11 (definitivo e provisório) | 112 9040 4796 6691 |
 | `PASSAPORTE` | Passaporte | `[PASSAPORTE]` | 90 | Contexto obrigatório | passaporte AB123456 |
 | `CTPS` | Carteira de trabalho | `[CTPS]` | 90 | Contexto obrigatório; inclui série e UF | CTPS 1234567 série 0012/DF |
-| `CERTIDAO` | Matrícula de certidão civil | `[CERTIDÃO]` | 90 | Formato de 32 dígitos (Provimento CNJ nº 3/2009) | |
-| `MATRICULA` | Matrícula funcional | `[MATRÍCULA]` | 85 | Contexto obrigatório ("matrícula", "SIAPE") | matrícula 123.456-7 |
-| `REGISTRO_PROFISSIONAL` | Registro profissional (OAB, CRM…) | `[REGISTRO PROFISSIONAL]` | 85 | Sigla do conselho em maiúsculas | OAB/DF 12.345 |
+| `CERTIDAO` | Matrícula de certidão civil | `[CERTIDÃO]` | 90 | Formato de 32 dígitos (Provimento CNJ nº 3/2009); termo com livro e folha | termo 4521, livro A-32, folha 118 |
+| `MATRICULA` | Matrícula funcional | `[MATRÍCULA]` | 85 | Contexto obrigatório ("matrícula", "SIAPE", "MASP", "ID funcional", "registro funcional") | MASP 1234567-8 |
+| `REGISTRO_PROFISSIONAL` | Registro profissional (OAB, CRM, RNTRC, CADASTUR…) | `[REGISTRO PROFISSIONAL]` | 85 | Sigla do conselho, com ou sem região, inclusive em minúsculas | OAB/DF 12.345; CRN-3 88421 |
+| `BENEFICIO` | Benefício previdenciário ou social (NB do INSS) | `[BENEFÍCIO]` | 90 | Contexto obrigatório ("NB", "benefício") | NB 123.456.789-0 |
+| `REGISTRO_SAUDE` | Prontuário, DNV, AIH ou cartão de vacina | `[REGISTRO DE SAÚDE]` | 85 | Contexto obrigatório | prontuário nº 2891163 |
+| `MATRICULA_ESCOLAR` | Matrícula escolar ou RA | `[MATRÍCULA ESCOLAR]` | 85 | Contexto obrigatório ("RA", "registro acadêmico", "matrícula do aluno") | RA 123456789-X |
+| `INSCRICAO_IMOVEL` | Inscrição imobiliária (IPTU, CCM) | `[INSCRIÇÃO]` | 80 | Contexto obrigatório | inscrição imobiliária 01.23.456.0789.001 |
 | `DOCUMENTO` | Número de documento | `[DOCUMENTO]` | 80 | Contexto obrigatório | Documento do cliente: 1234567-8 |
 | `DATA_NASCIMENTO` | Data de nascimento | `[DATA DE NASCIMENTO]` | 85 | Contexto ("nascido em", "data de nascimento") | nascida em 12/03/1985 |
 
@@ -64,7 +68,8 @@ coluna **Validação** indica o que é conferido além do formato.
 | `TELEFONE` | Telefone | `[TELEFONE]` | 85 | Padrões próprios e biblioteca phonenumbers (região BR) | (61) 99876-5432 |
 | `PERFIL_REDE_SOCIAL` | Perfil em rede social | `[PERFIL]` | 85 | `@usuario` com contexto ou URL de rede social | @maria.souza |
 | `IP` | Endereço IP | `[IP]` | 80 | Reconhecedor do Presidio | 203.0.113.45 |
-| `ENDERECO` | Endereço | `[ENDEREÇO]` | 70 | Logradouro e componentes; endereçamento do DF; rodovias; local de residência | QNM 12 Conjunto B Casa 4 |
+| `ENDERECO` | Endereço | `[ENDEREÇO]` | 70 | Logradouro (inclusive abreviado e numerado) e componentes; propriedades e localidades rurais; rodovias das 27 UFs; endereçamento do DF; município ou região de residência | Rua B-15, Quadra 30, Lote 10; Sítio Boa Esperança; PE-060, km 10; QNM 12 Conjunto B Casa 4 |
+| `CAR` | Recibo do Cadastro Ambiental Rural | `[CAR]` | 90 | Formato (UF, código IBGE do município e 32 caracteres hexadecimais) | MT-5107925-1A2B.3C4D.… |
 | `CEP` | CEP | `[CEP]` | 80 | Formato com hífen ou após "CEP" | 72215-120 |
 | `CONTA_BANCARIA` | Agência/conta bancária | `[CONTA BANCÁRIA]` | 85 | Contexto bancário; IBAN pelo Presidio | agência 1234, conta 56789-0 |
 | `CARTAO` | Cartão de pagamento | `[CARTÃO]` | 90 | Algoritmo de Luhn | 4111 1111 1111 1111 |
@@ -76,9 +81,10 @@ coluna **Validação** indica o que é conferido além do formato.
 | Código | Nome | Etiqueta | Prioridade | Validação | Exemplo fictício |
 |---|---|---|---|---|---|
 | `PLACA` | Placa de veículo | `[PLACA]` | 85 | Padrão Mercosul; padrão antigo com contexto | ABC1D23 |
-| `RENAVAM` | RENAVAM | `[RENAVAM]` | 90 | Contexto obrigatório ("RENAVAM") | RENAVAM 72510273464 |
+| `RENAVAM` | RENAVAM | `[RENAVAM]` | 90 | Contexto obrigatório ("RENAVAM", "renavan"); o dígito verificador eleva a confiança | RENAVAM 72510273464 |
+| `CHASSI` | Chassi (VIN) | `[CHASSI]` | 90 | Com "chassi", qualquer fabricante; sem a palavra, prefixo 9 (fabricantes no Brasil) com letras e dígitos | 9BWZZZ377VT004251 |
 | `PROCESSO_JUDICIAL` | Processo judicial (CNJ) | `[PROCESSO JUDICIAL]` | 85 | Módulo 97 (Resolução CNJ nº 65/2008); formato pontuado dispensa a validação | 4686958-42.2023.8.07.6678 |
-| `PROCESSO_ADMINISTRATIVO` | Processo administrativo (SEI/NUP) | `[PROCESSO]` | 80 | Ano plausível; contexto para formatos livres | 00410-00012345/2024-11 |
+| `PROCESSO_ADMINISTRATIVO` | Processo administrativo (SEI/NUP) | `[PROCESSO]` | 80 | Ano plausível; formatos federais e estaduais (NUP-21, SEI-MG, SEI-PE, SEI-BA, RJ); contexto para formatos livres (PROA, eProtocolo, SGPe) | 00410-00012345/2024-11; 1500.01.0012345/2024-12 |
 | `PROTOCOLO` | Protocolo | `[PROTOCOLO]` | 75 | Contexto ("protocolo", "ocorrência", "boletim") | protocolo nº 2024123456 |
 
 ### Pessoa jurídica, localidades e outros
@@ -86,7 +92,7 @@ coluna **Validação** indica o que é conferido além do formato.
 | Código | Nome | Etiqueta | Prioridade | Observação |
 |---|---|---|---|---|
 | `CNPJ` | CNPJ | `[CNPJ]` | 90 | Módulo 11, inclusive o CNPJ alfanumérico (IN RFB nº 2.229/2024), como GM.Y1U.F3A/0001-01 |
-| `LOCALIDADE` | Cidade ou região administrativa | `[LOCALIDADE]` | 30 | Regiões administrativas do DF; "resido em Taguatinga" é classificado como `ENDERECO` |
+| `LOCALIDADE` | Cidade ou região administrativa | `[LOCALIDADE]` | 30 | Os 5.570 municípios do IBGE ("Cidade/UF" com conferência da UF, "município de Cidade", menção isolada não ambígua) e as regiões administrativas do DF; "moro em campinas" e "resido em Taguatinga" são classificados como `ENDERECO` |
 | `URL` | Endereço de internet | `[URL]` | 20 | |
 | `QUASE_IDENTIFICADOR` | Quase-identificador | `[QUASE-IDENTIFICADOR]` | 15 | Função, local e turno ("atendente do guichê 4 na tarde de ontem") |
 | `NUMERO_NAO_IDENTIFICADO` | Número longo não identificado | `[NÚMERO]` | 10 | Reservado; não é produzido pelos reconhecedores padrão |
@@ -96,7 +102,7 @@ coluna **Validação** indica o que é conferido além do formato.
 
 | Código | Nome | Etiqueta | Categoria | Exemplos de achado |
 |---|---|---|---|---|
-| `SAUDE` | Dado de saúde | `[DADO DE SAÚDE]` | `SENSIVEL` | CID F32.1; "diagnosticado com depressão"; "asma" |
+| `SAUDE` | Dado de saúde | `[DADO DE SAÚDE]` | `SENSIVEL` | CID F32.1, F41.1 e G40; C.I.D. 6A70.1; "diagnosticado com depressão"; "asma"; "faço uso de fluoxetina 20mg"; "laqueadura" |
 | `RELIGIAO` | Convicção religiosa | `[CONVICÇÃO RELIGIOSA]` | `SENSIVEL` | "sou católico" |
 | `OPINIAO_POLITICA` | Opinião política | `[OPINIÃO POLÍTICA]` | `SENSIVEL` | filiação partidária |
 | `FILIACAO_SINDICAL` | Filiação sindical ou associativa | `[FILIAÇÃO]` | `SENSIVEL` | "sou sindicalizado" |
@@ -106,8 +112,11 @@ coluna **Validação** indica o que é conferido além do formato.
 | `VIOLENCIA` | Situação de violência ou risco | `[SITUAÇÃO DE VIOLÊNCIA]` | `INTIMIDADE` | "vítima de violência doméstica"; "medida protetiva" |
 | `DADO_DE_MENOR` | Dado de criança ou adolescente | `[DADO DE MENOR]` | `MENOR` | "meu filho de 9 anos" |
 
-Os dados de saúde são reconhecidos por CID, frases de diagnóstico e tratamento e um vocabulário de
-cerca de 150 condições. As demais categorias sensíveis usam vocabulário próprio.
+Os dados de saúde são reconhecidos por códigos da CID-10 e da CID-11 (inclusive listas), frases de
+diagnóstico e tratamento, um vocabulário de cerca de 250 condições, procedimentos, exames e
+especialidades e uma seleção de cerca de 270 medicamentos da DCB e da Portaria SVS/MS nº 344/1998
+(`dados/medicamentos.txt`), além das classes identificadas pelo sufixo (-mabe, -tinibe, -prazol…).
+As demais categorias sensíveis usam vocabulário próprio.
 
 ### Nomes de pessoas
 
@@ -116,7 +125,7 @@ Três reconhecedores se complementam:
 | Reconhecedor | Funcionamento | Funciona em minúsculas e caixa alta |
 |---|---|---|
 | `BR_Nomes_Modelo` | Entidades `PER` (e `MISC`/`LOC` iniciadas por prenome conhecido) do modelo `pt_core_news_lg`, filtradas: títulos, letras isoladas, algarismos romanos, palavras comuns, nomes de instituições, normas e lugares | não |
-| `BR_Nomes_Lista` | Sequências iniciadas por um dos cerca de 600 prenomes brasileiros da lista, seguidos de sobrenomes ou conectores | sim |
+| `BR_Nomes_Lista` | Sequências iniciadas por um dos cerca de 700 prenomes brasileiros das listas (inclusive os mais frequentes por sexo, década e UF no Censo 2010 do IBGE), seguidos de sobrenomes ou conectores; em CAIXA ALTA, palavras fora das listas entre nomes ou no fim do nome | sim |
 | `BR_Nomes_Gatilho` | Nome após gatilho de contexto ("meu nome é", "requerente:", "Atenciosamente,", "sou a…") | sim |
 
 Nomes que integram nomes de lugares, instituições ou normas ("São Paulo", "Escola Paulo Freire",

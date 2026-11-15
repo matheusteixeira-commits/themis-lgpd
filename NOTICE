@@ -9,6 +9,12 @@ Componentes e dados de terceiros
   neste repositório; é baixado na instalação e incluído na imagem Docker sob a mesma licença.
 - Listas de prenomes e sobrenomes (src/themis_lgpd/dados): derivadas das listas pt_BR do projeto Faker
   (licença MIT) e de nomes frequentes no Brasil compilados pelos autores.
+- src/themis_lgpd/dados/prenomes_ibge.txt: prenomes mais frequentes do Censo Demográfico 2010, obtidos
+  da API de Nomes do IBGE (dados públicos; fonte: IBGE, Censo Demográfico 2010).
+- src/themis_lgpd/dados/municipios.txt: relação de municípios brasileiros com a UF, obtida da API de
+  Localidades do IBGE (dados públicos; fonte: IBGE).
+- src/themis_lgpd/dados/medicamentos.txt: seleção de Denominações Comuns Brasileiras (DCB, Anvisa) e de
+  substâncias da Portaria SVS/MS nº 344/1998, compilada pelos autores.
 - Tesseract OCR (Apache-2.0) e RapidOCR (Apache-2.0): usados para OCR, quando instalados.
 - pdfplumber (MIT), pypdfium2 (Apache-2.0/BSD-3-Clause; PDFium BSD-3-Clause), pikepdf (MPL-2.0),
   ReportLab (BSD), Pillow (MIT-CMU), python-docx (MIT), openpyxl (MIT): leitura e escrita de arquivos.

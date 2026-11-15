@@ -48,6 +48,10 @@ jobs:
         run: pytest --cov --cov-report=term-missing:skip-covered
       - name: Trava de regressão — benchmark sintético (recall mínimo 99%)
         run: python benchmark/sintetico.py --n 400 --minimo 0.99
+      - name: Trava de regressão — cobertura nacional, 27 UFs (recall e textos públicos preservados ≥ 99%)
+        run: |
+          python benchmark/nacional.py --n 540 --conjunto desenvolvimento --minimo 0.99 --preservacao-minima 0.99
+          python benchmark/nacional.py --n 540 --conjunto validacao --minimo 0.99 --preservacao-minima 0.99
 
   dependencias:
     name: Dependências e segredos

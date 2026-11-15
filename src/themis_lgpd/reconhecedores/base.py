@@ -121,7 +121,7 @@ class Padrao:
         if not self.nome:
             self.nome = f"regex:{self.tipo}"
 
-    def tem_contexto(self, texto: str, inicio: int, fim: int | None = None) -> bool:
+    def tem_contexto(self, texto: str, inicio: int, fim: int | None = None, valor: int | None = None) -> bool:
         """Indica se há expressão de contexto antes do achado ou logo depois dele.
 
         Args:
@@ -129,10 +129,12 @@ class Padrao:
             inicio: Início do casamento completo da expressão.
             fim: Fim do casamento; quando informado, os 15 caracteres seguintes também são
                 examinados, pois o contexto pode vir depois do dado ("12345-6 (conta corrente)").
+            valor: Início do valor dentro do casamento; a parte do casamento que o antecede
+                (a palavra-chave exigida pela própria expressão, como "RENAVAM") também é contexto.
         """
         if self._ctx is None:
             return False
-        if self._ctx.search(texto, max(0, inicio - self.janela), inicio):
+        if self._ctx.search(texto, max(0, inicio - self.janela), max(inicio, valor or inicio)):
             return True
         return bool(fim is not None and self._ctx.search(texto, fim, min(len(texto), fim + 15)))
 
@@ -148,7 +150,7 @@ class Padrao:
             if ini < 0 or fim <= ini:
                 continue
             valor = texto[ini:fim]
-            ctx = self.tem_contexto(texto, m.start(), m.end())
+            ctx = self.tem_contexto(texto, m.start(), m.end(), ini)
             if self.contexto_obrigatorio and not ctx:
                 continue
             score, validado, usou_ctx = self.score, None, self.contexto_obrigatorio
