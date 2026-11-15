@@ -1,0 +1,170 @@
+[
+  {
+    "sistema": "Presidio puro (pt)",
+    "esic_ner": {
+      "sistema": "Presidio puro (pt)",
+      "documentos": 975,
+      "recall_entidades": 0.5327,
+      "recall_por_rotulo": {
+        "CONTATO": 1.0,
+        "DADO_FINANCEIRO": 0.5789,
+        "DADO_SAUDE": 0.3023,
+        "DATA_NASC": 1.0,
+        "DOC_PESSOAL": 0.0789,
+        "DOC_PROFISSIONAL": 0.0,
+        "ENDERECO": 0.0962,
+        "ID_PROCESSUAL": 0.0405,
+        "ID_VEICULO": 0.5714,
+        "NOME_PESSOA": 0.9894,
+        "QUASI_IDENTIFICADOR": 0.1
+      },
+      "recall_estrito": 0.5299,
+      "recall_estrito_por_rotulo": {
+        "CONTATO": 1.0,
+        "DADO_FINANCEIRO": 0.5789,
+        "DADO_SAUDE": 0.3023,
+        "DATA_NASC": 1.0,
+        "DOC_PESSOAL": 0.0789,
+        "DOC_PROFISSIONAL": 0.0,
+        "ENDERECO": 0.0769,
+        "ID_PROCESSUAL": 0.0383,
+        "ID_VEICULO": 0.5714,
+        "NOME_PESSOA": 0.9894,
+        "QUASI_IDENTIFICADOR": 0.0
+      },
+      "entidades_por_rotulo": {
+        "CONTATO": 48,
+        "DADO_FINANCEIRO": 19,
+        "DADO_SAUDE": 86,
+        "DATA_NASC": 268,
+        "DOC_PESSOAL": 76,
+        "DOC_PROFISSIONAL": 32,
+        "ENDERECO": 52,
+        "ID_PROCESSUAL": 444,
+        "ID_VEICULO": 14,
+        "NOME_PESSOA": 377,
+        "QUASI_IDENTIFICADOR": 20
+      },
+      "documentos_com_vazamento": 0.9332,
+      "triagem": {
+        "precisao": 0.5829,
+        "recall": 0.9866,
+        "f1": 0.7328
+      },
+      "tarja_fora_do_gabarito": 0.308,
+      "segundos_por_documento": 0.0297
+    },
+    "sintetico": {
+      "perfil": "lai",
+      "documentos": 1000,
+      "segundos_por_documento": 0.0199,
+      "recall": 0.5766,
+      "recall_por_tipo": {
+        "CARTAO": 0.9414,
+        "CEP": 0.0066,
+        "CNH": 0.1761,
+        "CNS": 0.0388,
+        "CONTA_BANCARIA": 0.0228,
+        "CPF": 0.143,
+        "DATA_NASCIMENTO": 0.9664,
+        "EMAIL": 1.0,
+        "ENDERECO": 0.6656,
+        "IP": 0.9392,
+        "MATRICULA": 0.0066,
+        "NOME": 0.937,
+        "PIS": 0.1025,
+        "PLACA": 0.6793,
+        "PROCESSO_ADMINISTRATIVO": 0.0098,
+        "PROCESSO_JUDICIAL": 0.9612,
+        "RG": 0.8882,
+        "TELEFONE": 0.932,
+        "TITULO_ELEITOR": 0.0242
+      },
+      "documentos_com_vazamento": 0.998
+    }
+  },
+  {
+    "sistema": "Themis 1.0.0 (sobre o Presidio)",
+    "esic_ner": {
+      "sistema": "Themis 1.0.0 (sobre o Presidio)",
+      "documentos": 975,
+      "recall_entidades": 0.9422,
+      "recall_por_rotulo": {
+        "CONTATO": 1.0,
+        "DADO_FINANCEIRO": 1.0,
+        "DADO_SAUDE": 0.6395,
+        "DATA_NASC": 1.0,
+        "DOC_PESSOAL": 1.0,
+        "DOC_PROFISSIONAL": 0.9688,
+        "ENDERECO": 0.9423,
+        "ID_PROCESSUAL": 0.9212,
+        "ID_VEICULO": 1.0,
+        "NOME_PESSOA": 1.0,
+        "QUASI_IDENTIFICADOR": 0.35
+      },
+      "recall_estrito": 0.9178,
+      "recall_estrito_por_rotulo": {
+        "CONTATO": 1.0,
+        "DADO_FINANCEIRO": 1.0,
+        "DADO_SAUDE": 0.6395,
+        "DATA_NASC": 1.0,
+        "DOC_PESSOAL": 1.0,
+        "DOC_PROFISSIONAL": 0.6875,
+        "ENDERECO": 0.6538,
+        "ID_PROCESSUAL": 0.9122,
+        "ID_VEICULO": 1.0,
+        "NOME_PESSOA": 1.0,
+        "QUASI_IDENTIFICADOR": 0.0
+      },
+      "entidades_por_rotulo": {
+        "CONTATO": 48,
+        "DADO_FINANCEIRO": 19,
+        "DADO_SAUDE": 86,
+        "DATA_NASC": 268,
+        "DOC_PESSOAL": 76,
+        "DOC_PROFISSIONAL": 32,
+        "ENDERECO": 52,
+        "ID_PROCESSUAL": 444,
+        "ID_VEICULO": 14,
+        "NOME_PESSOA": 377,
+        "QUASI_IDENTIFICADOR": 20
+      },
+      "documentos_com_vazamento": 0.1126,
+      "triagem": {
+        "precisao": 0.9481,
+        "recall": 0.9408,
+        "f1": 0.9444
+      },
+      "tarja_fora_do_gabarito": 0.0569,
+      "segundos_por_documento": 0.0168
+    },
+    "sintetico": {
+      "perfil": "lai",
+      "documentos": 1000,
+      "segundos_por_documento": 0.0137,
+      "recall": 0.9959,
+      "recall_por_tipo": {
+        "CARTAO": 0.987,
+        "CEP": 1.0,
+        "CNH": 0.994,
+        "CNS": 0.9806,
+        "CONTA_BANCARIA": 0.9967,
+        "CPF": 0.995,
+        "DATA_NASCIMENTO": 1.0,
+        "EMAIL": 1.0,
+        "ENDERECO": 0.9969,
+        "IP": 1.0,
+        "MATRICULA": 1.0,
+        "NOME": 1.0,
+        "PIS": 0.9969,
+        "PLACA": 0.9759,
+        "PROCESSO_ADMINISTRATIVO": 1.0,
+        "PROCESSO_JUDICIAL": 0.9968,
+        "RG": 0.9971,
+        "TELEFONE": 1.0,
+        "TITULO_ELEITOR": 0.9789
+      },
+      "documentos_com_vazamento": 0.033
+    }
+  }
+]

@@ -1,0 +1,200 @@
+# Tipos de dados e perfis
+
+Este documento descreve os tipos de dado reconhecidos, as categorias com a respectiva base legal e
+as regras de cada perfil. A fonte de verdade é o código: `src/themis_lgpd/catalogo.py` (tipos e
+categorias), `src/themis_lgpd/perfis.py` (perfis) e `src/themis_lgpd/reconhecedores/`
+(reconhecedores). A lista pode ser obtida em tempo de execução com `GET /v1/tipos` na API.
+
+Todos os exemplos deste documento são fictícios.
+
+## Categorias e base legal
+
+| Categoria | Nome | Base legal | Identificadora¹ |
+|---|---|---|---|
+| `PESSOA` | Nome de pessoa natural | LGPD, art. 5º, I; LAI, art. 31, § 1º, I | sim |
+| `DOCUMENTO` | Documento de identificação | LGPD, art. 5º, I; LAI, art. 31, § 1º, I | sim |
+| `DADO_PESSOAL` | Dado pessoal | LGPD, art. 5º, I; LAI, art. 31, § 1º, I | sim |
+| `CONTATO` | Contato pessoal | LGPD, art. 5º, I; LAI, art. 31, § 1º, I | sim |
+| `LOCALIZACAO` | Endereço | LGPD, art. 5º, I; LAI, art. 31, § 1º, I | sim |
+| `FINANCEIRO` | Dado financeiro | LGPD, art. 5º, I; LAI, art. 31, § 1º, I; LC 105/2001 | sim |
+| `VEICULO` | Identificação de veículo | LGPD, art. 5º, I; LAI, art. 31, § 1º, I | sim |
+| `PROCESSO` | Número de processo ou protocolo | LGPD, art. 5º, I; LAI, art. 31, § 1º, I | sim |
+| `SENSIVEL` | Dado pessoal sensível | LGPD, art. 5º, II, e art. 11; LAI, art. 31 | não |
+| `INTIMIDADE` | Intimidade e vida privada | LAI, art. 31, caput e § 1º, I; CF, art. 5º, X | não |
+| `MENOR` | Dado de criança ou adolescente | LGPD, art. 14; ECA, arts. 17 e 143 | não |
+| `EMPRESA` | Identificação de pessoa jurídica | LAI, art. 22 (quando houver sigilo legal) | não |
+| `LOCALIDADE` | Localidade | LGPD, art. 5º, I; LAI, art. 31, § 1º, I | não |
+| `URL` | Endereço de internet | LAI, art. 31 (quando pessoal) | não |
+| `QUASE_IDENTIFICADOR` | Quase-identificador | LGPD, art. 5º, I; LAI, art. 31, § 1º, I | não |
+| `MANUAL` | Tarja manual | Decisão do revisor | sim |
+
+¹ Categorias em `perfis.CATEGORIAS_IDENTIFICADORAS`: identificam a pessoa por si sós. Nelas, um achado
+de confiança moderada é tarjado por precaução (ver [Falha fechada](#falha-fechada-para-identificadores))
+e os valores tarjados são propagados para todo o documento.
+
+## Tipos de dado
+
+A coluna **Prioridade** decide qual entidade prevalece quando duas se sobrepõem (maior prevalece). A
+coluna **Validação** indica o que é conferido além do formato.
+
+### Pessoa e documentos
+
+| Código | Nome | Etiqueta | Prioridade | Validação | Exemplo fictício |
+|---|---|---|---|---|---|
+| `NOME` | Nome de pessoa | `[NOME]` | 75 | Modelo de linguagem, lista de nomes ou gatilho de contexto | Maria Aparecida Souza |
+| `CPF` | CPF | `[CPF]` | 100 | Módulo 11; formato pontuado ou contexto dispensam a validação | 529.982.247-25 |
+| `RG` | RG / Carteira de identidade | `[RG]` | 95 | Contexto obrigatório ("RG", "identidade", "CIN"); inclui órgão emissor e UF | RG 1.234.567 SSP/DF |
+| `CNH` | CNH | `[CNH]` | 95 | Dígitos verificadores; contexto obrigatório | CNH 39825979149 |
+| `PIS` | PIS/PASEP/NIS/NIT | `[PIS]` | 95 | Módulo 11; sem pontuação característica, exige contexto | 190.74833.78-3 |
+| `TITULO_ELEITOR` | Título de eleitor | `[TÍTULO DE ELEITOR]` | 95 | Dígitos verificadores com código da UF | 8762 3286 2410 |
+| `CNS` | Cartão Nacional de Saúde (SUS) | `[CARTÃO SUS]` | 95 | Módulo 11 (definitivo e provisório) | 112 9040 4796 6691 |
+| `PASSAPORTE` | Passaporte | `[PASSAPORTE]` | 90 | Contexto obrigatório | passaporte AB123456 |
+| `CTPS` | Carteira de trabalho | `[CTPS]` | 90 | Contexto obrigatório; inclui série e UF | CTPS 1234567 série 0012/DF |
+| `CERTIDAO` | Matrícula de certidão civil | `[CERTIDÃO]` | 90 | Formato de 32 dígitos (Provimento CNJ nº 3/2009) | |
+| `MATRICULA` | Matrícula funcional | `[MATRÍCULA]` | 85 | Contexto obrigatório ("matrícula", "SIAPE") | matrícula 123.456-7 |
+| `REGISTRO_PROFISSIONAL` | Registro profissional (OAB, CRM…) | `[REGISTRO PROFISSIONAL]` | 85 | Sigla do conselho em maiúsculas | OAB/DF 12.345 |
+| `DOCUMENTO` | Número de documento | `[DOCUMENTO]` | 80 | Contexto obrigatório | Documento do cliente: 1234567-8 |
+| `DATA_NASCIMENTO` | Data de nascimento | `[DATA DE NASCIMENTO]` | 85 | Contexto ("nascido em", "data de nascimento") | nascida em 12/03/1985 |
+
+### Contato, localização e finanças
+
+| Código | Nome | Etiqueta | Prioridade | Validação | Exemplo fictício |
+|---|---|---|---|---|---|
+| `EMAIL` | E-mail | `[E-MAIL]` | 90 | Formato; inclui formas ofuscadas | maria.souza@exemplo.com.br; joao arroba gmail ponto com; joao [arroba] gmail [ponto] com; joao @ gmail . com |
+| `TELEFONE` | Telefone | `[TELEFONE]` | 85 | Padrões próprios e biblioteca phonenumbers (região BR) | (61) 99876-5432 |
+| `PERFIL_REDE_SOCIAL` | Perfil em rede social | `[PERFIL]` | 85 | `@usuario` com contexto ou URL de rede social | @maria.souza |
+| `IP` | Endereço IP | `[IP]` | 80 | Reconhecedor do Presidio | 203.0.113.45 |
+| `ENDERECO` | Endereço | `[ENDEREÇO]` | 70 | Logradouro e componentes; endereçamento do DF; rodovias; local de residência | QNM 12 Conjunto B Casa 4 |
+| `CEP` | CEP | `[CEP]` | 80 | Formato com hífen ou após "CEP" | 72215-120 |
+| `CONTA_BANCARIA` | Agência/conta bancária | `[CONTA BANCÁRIA]` | 85 | Contexto bancário; IBAN pelo Presidio | agência 1234, conta 56789-0 |
+| `CARTAO` | Cartão de pagamento | `[CARTÃO]` | 90 | Algoritmo de Luhn | 4111 1111 1111 1111 |
+| `CHAVE_PIX` | Chave PIX | `[CHAVE PIX]` | 90 | Contexto ("pix", "chave") | chave pix 61998765432 |
+| `CARTEIRA_CRIPTO` | Carteira de criptomoeda | `[CARTEIRA CRIPTO]` | 85 | Reconhecedor do Presidio | |
+
+### Veículos e processos
+
+| Código | Nome | Etiqueta | Prioridade | Validação | Exemplo fictício |
+|---|---|---|---|---|---|
+| `PLACA` | Placa de veículo | `[PLACA]` | 85 | Padrão Mercosul; padrão antigo com contexto | ABC1D23 |
+| `RENAVAM` | RENAVAM | `[RENAVAM]` | 90 | Contexto obrigatório ("RENAVAM") | RENAVAM 72510273464 |
+| `PROCESSO_JUDICIAL` | Processo judicial (CNJ) | `[PROCESSO JUDICIAL]` | 85 | Módulo 97 (Resolução CNJ nº 65/2008); formato pontuado dispensa a validação | 4686958-42.2023.8.07.6678 |
+| `PROCESSO_ADMINISTRATIVO` | Processo administrativo (SEI/NUP) | `[PROCESSO]` | 80 | Ano plausível; contexto para formatos livres | 00410-00012345/2024-11 |
+| `PROTOCOLO` | Protocolo | `[PROTOCOLO]` | 75 | Contexto ("protocolo", "ocorrência", "boletim") | protocolo nº 2024123456 |
+
+### Pessoa jurídica, localidades e outros
+
+| Código | Nome | Etiqueta | Prioridade | Observação |
+|---|---|---|---|---|
+| `CNPJ` | CNPJ | `[CNPJ]` | 90 | Módulo 11, inclusive o CNPJ alfanumérico (IN RFB nº 2.229/2024), como GM.Y1U.F3A/0001-01 |
+| `LOCALIDADE` | Cidade ou região administrativa | `[LOCALIDADE]` | 30 | Regiões administrativas do DF; "resido em Taguatinga" é classificado como `ENDERECO` |
+| `URL` | Endereço de internet | `[URL]` | 20 | |
+| `QUASE_IDENTIFICADOR` | Quase-identificador | `[QUASE-IDENTIFICADOR]` | 15 | Função, local e turno ("atendente do guichê 4 na tarde de ontem") |
+| `NUMERO_NAO_IDENTIFICADO` | Número longo não identificado | `[NÚMERO]` | 10 | Reservado; não é produzido pelos reconhecedores padrão |
+| `MANUAL` | Trecho tarjado manualmente | `[TARJADO]` | 110 | Lista de bloqueio e tarjas manuais da revisão |
+
+### Dados sensíveis, intimidade e menores
+
+| Código | Nome | Etiqueta | Categoria | Exemplos de achado |
+|---|---|---|---|---|
+| `SAUDE` | Dado de saúde | `[DADO DE SAÚDE]` | `SENSIVEL` | CID F32.1; "diagnosticado com depressão"; "asma" |
+| `RELIGIAO` | Convicção religiosa | `[CONVICÇÃO RELIGIOSA]` | `SENSIVEL` | "sou católico" |
+| `OPINIAO_POLITICA` | Opinião política | `[OPINIÃO POLÍTICA]` | `SENSIVEL` | filiação partidária |
+| `FILIACAO_SINDICAL` | Filiação sindical ou associativa | `[FILIAÇÃO]` | `SENSIVEL` | "sou sindicalizado" |
+| `VIDA_SEXUAL` | Vida sexual / orientação sexual | `[VIDA SEXUAL]` | `SENSIVEL` | |
+| `GENETICO_BIOMETRICO` | Dado genético ou biométrico | `[DADO BIOMÉTRICO]` | `SENSIVEL` | exame de DNA, impressão digital |
+| `ORIGEM_RACIAL` | Origem racial ou étnica | `[ORIGEM RACIAL]` | `SENSIVEL` | |
+| `VIOLENCIA` | Situação de violência ou risco | `[SITUAÇÃO DE VIOLÊNCIA]` | `INTIMIDADE` | "vítima de violência doméstica"; "medida protetiva" |
+| `DADO_DE_MENOR` | Dado de criança ou adolescente | `[DADO DE MENOR]` | `MENOR` | "meu filho de 9 anos" |
+
+Os dados de saúde são reconhecidos por CID, frases de diagnóstico e tratamento e um vocabulário de
+cerca de 150 condições. As demais categorias sensíveis usam vocabulário próprio.
+
+### Nomes de pessoas
+
+Três reconhecedores se complementam:
+
+| Reconhecedor | Funcionamento | Funciona em minúsculas e caixa alta |
+|---|---|---|
+| `BR_Nomes_Modelo` | Entidades `PER` (e `MISC`/`LOC` iniciadas por prenome conhecido) do modelo `pt_core_news_lg`, filtradas: títulos, letras isoladas, algarismos romanos, palavras comuns, nomes de instituições, normas e lugares | não |
+| `BR_Nomes_Lista` | Sequências iniciadas por um dos cerca de 600 prenomes brasileiros da lista, seguidos de sobrenomes ou conectores | sim |
+| `BR_Nomes_Gatilho` | Nome após gatilho de contexto ("meu nome é", "requerente:", "Atenciosamente,", "sou a…") | sim |
+
+Nomes que integram nomes de lugares, instituições ou normas ("São Paulo", "Escola Paulo Freire",
+"Lei Maria da Penha") não são tratados como pessoa.
+
+## Perfis
+
+| Categoria | `lai` (padrão) | `identificadores` | `saude` | `maxima` |
+|---|---|---|---|---|
+| `PESSOA`, `DOCUMENTO`, `DADO_PESSOAL`, `CONTATO`, `LOCALIZACAO`, `FINANCEIRO`, `VEICULO`, `PROCESSO`, `MANUAL` | tarjar | tarjar | tarjar | tarjar |
+| `SENSIVEL` | vinculado | alertar | vinculado² | tarjar |
+| `INTIMIDADE` | vinculado | alertar | vinculado | tarjar |
+| `MENOR` | vinculado | alertar | vinculado | tarjar |
+| `EMPRESA` | manter | manter | manter | tarjar |
+| `LOCALIDADE` | alertar | manter | alertar | tarjar |
+| `URL` | manter | manter | manter | tarjar |
+| `QUASE_IDENTIFICADOR` | alertar | alertar | alertar | tarjar |
+| Confiança mínima para aplicar a regra (`score_minimo`) | 0,6 | 0,6 | 0,6 | 0,4 |
+| Confiança mínima para considerar o achado (`score_alerta`) | 0,4 | 0,4 | 0,4 | 0,3 |
+
+² No perfil `saude`, os tipos `SAUDE` e `GENETICO_BIOMETRICO` são tarjados sempre, mesmo sem vínculo.
+
+### Regras
+
+- **tarjar:** o trecho é substituído.
+- **alertar:** o trecho permanece no texto e é listado para revisão humana.
+- **manter:** o trecho é ignorado.
+- **vinculado:** frases que descrevem a situação de alguém (camada contextual, como
+  "diagnosticado com…" ou "vítima de violência doméstica") são tarjadas; termos isolados (camada
+  semântica, como "asma" ou "católico") são tarjados somente quando a frase se refere a uma pessoa
+  determinada e, caso contrário, viram alerta.
+
+A frase se refere a uma pessoa determinada quando contém marcador de primeira pessoa ("eu", "minha",
+"tenho", "sofri"), possessivo ou papel ("a requerente", "o paciente", "minha filha"), ou um
+identificador pessoal já detectado (nome, documento, contato, processo). Assim, "a política de saúde
+mental prevê atendimento para depressão" permanece legível, enquanto "minha filha tem autismo" é
+tarjado. A regra evita tarjar conteúdo de interesse público, em atenção ao princípio da máxima
+divulgação da LAI. Ver [ADR 0004](adr/0004-perfis-lgpd-e-lai.md).
+
+### Falha fechada para identificadores
+
+Nas categorias identificadoras com regra `tarjar`, um achado com confiança entre `score_alerta` e
+`score_minimo` é tarjado por precaução, com o motivo "Identificador com confiança moderada — tarjado
+por precaução". Nas demais categorias, o mesmo achado vira alerta. Expor um CPF ou telefone é
+irreversível; uma tarja a mais é corrigível na revisão.
+
+Também por esse princípio, números com formato de documento acompanhados da palavra correspondente
+("CPF 123.456.789-00") são tarjados mesmo com dígito verificador inválido: erros de digitação continuam
+identificando a pessoa.
+
+### Agentes públicos
+
+Com a opção `preservar_agentes_publicos` (CLI `--preservar-agentes-publicos`; caixa de seleção na
+interface), nomes precedidos ou seguidos de cargo público ("Secretária de Estado de Saúde, Fulana";
+"Fulano, diretor-geral") recebem `manter`, com o motivo "Agente público no exercício da função
+(transparência ativa)". A aplicação dessa opção deve ser validada pela área jurídica.
+
+### Listas de permissão e de bloqueio
+
+- **Permitir:** termos que nunca são tarjados, comparados sem distinção de caixa e acentos e com
+  limite de palavra. Ocorrências contidas em um termo permitido recebem `manter`.
+- **Bloquear:** termos sempre tarjados, em qualquer ocorrência, com o tipo `MANUAL`.
+
+### Perfil personalizado
+
+```python
+from themis_lgpd import Anonimizador, Perfil, PERFIS
+
+perfil = Perfil("ouvidoria", "Ouvidoria", "LAI com tarja de localidades",
+                {**PERFIS["lai"].regras, "LOCALIDADE": "tarjar"})
+anon = Anonimizador(perfil)
+```
+
+Categorias ausentes das regras recebem `alertar`.
+
+## Informações mantidas de propósito
+
+Em atenção à LAI, permanecem legíveis no perfil `lai`: números de leis, editais, contratos, notas
+fiscais, empenhos e termos de parceria; nomes de instituições; CNPJ; expressões genéricas de estado
+emocional ("estou chateada com a demora"); termos sensíveis sem vínculo com pessoa determinada (como
+alerta).

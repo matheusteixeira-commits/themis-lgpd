@@ -1,0 +1,1 @@
+"""Integrações opcionais (Presidio, GLiNER)."""

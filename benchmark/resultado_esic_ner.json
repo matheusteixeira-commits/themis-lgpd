@@ -1,0 +1,54 @@
+{
+  "sistema": "Themis LGPD (perfil lai)",
+  "documentos": 975,
+  "recall_entidades": 0.9422,
+  "recall_por_rotulo": {
+    "CONTATO": 1.0,
+    "DADO_FINANCEIRO": 1.0,
+    "DADO_SAUDE": 0.6395,
+    "DATA_NASC": 1.0,
+    "DOC_PESSOAL": 1.0,
+    "DOC_PROFISSIONAL": 0.9688,
+    "ENDERECO": 0.9423,
+    "ID_PROCESSUAL": 0.9212,
+    "ID_VEICULO": 1.0,
+    "NOME_PESSOA": 1.0,
+    "QUASI_IDENTIFICADOR": 0.35
+  },
+  "recall_estrito": 0.9178,
+  "recall_estrito_por_rotulo": {
+    "CONTATO": 1.0,
+    "DADO_FINANCEIRO": 1.0,
+    "DADO_SAUDE": 0.6395,
+    "DATA_NASC": 1.0,
+    "DOC_PESSOAL": 1.0,
+    "DOC_PROFISSIONAL": 0.6875,
+    "ENDERECO": 0.6538,
+    "ID_PROCESSUAL": 0.9122,
+    "ID_VEICULO": 1.0,
+    "NOME_PESSOA": 1.0,
+    "QUASI_IDENTIFICADOR": 0.0
+  },
+  "entidades_por_rotulo": {
+    "CONTATO": 48,
+    "DADO_FINANCEIRO": 19,
+    "DADO_SAUDE": 86,
+    "DATA_NASC": 268,
+    "DOC_PESSOAL": 76,
+    "DOC_PROFISSIONAL": 32,
+    "ENDERECO": 52,
+    "ID_PROCESSUAL": 444,
+    "ID_VEICULO": 14,
+    "NOME_PESSOA": 377,
+    "QUASI_IDENTIFICADOR": 20
+  },
+  "documentos_com_vazamento": 0.1126,
+  "triagem": {
+    "precisao": 0.9481,
+    "recall": 0.9408,
+    "f1": 0.9444
+  },
+  "tarja_fora_do_gabarito": 0.0569,
+  "segundos_por_documento": 0.0218,
+  "dataset": "EliMC/esic-ner (test)"
+}

@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Benchmark (dados baixados sob demanda)
+benchmark/.cache/
+
+# Segredos e configuração local
+.env
+.env.*
+!deploy/.env.exemplo
+*.pem
+*.key
+*.cofre
+
+# Documentos de trabalho — nunca versionar documentos reais
+*_anonimizado.*
+*_INTERNO.*
+dados_reais/
+entrada/
+saida/
+
+# Configurações locais de editores e ferramentas de desenvolvimento (nunca versionadas)
+.agent/
+.windsurf/
+.claude/
+.cursor/
+.vscode/
+.idea/
+
+# SO
+.DS_Store
+Thumbs.db
+desktop.ini
