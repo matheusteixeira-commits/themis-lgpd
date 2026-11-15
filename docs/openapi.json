@@ -1,0 +1,611 @@
+{
+  "components": {
+    "schemas": {
+      "Body_anonimizar_arquivo_rota_v1_arquivos_anonimizar_post": {
+        "properties": {
+          "arquivo": {
+            "contentMediaType": "application/octet-stream",
+            "title": "Arquivo",
+            "type": "string"
+          },
+          "bloquear": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Bloquear",
+            "type": "array"
+          },
+          "coluna_integral": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Coluna Integral",
+            "type": "array"
+          },
+          "modo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Modo"
+          },
+          "ocr": {
+            "default": true,
+            "title": "Ocr",
+            "type": "boolean"
+          },
+          "perfil": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Perfil"
+          },
+          "permitir": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Permitir",
+            "type": "array"
+          },
+          "preservar_agentes_publicos": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preservar Agentes Publicos"
+          },
+          "resposta": {
+            "default": "arquivo",
+            "title": "Resposta",
+            "type": "string"
+          }
+        },
+        "required": [
+          "arquivo"
+        ],
+        "title": "Body_anonimizar_arquivo_rota_v1_arquivos_anonimizar_post",
+        "type": "object"
+      },
+      "Body_criar_tarefa_v1_tarefas_post": {
+        "properties": {
+          "arquivo": {
+            "contentMediaType": "application/octet-stream",
+            "title": "Arquivo",
+            "type": "string"
+          },
+          "bloquear": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Bloquear",
+            "type": "array"
+          },
+          "coluna_integral": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Coluna Integral",
+            "type": "array"
+          },
+          "modo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Modo"
+          },
+          "ocr": {
+            "default": true,
+            "title": "Ocr",
+            "type": "boolean"
+          },
+          "perfil": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Perfil"
+          },
+          "permitir": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Permitir",
+            "type": "array"
+          },
+          "preservar_agentes_publicos": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preservar Agentes Publicos"
+          },
+          "resposta": {
+            "default": "arquivo",
+            "title": "Resposta",
+            "type": "string"
+          }
+        },
+        "required": [
+          "arquivo"
+        ],
+        "title": "Body_criar_tarefa_v1_tarefas_post",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "PedidoTexto": {
+        "description": "Pedido de anonimização ou análise de texto.",
+        "properties": {
+          "bloquear": {
+            "description": "Termos sempre tarjados",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 200,
+            "title": "Bloquear",
+            "type": "array"
+          },
+          "incluir_valores": {
+            "default": false,
+            "description": "Incluir os valores detectados na resposta",
+            "title": "Incluir Valores",
+            "type": "boolean"
+          },
+          "modo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Um de: etiqueta, tarja, mascara, pseudonimo, hmac; padrão: etiqueta",
+            "title": "Modo"
+          },
+          "perfil": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Perfil; padrão: o da configuração do órgão (lai)",
+            "title": "Perfil"
+          },
+          "permitir": {
+            "description": "Termos que nunca são tarjados",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 200,
+            "title": "Permitir",
+            "type": "array"
+          },
+          "preservar_agentes_publicos": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Mantém nomes acompanhados de cargo público",
+            "title": "Preservar Agentes Publicos"
+          },
+          "texto": {
+            "maxLength": 500000,
+            "minLength": 1,
+            "title": "Texto",
+            "type": "string"
+          }
+        },
+        "required": [
+          "texto"
+        ],
+        "title": "PedidoTexto",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Anonimização de documentos públicos brasileiros (LGPD/LAI). Nada é gravado em disco.",
+    "title": "Themis LGPD",
+    "version": "1.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/saude": {
+      "get": {
+        "description": "Estado do serviço, versão, disponibilidade de OCR e configuração em uso.",
+        "operationId": "saude_saude_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Saude"
+      }
+    },
+    "/v1/analisar": {
+      "post": {
+        "description": "Lista o que seria tarjado ou sinalizado, sem alterar o texto.",
+        "operationId": "analisar_texto_v1_analisar_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PedidoTexto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Analisar Texto"
+      }
+    },
+    "/v1/anonimizar": {
+      "post": {
+        "description": "Anonimiza um texto e devolve o texto anonimizado, as entidades e a nota de tarjamento.",
+        "operationId": "anonimizar_texto_v1_anonimizar_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PedidoTexto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Anonimizar Texto"
+      }
+    },
+    "/v1/arquivos/anonimizar": {
+      "post": {
+        "description": "Anonimiza um arquivo e devolve o arquivo gerado. Os totais e os avisos são informados nos cabeçalhos `X-Themis-Tarjados`, `X-Themis-Para-Revisar` e `X-Themis-Avisos` (codificado para URL). Campos do formulário (todos opcionais, exceto `arquivo`): `perfil`, `modo`, `permitir` e `bloquear` (repetíveis), `preservar_agentes_publicos`, `coluna_integral` (repetível; planilhas), `ocr` e `resposta` (`arquivo`, padrão, ou `json`, que devolve o arquivo em base64 com o relatório de tarjamento).",
+        "operationId": "anonimizar_arquivo_rota_v1_arquivos_anonimizar_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_anonimizar_arquivo_rota_v1_arquivos_anonimizar_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Anonimizar Arquivo Rota"
+      }
+    },
+    "/v1/perfis": {
+      "get": {
+        "description": "Perfis de anonimização (do Themis e do órgão) e modos de saída.",
+        "operationId": "listar_perfis_v1_perfis_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Listar Perfis"
+      }
+    },
+    "/v1/tarefas": {
+      "post": {
+        "description": "Agenda a anonimização de um arquivo e responde imediatamente (HTTP 202), para documentos longos, como PDFs digitalizados, que excederiam o tempo de uma requisição. Consulte a situação em `GET /v1/tarefas/{id}` e baixe o resultado em `GET /v1/tarefas/{id}/resultado`; o resultado é apagado da memória após o download ou após `THEMIS_TAREFA_TTL_S` segundos. Campos do formulário (todos opcionais, exceto `arquivo`): `perfil`, `modo`, `permitir` e `bloquear` (repetíveis), `preservar_agentes_publicos`, `coluna_integral` (repetível; planilhas), `ocr` e `resposta` (`arquivo`, padrão, ou `json`, que devolve o arquivo em base64 com o relatório de tarjamento).",
+        "operationId": "criar_tarefa_v1_tarefas_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_criar_tarefa_v1_tarefas_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Criar Tarefa"
+      }
+    },
+    "/v1/tarefas/{id_tarefa}": {
+      "delete": {
+        "description": "Apaga a tarefa e o seu resultado; uma análise em andamento termina, mas o resultado é descartado.",
+        "operationId": "apagar_tarefa_v1_tarefas__id_tarefa__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id_tarefa",
+            "required": true,
+            "schema": {
+              "title": "Id Tarefa",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Apagar Tarefa"
+      },
+      "get": {
+        "description": "Situação da tarefa: ``na_fila``, ``processando``, ``concluida`` ou ``falhou``.",
+        "operationId": "consultar_tarefa_v1_tarefas__id_tarefa__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id_tarefa",
+            "required": true,
+            "schema": {
+              "title": "Id Tarefa",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Consultar Tarefa"
+      }
+    },
+    "/v1/tarefas/{id_tarefa}/resultado": {
+      "get": {
+        "description": "Devolve o resultado de uma tarefa concluída e o apaga da memória.",
+        "operationId": "baixar_resultado_v1_tarefas__id_tarefa__resultado_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id_tarefa",
+            "required": true,
+            "schema": {
+              "title": "Id Tarefa",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Baixar Resultado"
+      }
+    },
+    "/v1/tipos": {
+      "get": {
+        "description": "Tipos de dado reconhecidos, com categoria, etiqueta e base legal.",
+        "operationId": "listar_tipos_v1_tipos_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Listar Tipos"
+      }
+    }
+  }
+}

@@ -41,14 +41,23 @@ curl -H "X-API-Key: ${THEMIS_CHAVE}" ...
 
 | Método | Rota | Autenticação | Descrição |
 |---|---|---|---|
-| `GET` | `/saude` | não | Estado do serviço, versão, disponibilidade de OCR e modo de demonstração |
-| `GET` | `/v1/perfis` | não | Perfis e modos de saída disponíveis |
-| `GET` | `/v1/tipos` | não | Tipos de dado, categorias, etiquetas e base legal |
+| `GET` | `/saude` | não | Estado do serviço, versão, OCR, processos, modo de demonstração e uso de configuração do órgão |
+| `GET` | `/v1/perfis` | não | Perfis (do Themis e do órgão), perfil padrão e modos de saída |
+| `GET` | `/v1/tipos` | não | Tipos de dado (inclusive os do órgão), categorias, etiquetas e base legal |
 | `POST` | `/v1/anonimizar` | sim¹ | Anonimiza um texto |
 | `POST` | `/v1/analisar` | sim¹ | Lista o que seria tarjado, sem alterar o texto |
-| `POST` | `/v1/arquivos/anonimizar` | sim¹ | Anonimiza um arquivo e devolve o arquivo gerado |
+| `POST` | `/v1/arquivos/anonimizar` | sim¹ | Anonimiza um arquivo e devolve o arquivo gerado (ou, em JSON, o arquivo e o relatório) |
+| `POST` | `/v1/tarefas` | sim¹ | Agenda a anonimização de um arquivo e responde de imediato (202) |
+| `GET` | `/v1/tarefas/{id}` | sim² | Situação da tarefa |
+| `GET` | `/v1/tarefas/{id}/resultado` | sim² | Baixa o resultado e o apaga da memória |
+| `DELETE` | `/v1/tarefas/{id}` | sim² | Apaga a tarefa e o resultado |
 
 ¹ Somente quando `THEMIS_CHAVES_API` está definida.
+² Com a mesma chave que criou a tarefa; para outra chave, a tarefa não existe (404).
+
+A especificação OpenAPI de cada versão está versionada em [openapi.json](openapi.json) (gerada por
+`scripts/gerar_openapi.py`; um teste falha se a API mudar sem que o arquivo seja atualizado), o que
+permite gerar clientes para sistemas como o SEI ou portais de transparência.
 
 ### `GET /saude`
 
@@ -83,11 +92,11 @@ Corpo (JSON):
 | Campo | Tipo | Padrão | Descrição |
 |---|---|---|---|
 | `texto` | string | obrigatório | Texto a anonimizar; de 1 a `THEMIS_MAX_CARACTERES` caracteres |
-| `perfil` | string | `lai` | `lai`, `identificadores`, `saude` ou `maxima` |
-| `modo` | string | `etiqueta` | `etiqueta`, `tarja`, `mascara`, `pseudonimo` ou `hmac` (indisponível na demonstração) |
-| `permitir` | lista de strings | `[]` | Termos que nunca são tarjados (até 200 termos de até 200 caracteres) |
-| `bloquear` | lista de strings | `[]` | Termos sempre tarjados (mesmos limites) |
-| `preservar_agentes_publicos` | booleano | `false` | Mantém nomes acompanhados de cargo público |
+| `perfil` | string | do órgão (`lai`) | `lai`, `identificadores`, `saude`, `ouvidoria`, `educacao`, `maxima` ou um perfil do `themis.toml` |
+| `modo` | string | do órgão (`etiqueta`) | `etiqueta`, `tarja`, `mascara`, `pseudonimo` ou `hmac` (indisponível na demonstração) |
+| `permitir` | lista de strings | `[]` | Termos que nunca são tarjados (até 200 termos de até 200 caracteres), somados aos do `themis.toml` |
+| `bloquear` | lista de strings | `[]` | Termos sempre tarjados (mesmos limites), somados aos do `themis.toml` |
+| `preservar_agentes_publicos` | booleano | do órgão (`false`) | Mantém nomes acompanhados de cargo público |
 | `incluir_valores` | booleano | `false` | Inclui o valor original de cada entidade na resposta |
 
 No modo `hmac`, a API usa uma chave aleatória por requisição: os códigos não se repetem entre
@@ -159,12 +168,17 @@ Requisição `multipart/form-data`:
 | Campo | Tipo | Padrão | Descrição |
 |---|---|---|---|
 | `arquivo` | arquivo | obrigatório | PDF, DOCX, XLSX, CSV, TXT, PNG ou JPEG, até `THEMIS_MAX_MB` |
-| `perfil` | texto | `lai` | Perfil |
-| `modo` | texto | `etiqueta` | Modo de saída |
+| `perfil` | texto | do órgão (`lai`) | Perfil |
+| `modo` | texto | do órgão (`etiqueta`) | Modo de saída |
+| `permitir`, `bloquear` | texto (repetível) | — | Termos nunca ou sempre tarjados, somados aos do `themis.toml` |
+| `preservar_agentes_publicos` | booleano | do órgão | Mantém nomes acompanhados de cargo público |
+| `coluna_integral` | texto (repetível) | — | Em planilhas, coluna (pelo cabeçalho) tarjada por inteiro |
+| `ocr` | booleano | `true` | Permite OCR em páginas digitalizadas e imagens |
+| `resposta` | texto | `arquivo` | `arquivo` devolve o arquivo gerado; `json` devolve o arquivo em base64 com o relatório de tarjamento (resumo, itens sem valores originais) e a nota de tarjamento |
 
 ```bash
 curl -s http://127.0.0.1:8000/v1/arquivos/anonimizar \
-  -F "arquivo=@despacho.pdf" -F "perfil=lai" \
+  -F "arquivo=@despacho.pdf" -F "perfil=lai" -F "permitir=Hospital Regional de Taguatinga" \
   -o despacho_anonimizado.pdf -D cabecalhos.txt
 ```
 
@@ -182,8 +196,30 @@ Os avisos informam conteúdo removido, convertido ou não analisado (anexos, com
 analisadas, páginas rasterizadas) e nunca repetem conteúdo do documento. O arquivo gerado passa pela
 verificação final descrita em [SEGURANCA_E_PRIVACIDADE.md](SEGURANCA_E_PRIVACIDADE.md#verificação-final).
 
-Pela API de arquivos não é possível informar listas de permissão e bloqueio nem colunas a tarjar por
-inteiro; para esses casos, use a CLI ou a biblioteca.
+### Tarefas assíncronas: `POST /v1/tarefas`
+
+Documentos longos — um PDF digitalizado de dezenas de páginas, que exige OCR — podem exceder o tempo
+de uma requisição (`THEMIS_TIMEOUT_S`). A rota `/v1/tarefas` recebe os mesmos campos de
+`/v1/arquivos/anonimizar`, responde imediatamente com HTTP 202 e processa o arquivo em segundo plano,
+com o limite `THEMIS_TAREFA_TIMEOUT_S`:
+
+```bash
+curl -s http://127.0.0.1:8000/v1/tarefas -H "X-API-Key: ${THEMIS_CHAVE}" -F "arquivo=@processo.pdf"
+# {"id": "k3J…", "situacao": "na_fila", "consulta": "/v1/tarefas/k3J…",
+#  "resultado": "/v1/tarefas/k3J…/resultado", "expira_apos_conclusao_s": 900}
+
+curl -s http://127.0.0.1:8000/v1/tarefas/k3J… -H "X-API-Key: ${THEMIS_CHAVE}"
+# {"id": "k3J…", "situacao": "concluida", "nome": "processo_anonimizado.pdf", "tarjados": 41, …}
+
+curl -s http://127.0.0.1:8000/v1/tarefas/k3J…/resultado -H "X-API-Key: ${THEMIS_CHAVE}" -o processo_anonimizado.pdf
+```
+
+A situação é `na_fila`, `processando`, `concluida` ou `falhou` (com `mensagem`, que nunca repete
+conteúdo do documento). O identificador é aleatório (192 bits) e a tarefa só é visível para a chave de
+API que a criou. Nada é gravado em disco: o arquivo enviado e o resultado ficam em memória, e o
+resultado é apagado após o download, após `DELETE /v1/tarefas/{id}` ou `THEMIS_TAREFA_TTL_S` segundos
+depois da conclusão. No máximo `THEMIS_MAX_TAREFAS` tarefas são mantidas; além disso, a rota responde
+503 com `Retry-After`.
 
 ## Erros
 

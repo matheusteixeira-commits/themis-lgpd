@@ -63,6 +63,53 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - `benchmark/esic_ner.py` separa as entidades não tarjadas em sinalizadas para revisão e não
   detectadas; partição de treino para desenvolvimento (`--split train`).
 
+### Adicionado — operação em escala e por órgão
+
+- Lotes na CLI: pastas (`-R` para subpastas), árvore de pastas preservada na saída (arquivos de mesmo
+  nome em pastas diferentes não colidem mais), processamento paralelo (`-j N`), cofre por documento e
+  código de saída igual à maior gravidade do lote (um erro interno não é mais rebaixado por um arquivo
+  recusado depois).
+- Manifesto de cadeia de custódia (`--manifesto`, JSON Lines gravado arquivo a arquivo): SHA-256 e
+  tamanho de entrada e saída, formato, perfil, modo, versão, identificador da configuração, tarjas por
+  tipo, alertas, avisos, situação e duração, sem nenhum conteúdo; retomada de lotes interrompidos
+  (`--retomar`).
+- Relatório consolidado de lote identifica o arquivo de origem de cada item.
+- Configuração por órgão (`themis.toml`, `--config` ou `THEMIS_CONFIG`) para CLI, API e interface:
+  perfil e modo padrão, listas, cargos, tipos e reconhecedores próprios (expressão regular, contexto e
+  validador de dígito, registrados no Presidio) e perfis derivados; erros indicam seção e campo e
+  impedem a execução. Exemplo comentado em `exemplos/orgao.toml`.
+- Perfis `ouvidoria` (identidade do manifestante, Lei nº 13.460/2017, art. 10, § 7º) e `educacao`
+  (estudantes, LGPD art. 14 e ECA art. 17).
+- Agentes públicos: lista de cargos ampliada (reitor, defensor público, promotor de justiça, delegado,
+  pregoeiro, fiscal e gestor de contrato, ordenador de despesa…) e decisão aplicada a todas as
+  ocorrências do mesmo nome no documento.
+- API: rota de arquivos com listas, agentes públicos, colunas integrais, OCR e resposta em JSON com o
+  relatório de tarjamento; tarefas assíncronas (`POST /v1/tarefas`, consulta, download e exclusão),
+  com resultado só em memória, visível apenas para a chave que o criou e apagado após o download ou a
+  expiração; processos de análise em paralelo (`themis api --processos N`, `THEMIS_PROCESSOS`);
+  especificação OpenAPI versionada em `docs/openapi.json`, com teste de sincronia.
+- `benchmark/desempenho.py`: tempo de análise de textos longos e de anonimização de PDFs, e tamanho
+  dos PDFs gerados.
+
+### Desempenho
+
+- Análise de textos longos quase linear: 100 mil caracteres em 4,7 s (1.0.0: 11,3 s). O reforço de
+  confiança por contexto do Presidio localiza o token de cada achado por busca binária, e o filtro de
+  nomes lê o texto do documento uma vez, em vez de remontá-lo a cada entidade.
+- PDF: páginas tarjadas gravadas em escala de cinza quando não têm cor e em JPEG quando fotográficas,
+  com composição em paralelo — 0,32 s por página (1.0.0: 0,47 s) e arquivos 42% menores.
+
+### Corrigido
+
+- A verificação final de PDFs, DOCX e XLSX deixava de entregar documentos válidos quando um sobrenome
+  tarjado ("Rocha") aparecia como palavra comum em minúsculas ("rocha") em outro trecho; ela passa a
+  seguir a regra da propagação.
+- Relatórios CSV e XLSX exibiam um apóstrofo nas células vazias.
+- Arquivo com extensão de formato binário e conteúdo de texto (um `.pdf` renomeado) era processado
+  como texto e gerava saída com outra extensão; passa a ser recusado.
+- `themis analisar` e `themis reverter` exibiam o rastreamento do Python para arquivo inexistente,
+  texto fora de UTF-8 ou senha incorreta; passam a exibir mensagem e a sair com código 1.
+
 ### Alterado
 
 - OCR pelo pacote `rapidocr` (modelo multilíngue PP-OCRv6, com acentuação do português, incluído no

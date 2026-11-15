@@ -47,6 +47,13 @@ class Config:
             ativado atrás de um proxy reverso confiável (``THEMIS_CONFIAR_PROXY``).
         usar_ner: Usa o modelo de linguagem no reconhecimento de nomes (``THEMIS_USAR_NER``).
         modelo_spacy: Pacote do modelo spaCy (``THEMIS_MODELO_SPACY``).
+        processos: Processos de análise da API; com mais de um, cada análise roda num processo
+            separado, com o próprio modelo (``THEMIS_PROCESSOS``).
+        max_tarefas: Tarefas assíncronas mantidas em memória ao mesmo tempo (``THEMIS_MAX_TAREFAS``).
+        tarefa_ttl_s: Tempo em que o resultado de uma tarefa concluída aguarda o download, em
+            segundos; depois disso é apagado (``THEMIS_TAREFA_TTL_S``).
+        tarefa_timeout_s: Tempo máximo de processamento de uma tarefa assíncrona, em segundos
+            (``THEMIS_TAREFA_TIMEOUT_S``).
     """
 
     demo: bool
@@ -62,6 +69,10 @@ class Config:
     confiar_proxy: bool
     usar_ner: bool
     modelo_spacy: str
+    processos: int
+    max_tarefas: int
+    tarefa_ttl_s: int
+    tarefa_timeout_s: int
 
 
 def carregar() -> Config:
@@ -81,4 +92,8 @@ def carregar() -> Config:
         confiar_proxy=_bool("THEMIS_CONFIAR_PROXY", False),
         usar_ner=_bool("THEMIS_USAR_NER", True),
         modelo_spacy=os.environ.get("THEMIS_MODELO_SPACY", "pt_core_news_lg"),
+        processos=max(1, _int("THEMIS_PROCESSOS", 1)),
+        max_tarefas=max(1, _int("THEMIS_MAX_TAREFAS", 2 if demo else 20)),
+        tarefa_ttl_s=max(30, _int("THEMIS_TAREFA_TTL_S", 900)),
+        tarefa_timeout_s=max(60, _int("THEMIS_TAREFA_TIMEOUT_S", 300 if demo else 3600)),
     )

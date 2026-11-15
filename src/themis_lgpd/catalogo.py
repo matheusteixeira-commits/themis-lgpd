@@ -168,3 +168,28 @@ def tipo(codigo: str) -> TipoInfo:
 def categoria_de(codigo_tipo: str) -> Categoria:
     """Categoria de um tipo de dado (ver :func:`tipo`)."""
     return CATEGORIAS[tipo(codigo_tipo).categoria]
+
+
+#: Tipos do catálogo original, que não podem ser redefinidos por configuração.
+_TIPOS_ORIGINAIS = frozenset(TIPOS)
+
+
+def registrar_tipo(info: TipoInfo) -> None:
+    """Acrescenta ao catálogo um tipo definido pelo órgão (ver :mod:`themis_lgpd.configuracao`).
+
+    Registrar de novo um tipo idêntico não tem efeito, o que permite repetir o registro em cada
+    processo de trabalho de um lote.
+
+    Raises:
+        ValueError: Categoria inexistente, código de tipo do catálogo original ou já registrado com
+            outra definição.
+    """
+    if info.categoria not in CATEGORIAS:
+        raise ValueError(f"categoria desconhecida {info.categoria!r} no tipo {info.codigo!r}; "
+                         f"opções: {', '.join(CATEGORIAS)}")
+    atual = TIPOS.get(info.codigo)
+    if atual == info:
+        return
+    if info.codigo in _TIPOS_ORIGINAIS or atual is not None:
+        raise ValueError(f"o tipo {info.codigo!r} já existe no catálogo; escolha outro código")
+    TIPOS[info.codigo] = info

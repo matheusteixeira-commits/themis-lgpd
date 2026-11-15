@@ -60,10 +60,22 @@ _CARGOS = (
     r"ministr[oa]|deputad[oa](?:\s+distrital|\s+federal)?|senador(?:a)?|vereador(?:a)?|prefeit[oa]|"
     r"president[ea]|diretor(?:a)?(?:-geral|-presidente)?|ouvidor(?:a)?(?:-geral)?|controlador(?:a)?(?:-geral)?|"
     r"procurador(?:a)?(?:-geral)?|desembargador(?:a)?|ju[íi]z(?:a)?|subsecret[áa]ri[oa]|administrador(?:a)?\s+regional|"
-    r"coordenador(?:a)?|superintendente|chefe\s+de\s+gabinete|corregedor(?:a)?(?:-geral)?|conselheir[oa]"
+    r"coordenador(?:a)?|superintendente|chefe\s+de\s+gabinete|corregedor(?:a)?(?:-geral)?|conselheir[oa]|"
+    r"reitor(?:a)?|vice-reitor(?:a)?|pr[óo]-reitor(?:a)?|defensor(?:a)?\s+p[úu]blic[oa](?:-geral)?|"
+    r"promotor(?:a)?\s+de\s+justi[çc]a|delegad[oa](?:-geral)?(?:\s+de\s+pol[íi]cia)?|comandante(?:-geral)?|"
+    r"auditor(?:a)?(?:-geral)?|pregoeir[oa]|ordenador(?:a)?\s+de\s+despesas?|fiscal\s+do\s+contrato|"
+    r"gestor(?:a)?\s+do\s+contrato|chefe\s+de\s+departamento|presidente\s+da\s+comiss[ãa]o"
 )
-_CARGOS_PUBLICOS = re.compile(r"(?:" + _CARGOS + r")(?:\s+(?:de|do|da)\s+[\w\s]{2,40}?)?[\s,:]*$", re.IGNORECASE)
-_CARGOS_DEPOIS = re.compile(r"^\s*[,–-]\s*(?:" + _CARGOS + r")(?!\w)", re.IGNORECASE)
+
+
+def _regex_cargos(cargos: str) -> tuple[re.Pattern, re.Pattern]:
+    """Expressões de cargo antes do nome ("Secretária de Saúde, …") e depois dele ("…, Prefeito")."""
+    return (re.compile(r"(?:" + cargos + r")(?:\s+(?:de|do|da)\s+[\w\s]{2,40}?)?[\s,:]*$", re.IGNORECASE),
+            re.compile(r"^\s*[,–-]\s*(?:" + cargos + r")(?!\w)", re.IGNORECASE))
+
+
+_CARGOS_PUBLICOS, _CARGOS_DEPOIS = _regex_cargos(_CARGOS)
+_MOTIVO_AGENTE = "Agente público no exercício da função (transparência ativa)"
 
 _MOTIVO_PROPAGACAO = "Mesmo dado já tarjado em outro ponto do documento"
 _MOTIVO_PRECAUCAO = "Identificador com confiança moderada — tarjado por precaução"
@@ -235,6 +247,8 @@ class Anonimizador:
         chave_hmac: Chave do modo ``hmac``. Sem chave, uma chave aleatória é gerada por instância.
         reconhecedores_extras: Reconhecedores adicionais — instâncias de ``EntityRecognizer`` do
             Presidio ou objetos com o método ``detectar(texto)``.
+        cargos: Cargos públicos do órgão, somados aos reconhecidos com ``preservar_agentes_publicos``
+            ("superintendente regional de ensino").
 
     Raises:
         ValueError: Perfil ou modo inexistente.
@@ -258,6 +272,7 @@ class Anonimizador:
         preservar_agentes_publicos: bool = False,
         chave_hmac: bytes | str | None = None,
         reconhecedores_extras: Sequence = (),
+        cargos: Iterable[str] = (),
     ):
         self.perfil = P.obter_perfil(perfil)
         self.modo = modo
@@ -265,6 +280,9 @@ class Anonimizador:
         self.permitir = [t.strip() for t in permitir if t and t.strip()]
         self.bloquear = [t.strip() for t in bloquear if t and t.strip()]
         self.preservar_agentes_publicos = preservar_agentes_publicos
+        # Cargos do órgão somados aos do Themis ("superintendente regional de ensino").
+        extras = [r"\s+".join(re.escape(p) for p in c.split()) for c in cargos if c and c.strip()]
+        self._cargos = _regex_cargos(_CARGOS + "".join("|" + c for c in extras)) if extras else             (_CARGOS_PUBLICOS, _CARGOS_DEPOIS)
         self.usar_ner = usar_ner
         self.modelo = modelo_spacy if usar_ner else None
         # Reconhecedores específicos desta instância entram no Presidio como "ad hoc", sem alterar o
@@ -320,8 +338,28 @@ class Anonimizador:
             self._enumeracoes(normais[i].original, lotes[i])
         grupos = [list(range(len(normais)))] if mesmo_documento else [[i] for i in range(len(normais))]
         for grupo in grupos:
+            if self.preservar_agentes_publicos:
+                self._agentes_consistentes([lotes[i] for i in grupo])
             self._propagar([normais[i] for i in grupo], [lotes[i] for i in grupo], externos)
         return [self._consolidar(n.original, ents) for n, ents in zip(normais, lotes)]
+
+    @staticmethod
+    def _agentes_consistentes(lotes: list[list[Entidade]]) -> None:
+        """Mantém visíveis todas as ocorrências do nome de um agente público citado com o cargo.
+
+        "A Secretária de Saúde, Maria Souza, … Maria Souza informou" não deve tarjar a segunda
+        ocorrência: a tarja seria inócua (o nome já está visível) e o documento ficaria incoerente.
+        """
+        def chave(e: Entidade) -> str:
+            return " ".join(dobrar(e.valor).split())
+
+        agentes = {chave(e) for ents in lotes for e in ents if e.tipo == "NOME" and e.motivo == _MOTIVO_AGENTE}
+        if not agentes:
+            return
+        for ents in lotes:
+            for e in ents:
+                if e.tipo == "NOME" and e.acao == P.TARJAR and chave(e) in agentes:
+                    e.acao, e.motivo = P.MANTER, _MOTIVO_AGENTE + " — mesmo nome citado com o cargo"
 
     def _intervalos_permitidos(self, norm: TextoNormalizado) -> list[tuple[int, int]]:
         """Intervalos (no texto normalizado) ocupados por termos da lista de permissão."""
@@ -351,7 +389,8 @@ class Anonimizador:
     def _agente_publico(self, texto: str, ini: int, fim: int) -> bool:
         """Indica se o nome está junto a um cargo público ("Secretária de Estado de Saúde, Fulana")."""
         antes = texto[max(0, ini - 70):ini]
-        return bool(_CARGOS_PUBLICOS.search(antes) or _CARGOS_DEPOIS.match(texto[fim:fim + 60]))
+        antes_re, depois_re = self._cargos
+        return bool(antes_re.search(antes) or depois_re.match(texto[fim:fim + 60]))
 
     def _decidir(self, norm: TextoNormalizado, dets: list[B.Deteccao]) -> list[Entidade]:
         """Aplica o perfil a cada detecção e converte as posições para o texto original."""
@@ -390,7 +429,7 @@ class Anonimizador:
                 acao = regra
             if acao == P.TARJAR and d.tipo == "NOME" and self.preservar_agentes_publicos \
                     and self._agente_publico(texto, d.inicio, d.fim):
-                acao, motivo = P.MANTER, "Agente público no exercício da função (transparência ativa)"
+                acao, motivo = P.MANTER, _MOTIVO_AGENTE
             ini, fim = norm.para_original(d.inicio, d.fim)
             entidades.append(Entidade(ini, fim, d.tipo, norm.original[ini:fim], d.score, d.origem, d.camada,
                                       d.validado, acao, motivo))

@@ -267,13 +267,15 @@ src/themis_lgpd/
 ├── validadores.py       Dígitos verificadores e geradores de documentos fictícios
 ├── relatorio.py         Relatório de tarjamento (JSON, CSV, XLSX) e nota de tarjamento
 ├── cofre.py             Cofre cifrado para reverter pseudonimização
-├── config.py            Configuração por variáveis THEMIS_*
+├── config.py            Configuração do serviço por variáveis THEMIS_*
+├── configuracao.py      Configuração do órgão (themis.toml): perfis, listas, cargos, tipos e reconhecedores
+├── lote.py              Lotes: coleta de pastas, paralelismo, retomada e manifesto de custódia
 ├── cli.py               Linha de comando (themis)
 ├── reconhecedores/
 │   ├── base.py          Padrao, Deteccao, ReconhecedorPadroes, camadas
 │   ├── documentos.py    Documentos pessoais
 │   ├── contatos.py      E-mail, telefone, perfis, URL
-│   ├── localizacao.py   Endereços, CEP, localidades do DF
+│   ├── localizacao.py   Endereços, CEP, municípios do IBGE e regiões administrativas do DF
 │   ├── financeiro.py    Dados bancários, cartões, PIX, veículos, processos e protocolos
 │   ├── nomes.py         Nomes: lista, gatilhos, filtro das entidades do spaCy, carregamento do modelo
 │   └── sensiveis.py     Saúde, convicções, intimidade, menores, quase-identificadores
@@ -291,9 +293,11 @@ src/themis_lgpd/
 ├── integracoes/
 │   ├── presidio.py      Reexporta os reconhecedores para uso em outro AnalyzerEngine
 │   └── gliner.py        Reconhecedor GLiNER opcional
-├── api/app.py           API HTTP (FastAPI)
+├── api/
+│   ├── app.py           API HTTP (FastAPI): rotas, proteções e tarefas assíncronas
+│   └── trabalho.py      Análises executadas em thread ou em processo de trabalho
 ├── ui/                  Interface web (Streamlit) e realce seguro de HTML
-└── dados/               Listas de prenomes, sobrenomes e nomes ambíguos
+└── dados/               Prenomes (inclusive do Censo 2010), sobrenomes, nomes ambíguos, municípios e medicamentos
 ```
 
 ## Concorrência e desempenho

@@ -45,6 +45,48 @@
         "NOME_PESSOA": 377,
         "QUASI_IDENTIFICADOR": 20
       },
+      "nao_tarjadas": {
+        "sinalizadas_para_revisao": 0,
+        "nao_detectadas": 671,
+        "por_rotulo": {
+          "DADO_FINANCEIRO": {
+            "sinalizadas": 0,
+            "nao_detectadas": 8
+          },
+          "DADO_SAUDE": {
+            "sinalizadas": 0,
+            "nao_detectadas": 60
+          },
+          "DOC_PESSOAL": {
+            "sinalizadas": 0,
+            "nao_detectadas": 70
+          },
+          "DOC_PROFISSIONAL": {
+            "sinalizadas": 0,
+            "nao_detectadas": 32
+          },
+          "ENDERECO": {
+            "sinalizadas": 0,
+            "nao_detectadas": 47
+          },
+          "ID_PROCESSUAL": {
+            "sinalizadas": 0,
+            "nao_detectadas": 426
+          },
+          "ID_VEICULO": {
+            "sinalizadas": 0,
+            "nao_detectadas": 6
+          },
+          "NOME_PESSOA": {
+            "sinalizadas": 0,
+            "nao_detectadas": 4
+          },
+          "QUASI_IDENTIFICADOR": {
+            "sinalizadas": 0,
+            "nao_detectadas": 18
+          }
+        }
+      },
       "documentos_com_vazamento": 0.9332,
       "triagem": {
         "precisao": 0.5829,
@@ -52,12 +94,12 @@
         "f1": 0.7328
       },
       "tarja_fora_do_gabarito": 0.308,
-      "segundos_por_documento": 0.0297
+      "segundos_por_documento": 0.0217
     },
     "sintetico": {
       "perfil": "lai",
       "documentos": 1000,
-      "segundos_por_documento": 0.0199,
+      "segundos_por_documento": 0.0168,
       "recall": 0.5766,
       "recall_por_tipo": {
         "CARTAO": 0.9414,
@@ -88,30 +130,30 @@
     "esic_ner": {
       "sistema": "Themis 1.0.0 (sobre o Presidio)",
       "documentos": 975,
-      "recall_entidades": 0.9422,
+      "recall_entidades": 0.9464,
       "recall_por_rotulo": {
         "CONTATO": 1.0,
         "DADO_FINANCEIRO": 1.0,
-        "DADO_SAUDE": 0.6395,
+        "DADO_SAUDE": 0.6512,
         "DATA_NASC": 1.0,
         "DOC_PESSOAL": 1.0,
         "DOC_PROFISSIONAL": 0.9688,
         "ENDERECO": 0.9423,
-        "ID_PROCESSUAL": 0.9212,
+        "ID_PROCESSUAL": 0.9302,
         "ID_VEICULO": 1.0,
         "NOME_PESSOA": 1.0,
-        "QUASI_IDENTIFICADOR": 0.35
+        "QUASI_IDENTIFICADOR": 0.4
       },
-      "recall_estrito": 0.9178,
+      "recall_estrito": 0.9241,
       "recall_estrito_por_rotulo": {
         "CONTATO": 1.0,
         "DADO_FINANCEIRO": 1.0,
-        "DADO_SAUDE": 0.6395,
+        "DADO_SAUDE": 0.6512,
         "DATA_NASC": 1.0,
         "DOC_PESSOAL": 1.0,
-        "DOC_PROFISSIONAL": 0.6875,
-        "ENDERECO": 0.6538,
-        "ID_PROCESSUAL": 0.9122,
+        "DOC_PROFISSIONAL": 0.75,
+        "ENDERECO": 0.6923,
+        "ID_PROCESSUAL": 0.9212,
         "ID_VEICULO": 1.0,
         "NOME_PESSOA": 1.0,
         "QUASI_IDENTIFICADOR": 0.0
@@ -129,19 +171,45 @@
         "NOME_PESSOA": 377,
         "QUASI_IDENTIFICADOR": 20
       },
-      "documentos_com_vazamento": 0.1126,
+      "nao_tarjadas": {
+        "sinalizadas_para_revisao": 22,
+        "nao_detectadas": 55,
+        "por_rotulo": {
+          "DADO_SAUDE": {
+            "sinalizadas": 22,
+            "nao_detectadas": 8
+          },
+          "DOC_PROFISSIONAL": {
+            "sinalizadas": 0,
+            "nao_detectadas": 1
+          },
+          "ENDERECO": {
+            "sinalizadas": 0,
+            "nao_detectadas": 3
+          },
+          "ID_PROCESSUAL": {
+            "sinalizadas": 0,
+            "nao_detectadas": 31
+          },
+          "QUASI_IDENTIFICADOR": {
+            "sinalizadas": 0,
+            "nao_detectadas": 12
+          }
+        }
+      },
+      "documentos_com_vazamento": 0.1031,
       "triagem": {
-        "precisao": 0.9481,
-        "recall": 0.9408,
-        "f1": 0.9444
+        "precisao": 0.9482,
+        "recall": 0.9427,
+        "f1": 0.9455
       },
       "tarja_fora_do_gabarito": 0.0569,
-      "segundos_por_documento": 0.0168
+      "segundos_por_documento": 0.0181
     },
     "sintetico": {
       "perfil": "lai",
       "documentos": 1000,
-      "segundos_por_documento": 0.0137,
+      "segundos_por_documento": 0.0133,
       "recall": 0.9959,
       "recall_por_tipo": {
         "CARTAO": 0.987,

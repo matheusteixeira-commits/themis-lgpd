@@ -461,7 +461,8 @@ def partes(texto: str, limite: int = 100_000, sobreposicao: int = 2_000):
         inicio = recuo + 1 if recuo > inicio else max(inicio + 1, fim - sobreposicao)
 
 
-def filtrar_entidade_nlp(doc, ent, rotulo_pessoa: str = "PERSON", score: float = 0.85) -> Deteccao | None:
+def filtrar_entidade_nlp(doc, ent, rotulo_pessoa: str = "PERSON", score: float = 0.85,
+                         texto: str | None = None) -> Deteccao | None:
     """Valida uma entidade do modelo de linguagem como nome de pessoa e ajusta seus limites.
 
     O modelo comete erros previsíveis, corrigidos aqui:
@@ -480,10 +481,13 @@ def filtrar_entidade_nlp(doc, ent, rotulo_pessoa: str = "PERSON", score: float =
         ent: Entidade do documento.
         rotulo_pessoa: Rótulo de pessoa no esquema em uso (``PERSON`` no Presidio).
         score: Confiança atribuída ao achado aceito.
+        texto: Texto do documento. ``doc.text`` remonta o texto a cada acesso; quem filtra várias
+            entidades do mesmo documento deve informá-lo, para não tornar a análise quadrática.
 
     Returns:
         O achado, ou ``None`` se a entidade não for aceita como nome de pessoa.
     """
+    texto = doc.text if texto is None else texto
     pn, sn = prenomes(), sobrenomes()
     tokens = [t for t in ent if not t.is_punct and not t.is_space]
     while tokens and (TITULOS.match(tokens[0].text) or len(tokens[0].text) == 1
@@ -512,7 +516,7 @@ def filtrar_entidade_nlp(doc, ent, rotulo_pessoa: str = "PERSON", score: float =
         return None
     if any(any(ch.isdigit() for ch in t.text) for t in tokens):
         return None
-    texto_ent = doc.text[tokens[0].idx:tokens[-1].idx + len(tokens[-1].text)]
+    texto_ent = texto[tokens[0].idx:tokens[-1].idx + len(tokens[-1].text)]
     if len(texto_ent) < 3 or (texto_ent.isupper() and len(texto_ent) <= 4):
         return None
     conhecido = any(p in pn or p in sn for p in palavras)
@@ -525,6 +529,6 @@ def filtrar_entidade_nlp(doc, ent, rotulo_pessoa: str = "PERSON", score: float =
         if any(p in NAO_INICIAM_NOME for p in palavras):
             return None
     inicio = tokens[0].idx
-    if contexto_nao_pessoal(doc.text, inicio):
+    if contexto_nao_pessoal(texto, inicio):
         return None
     return Deteccao(inicio, inicio + len(texto_ent), "NOME", score, "nomes:modelo", NER)

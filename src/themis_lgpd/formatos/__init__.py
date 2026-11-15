@@ -131,6 +131,12 @@ def detectar_formato(dados: bytes, nome: str = "") -> str:
         raise ArquivoInvalido("Formato de imagem não suportado: converta para PNG, JPEG ou PDF.")
     if b"\x00" in dados[:4096]:
         raise ArquivoInvalido("Formato binário não suportado.")
+    # Extensão de formato binário com conteúdo de texto: arquivo corrompido ou renomeado. Processá-lo
+    # como texto geraria uma saída com outra extensão, que o usuário poderia não conferir.
+    extensao = nome.rsplit(".", 1)[-1] if "." in nome else ""
+    if extensao in {"pdf", "docx", "xlsx", "png", "jpg", "jpeg", "doc", "xls"}:
+        raise ArquivoInvalido(f"O conteúdo não corresponde à extensão .{extensao}: o arquivo está corrompido ou "
+                              "foi renomeado.")
     _recusar_texto_estruturado(dados)
     return "csv" if nome.endswith(".csv") else "txt"
 

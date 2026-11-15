@@ -227,6 +227,18 @@ medições de desempenho.
 - **Relatório interno com valores**: somente com `--incluir-valores` (CLI) ou confirmação explícita na
   interface; marcado com "CONTÉM DADOS PESSOAIS ORIGINAIS". Desativado na demonstração pública.
 - Relatórios CSV e XLSX neutralizam fórmulas (`=`, `+`, `-`, `@` no início da célula).
+- **Manifesto de lote** (`--manifesto`): caminhos relativos, resumos SHA-256, tamanhos, contagens por
+  tipo, avisos e situação. Não contém trecho dos documentos nem os termos das listas de permissão e
+  de bloqueio (estes entram apenas no resumo da configuração). O resumo SHA-256 da entrada permite
+  comprovar qual arquivo foi processado sem revelá-lo.
+
+## Configuração do órgão
+
+O `themis.toml` falha fechado: campo desconhecido, expressão regular inválida ou que aceite texto
+vazio, tipo ou categoria inexistente interrompem a CLI e impedem o início da API e da interface — uma
+regra de proteção ignorada em silêncio seria um vazamento. Reconhecedores próprios entram na mesma
+política de decisão, propagação e verificação final dos reconhecedores do Themis. Os tipos do
+catálogo original não podem ser redefinidos.
 
 ## Interface e API
 
@@ -241,7 +253,11 @@ modo que o número de análises em execução nunca excede o configurado), OCR i
 de API opcional com comparação em tempo constante (401), CORS fechado por
 padrão e sem credenciais, cabeçalhos `Cache-Control: no-store`, `X-Content-Type-Options`,
 `Referrer-Policy`, `X-Frame-Options` e CSP; erros de validação sem eco da entrada; documentação
-interativa desativável. Detalhes em [API.md](API.md).
+interativa desativável. Tarefas assíncronas: identificador aleatório de 192 bits, visível apenas para
+a chave de API que criou a tarefa; arquivo e resultado só em memória, apagados após o download, a
+exclusão ou o prazo `THEMIS_TAREFA_TTL_S`; quantidade limitada (`THEMIS_MAX_TAREFAS`). Com processos
+de trabalho (`THEMIS_PROCESSOS`), o conteúdo transita apenas entre processos da mesma máquina, em
+memória. Detalhes em [API.md](API.md).
 
 **Demonstração pública:** contêiner sem root, sem capabilities, com sistema de arquivos somente
 leitura e temporários em memória; proxy Caddy com HTTPS, HSTS, limite de corpo, limite por IP, CSP sem

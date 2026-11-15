@@ -91,7 +91,9 @@ def verificar_ausencia(texto_saida: str, valores: Mapping[str, str] | Iterable[s
         texto_saida: Todo o conteúdo textual extraído do arquivo gerado.
         valores: Valores tarjados, com o tipo de cada um (ver :func:`valores_tarjados`) ou sem ele.
             Ocorrências de valores do tipo ``NOME`` dentro de nomes de lugares e instituições
-            ("Paulo" em "São Paulo") são desconsideradas, como na propagação.
+            ("Paulo" em "São Paulo") são desconsideradas, como na propagação. Também como na
+            propagação, um nome de uma só palavra escrito com inicial maiúscula ("Rocha") só é
+            procurado com inicial maiúscula: a palavra comum "rocha" não é o sobrenome.
         protegidos: Trechos mantidos intencionalmente (ver :func:`valores_protegidos`). Uma ocorrência
             só é desconsiderada quando está inteiramente contida em um deles; permitir "Maria" não
             esconde "Maria Souza".
@@ -116,15 +118,18 @@ def verificar_ausencia(texto_saida: str, valores: Mapping[str, str] | Iterable[s
         sem_protegidos[a:b] = " " * (b - a)
     so_alnum = _NAO_ALNUM.sub("", "".join(sem_protegidos))
 
-    def desconsiderada(inicio: int, fim: int, tipo: str) -> bool:
+    def desconsiderada(inicio: int, fim: int, tipo: str, so_maiuscula: bool) -> bool:
         return (any(a <= inicio and fim <= b for a, b in faixas)
-                or (tipo == "NOME" and contexto_nao_pessoal(colapsado, inicio)))
+                or (tipo == "NOME" and contexto_nao_pessoal(colapsado, inicio))
+                or (so_maiuscula and not colapsado[inicio].isupper()))
 
     achados = []
     for valor, tipo in tipos.items():
         padrao = _padrao(valor)
         digitos = _NAO_ALNUM.sub("", dobrar(valor))
-        legivel = padrao is not None and any(not desconsiderada(*m.span(), tipo) for m in padrao.finditer(texto))
+        so_maiuscula = tipo == "NOME" and " " not in valor and valor[:1].isupper()
+        legivel = padrao is not None and any(not desconsiderada(*m.span(), tipo, so_maiuscula)
+                                             for m in padrao.finditer(texto))
         if legivel or (len(digitos) >= MINIMO_DIGITOS and digitos.isdigit() and digitos in so_alnum):
             achados.append(valor)
     return achados

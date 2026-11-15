@@ -43,7 +43,12 @@ arquivos; e verificação independente de cada arquivo gerado.
   ocorrências.
 - **Arquivos:** PDF (com tarja real), DOCX, XLSX, CSV, TXT, PNG e JPEG, com OCR local.
 - **Revisão humana** na interface web; relatório e nota de tarjamento com base legal.
-- **Quatro interfaces:** interface web, linha de comando, biblioteca Python e API HTTP.
+- **Quatro interfaces:** interface web, linha de comando, biblioteca Python e API HTTP (com tarefas
+  assíncronas para documentos longos e especificação OpenAPI versionada).
+- **Lotes com cadeia de custódia:** pastas inteiras, em paralelo, com a árvore preservada, manifesto
+  com SHA-256 de entrada e saída de cada arquivo e retomada de lotes interrompidos.
+- **Configuração por órgão:** um `themis.toml` com perfis, listas, cargos e reconhecedores próprios,
+  aplicado igualmente pela linha de comando, pela API e pela interface.
 - **Operação sem internet:** nenhuma telemetria, nenhum serviço externo, nenhum download automático.
 
 ## Início rápido
@@ -69,6 +74,7 @@ themis interface                                # http://127.0.0.1:8501
 themis anonimizar resposta.pdf                  # gera resposta_anonimizado.pdf
 themis anonimizar *.docx -o saida/ -r relatorio.xlsx
 themis anonimizar planilha.xlsx --coluna-integral "Nome do servidor"
+themis anonimizar processos/ -R -o publicacao/ --manifesto custodia.jsonl -j 4 --config orgao.toml
 echo "Eu, Maria Souza, CPF 529.982.247-25" | themis anonimizar -
 ```
 
@@ -126,6 +132,8 @@ nenhum arquivo é entregue. Detalhes em [docs/SEGURANCA_E_PRIVACIDADE.md](docs/S
 | `lai` (padrão) | Publicação de respostas e documentos: tarja identificadores e dados sensíveis ligados a pessoa determinada; mantém CNPJ e nomes de instituições; sinaliza localidades e quase-identificadores para revisão |
 | `identificadores` | Somente o que identifica diretamente a pessoa; dados sensíveis viram alerta |
 | `saude` | Como `lai`, mas tarja toda menção a condições de saúde |
+| `ouvidoria` | Manifestações de ouvidoria: preserva a identidade do manifestante (Lei nº 13.460/2017, art. 10, § 7º), tarjando também cidade, lotação, função e turno |
+| `educacao` | Documentos escolares: RA, matrícula, turma, série e dados de crianças e adolescentes sempre tarjados |
 | `maxima` | Tarja tudo o que for detectado, inclusive localidades, CNPJ e URLs |
 
 | Modo | Exemplo | Natureza |
@@ -145,7 +153,7 @@ Regras por categoria e catálogo de tipos: [docs/TIPOS_DE_DADOS.md](docs/TIPOS_D
 | esic-ner (975 pedidos, CC BY 4.0) | Entidades pessoais tarjadas | **94,6%** | 53,3% |
 | | Nomes / documentos pessoais tarjados | **100% / 100%** | 98,9% / 7,9% |
 | | Pedidos com algum vazamento | **10,3%** | 93,3% |
-| | Triagem "contém dado pessoal?" (F1) | **0,945** | 0,733 |
+| | Triagem "contém dado pessoal?" (F1) | **0,946** | 0,733 |
 | | Tarja fora do gabarito (excesso) | **5,7%** | 30,8% |
 | Sintético (1.000 documentos) | Identificadores tarjados | **99,6%** | 57,7% |
 | | Documentos com vazamento | **3,3%** | 99,8% |

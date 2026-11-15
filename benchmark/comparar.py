@@ -160,8 +160,9 @@ def main() -> None:
     md = (f"# Comparação\n\nesic-ner (teste, {len(dados)} pedidos) e benchmark sintético ({args.n} documentos, "
           f"semente {args.semente}); perfil LAI do Themis. Gerado por `benchmark/comparar.py`.\n\n"
           + tabela(resultados) + "\n")
-    args.saida.write_text(md, encoding="utf-8")
-    (args.saida.with_suffix(".json")).write_text(json.dumps(resultados, ensure_ascii=False, indent=2), encoding="utf-8")
+    args.saida.write_text(md, encoding="utf-8", newline="\n")
+    (args.saida.with_suffix(".json")).write_text(json.dumps(resultados, ensure_ascii=False, indent=2) + "\n",
+                                                encoding="utf-8", newline="\n")
     print(md)
 
 

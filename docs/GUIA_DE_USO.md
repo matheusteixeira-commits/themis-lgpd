@@ -77,7 +77,7 @@ themis [--versao] <comando> [opções]
 
 | Comando | Descrição |
 |---|---|
-| `anonimizar` | Anonimiza arquivos (PDF, DOCX, XLSX, CSV, TXT, PNG, JPEG) ou a entrada padrão (`-`) |
+| `anonimizar` | Anonimiza arquivos e pastas (PDF, DOCX, XLSX, CSV, TXT, PNG, JPEG) ou a entrada padrão (`-`) |
 | `analisar` | Lista, em JSON, o que seria tarjado em um texto |
 | `perfis` | Lista os perfis e os modos de saída |
 | `interface` | Inicia a interface web local |
@@ -92,14 +92,19 @@ themis anonimizar ENTRADA [ENTRADA ...] [opções]
 
 | Opção | Descrição |
 |---|---|
-| `ENTRADA` | Um ou mais arquivos, ou `-` para ler texto da entrada padrão (UTF-8 ou Windows-1252) e escrever o resultado na saída padrão; a entrada padrão também passa pela verificação final |
-| `-o`, `--saida` | Arquivo ou pasta de saída. Com várias entradas, é sempre uma pasta (criada se necessário). Padrão: `<nome>_anonimizado.<ext>` ao lado da entrada |
-| `-r`, `--relatorio` | Gera relatório consolidado do lote: `.json`, `.csv`, `.xlsx`, ou `.txt`/`.md` para a nota de tarjamento |
+| `ENTRADA` | Arquivos e pastas, ou `-` para ler texto da entrada padrão (UTF-8 ou Windows-1252) e escrever o resultado na saída padrão; a entrada padrão também passa pela verificação final |
+| `-o`, `--saida` | Arquivo ou pasta de saída. Com várias entradas ou com pastas, é sempre uma pasta, com a mesma árvore das entradas: `a/despacho.pdf` e `b/despacho.pdf` geram `saida/a/…` e `saida/b/…`. Padrão: `<nome>_anonimizado.<ext>` ao lado da entrada |
+| `-R`, `--recursivo` | Inclui as subpastas das pastas indicadas (sem a opção, só o primeiro nível). Arquivos ocultos e saídas anteriores (`*_anonimizado.*`) são ignorados |
+| `-j N`, `--trabalhos N` | Processa N arquivos em paralelo; cada processo carrega o modelo de linguagem (cerca de 1 GB de memória por processo) |
+| `--manifesto ARQ.jsonl` | Manifesto de cadeia de custódia (ver abaixo) |
+| `--retomar` | Pula os arquivos já concluídos, com o mesmo conteúdo e a mesma configuração, segundo o manifesto; exige `--manifesto` |
+| `-r`, `--relatorio` | Gera relatório consolidado do lote, que identifica o arquivo de cada item: `.json`, `.csv`, `.xlsx`, ou `.txt`/`.md` para a nota de tarjamento |
 | `--coluna-integral CABEÇALHO` | Em planilhas, tarja a coluna inteira com esse cabeçalho (repetível) |
 | `--sem-ocr` | Não usa OCR. Em PDFs, as páginas que o exigiriam são listadas em aviso como não analisadas; imagens continuam exigindo OCR e são recusadas |
-| `--cofre ARQ` | Para arquivos `.txt`, grava um cofre cifrado que permite reverter a substituição (senha em `THEMIS_SENHA_COFRE` ou solicitada no terminal; mínimo de 12 caracteres) |
+| `--cofre ARQ\|PASTA` | Para arquivos `.txt`, grava um cofre cifrado que permite reverter a substituição: um arquivo, para uma entrada, ou uma pasta com um `.cofre` por documento (senha em `THEMIS_SENHA_COFRE` ou solicitada no terminal; mínimo de 12 caracteres) |
 | `--limite-mb N` | Tamanho máximo de arquivo, em MB (padrão: 50) |
-| `--perfil` | `lai` (padrão), `identificadores`, `saude` ou `maxima` |
+| `--config ARQ` | Configuração do órgão (`themis.toml`, ver [CONFIGURACAO.md](CONFIGURACAO.md#configuração-do-órgão-themistoml)); padrão: variável `THEMIS_CONFIG`, se definida. As opções da linha de comando prevalecem sobre o arquivo, e as listas são somadas |
+| `--perfil` | `lai` (padrão), `identificadores`, `saude`, `ouvidoria`, `educacao`, `maxima` ou um perfil do `themis.toml` |
 | `--modo` | `etiqueta` (padrão), `tarja`, `mascara`, `pseudonimo` ou `hmac` (chave em `THEMIS_CHAVE_HMAC`) |
 | `--permitir TERMO` | Termo que nunca é tarjado (repetível) |
 | `--permitir-arquivo ARQ` | Arquivo com termos permitidos, um por linha (linhas iniciadas por `#` são ignoradas) |
@@ -111,23 +116,37 @@ themis anonimizar ENTRADA [ENTRADA ...] [opções]
 | `--incluir-valores` | Inclui os valores originais no relatório (**contém dados pessoais**) |
 
 Para cada arquivo, a CLI informa o destino, a quantidade de trechos tarjados e de alertas e os avisos.
-A CLI se recusa a sobrescrever o arquivo de entrada.
+A CLI se recusa a sobrescrever o arquivo de entrada. Um arquivo cujo conteúdo não corresponde à
+extensão (um `.pdf` que é texto, por exemplo) é recusado.
 
-Códigos de saída:
+Códigos de saída — o do lote é o de maior gravidade entre os arquivos:
 
 | Código | Significado |
 |---|---|
 | 0 | Todos os arquivos foram processados |
-| 1 | Algum arquivo foi recusado (formato, limites, OCR indisponível ou com falha) ou reprovado na verificação final |
+| 1 | Algum arquivo foi recusado (formato, limites, OCR indisponível ou com falha) ou reprovado na verificação final, ou houve erro de uso (configuração inválida, entrada inexistente) |
 | 2 | Erro interno em algum arquivo; somente o tipo do erro é exibido |
+| 130 | Interrompido pelo usuário (Ctrl+C); os arquivos concluídos ficam registrados no manifesto |
 
 Os demais arquivos do lote continuam sendo processados quando um deles falha.
+
+**Manifesto de cadeia de custódia.** Com `--manifesto custodia.jsonl`, cada arquivo concluído gera uma
+linha JSON, gravada no disco assim que o arquivo termina, com: caminho relativo, SHA-256 e tamanho da
+entrada e da saída, formato, perfil, modo, versão do Themis, identificador da configuração (resumo de
+tudo o que influi no resultado, inclusive o `themis.toml`), quantidade de tarjas por tipo, alertas,
+avisos, situação (`ok`, `rejeitado`, `erro`), início e duração. O manifesto não contém nenhum trecho
+dos documentos nem os termos das listas de permissão e de bloqueio, e permite comprovar depois qual
+versão de qual arquivo foi publicada, com que configuração. Um lote interrompido continua de onde
+parou com `--retomar`: arquivos alterados, ou processados com outra configuração, são refeitos.
 
 Exemplos:
 
 ```bash
 themis anonimizar resposta.pdf
 themis anonimizar *.docx -o saida/ -r relatorio.xlsx
+themis anonimizar processos/ -R -o publicacao/ --manifesto custodia.jsonl -j 4 -r relatorio.xlsx
+themis anonimizar processos/ -R -o publicacao/ --manifesto custodia.jsonl --retomar
+themis anonimizar manifestacoes/ -o publicacao/ --config ouvidoria.toml
 themis anonimizar planilha.xlsx --coluna-integral "Nome do servidor" --coluna-integral "Lotação"
 themis anonimizar pedido.txt --perfil maxima --modo pseudonimo
 themis anonimizar despacho.pdf --permitir-arquivo instituicoes.txt --bloquear "Operação Aurora"
@@ -159,6 +178,7 @@ Lista os perfis, com título e descrição, e os modos de saída.
 |---|---|---|
 | `--porta` | 8501 | Porta |
 | `--endereco` | 127.0.0.1 | Endereço; `0.0.0.0` somente atrás de proxy com HTTPS |
+| `--config` | `THEMIS_CONFIG` | Configuração do órgão; perfis próprios aparecem na barra lateral |
 
 ### `themis api`
 
@@ -166,6 +186,8 @@ Lista os perfis, com título e descrição, e os modos de saída.
 |---|---|---|
 | `--porta` | 8000 | Porta |
 | `--endereco` | 127.0.0.1 | Endereço |
+| `--config` | `THEMIS_CONFIG` | Configuração do órgão; um arquivo inválido impede o início do serviço |
+| `--processos N` | 1 | Processos de análise em paralelo, num único processo HTTP (as tarefas assíncronas continuam consultáveis em qualquer requisição); cerca de 1 GB de memória por processo |
 
 ### `themis reverter`
 

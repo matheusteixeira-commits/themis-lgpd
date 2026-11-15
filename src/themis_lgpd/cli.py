@@ -7,9 +7,10 @@ Mensagens de progresso e avisos são escritos na saída de erro; a saída padrã
 conteúdo (texto anonimizado, JSON da análise ou texto revertido), o que permite o uso em pipelines.
 Mensagens de erro nunca reproduzem conteúdo dos arquivos.
 
-Exemplo::
+Exemplos::
 
     themis anonimizar despacho.pdf planilha.xlsx -o saida/ -r relatorio.xlsx --perfil lai
+    themis anonimizar processos/ -R -o publicacao/ --manifesto custodia.jsonl -j 4 --config themis.toml
 """
 
 from __future__ import annotations
@@ -35,118 +36,184 @@ def _ler_lista(valores: list[str] | None, arquivo: str | None) -> list[str]:
     return itens
 
 
+def _caminho_config(args) -> str | None:
+    """Arquivo de configuração do órgão: ``--config`` ou ``THEMIS_CONFIG``; ``None`` usa a padrão."""
+    return getattr(args, "config", None) or os.environ.get("THEMIS_CONFIG") or None
+
+
+def _configuracao(args):
+    from .configuracao import ConfiguracaoOrgao, carregar
+
+    caminho = _caminho_config(args)
+    return carregar(caminho) if caminho else ConfiguracaoOrgao()
+
+
+def _sobrepor(args) -> dict:
+    """Opções informadas na linha de comando, que prevalecem sobre a configuração do órgão."""
+    return {
+        "perfil": args.perfil, "modo": args.modo,
+        "permitir": _ler_lista(args.permitir, args.permitir_arquivo),
+        "bloquear": _ler_lista(args.bloquear, args.bloquear_arquivo),
+        "usar_ner": False if args.sem_ner else None, "modelo_spacy": args.modelo,
+        "preservar_agentes_publicos": True if args.preservar_agentes_publicos else None,
+        # A chave do HMAC vem do ambiente para não ficar no histórico do shell.
+        "chave_hmac": os.environ.get("THEMIS_CHAVE_HMAC") if args.modo == "hmac" else None,
+    }
+
+
 def _anonimizador(args):
     from .motor import Anonimizador
 
-    # A chave do HMAC vem do ambiente para não ficar no histórico do shell.
-    chave = os.environ.get("THEMIS_CHAVE_HMAC") if args.modo == "hmac" else None
-    return Anonimizador(
-        args.perfil, args.modo,
-        permitir=_ler_lista(args.permitir, args.permitir_arquivo),
-        bloquear=_ler_lista(args.bloquear, args.bloquear_arquivo),
-        usar_ner=not args.sem_ner, modelo_spacy=args.modelo,
-        preservar_agentes_publicos=args.preservar_agentes_publicos, chave_hmac=chave,
-    )
+    return Anonimizador(**_configuracao(args).argumentos(**_sobrepor(args)))
 
 
-def _saida_para(entrada: Path, args, nome_sugerido: str) -> Path:
-    """Caminho do arquivo gerado: ``--saida`` (arquivo ou pasta) ou ao lado da entrada."""
-    if args.saida:
-        destino = Path(args.saida)
-        if destino.is_dir() or len(args.entradas) > 1:
-            destino.mkdir(parents=True, exist_ok=True)
-            return destino / nome_sugerido
-        return destino
-    return entrada.with_name(nome_sugerido)
-
-
-def _gravar_relatorio(caminho: str, resultados: list, incluir_valores: bool) -> None:
+def _gravar_relatorio(caminho: str, resultados: list, incluir_valores: bool, documentos: list[str] | None = None) -> None:
     """Grava o relatório no formato indicado pela extensão (``.xlsx``, ``.csv``, ``.txt``/``.md`` ou JSON)."""
     from . import relatorio
 
     rel = Path(caminho)
     fmt = rel.suffix.lower()
     if fmt == ".xlsx":
-        rel.write_bytes(relatorio.para_xlsx(resultados, incluir_valores))
+        rel.write_bytes(relatorio.para_xlsx(resultados, incluir_valores, documentos))
     elif fmt == ".csv":
-        rel.write_text(relatorio.para_csv(resultados, incluir_valores), encoding="utf-8")
+        rel.write_text(relatorio.para_csv(resultados, incluir_valores, documentos), encoding="utf-8")
     elif fmt in {".txt", ".md"}:
         rel.write_text(relatorio.nota_de_tarjamento(resultados), encoding="utf-8")
     else:
-        rel.write_text(relatorio.para_json(resultados, incluir_valores), encoding="utf-8")
+        rel.write_text(relatorio.para_json(resultados, incluir_valores, documentos), encoding="utf-8")
     aviso = "  (CONTÉM DADOS PESSOAIS)" if incluir_valores else ""
     print(f"✓ relatório: {rel}{aviso}", file=sys.stderr)
 
 
-def cmd_anonimizar(args) -> int:
-    """Anonimiza arquivos ou a entrada padrão.
-
-    Returns:
-        ``0`` em caso de sucesso; ``1`` se algum arquivo foi rejeitado ou falhou na verificação;
-        ``2`` em caso de erro interno. Os demais arquivos do lote continuam sendo processados.
-    """
-    from .formatos import ArquivoInvalido, FalhaOCR, VazamentoDetectado, anonimizar_arquivo
+def _anonimizar_entrada_padrao(args) -> int:
+    from .formatos import VazamentoDetectado
     from .formatos.texto import anonimizar_txt
 
-    anon = _anonimizador(args)
-    todos = []
-    codigo = 0
-    for caminho in args.entradas:
-        if caminho == "-":
-            try:
-                res = anonimizar_txt(sys.stdin.buffer.read(), anon, "entrada.txt")
-            except VazamentoDetectado as erro:
-                print(f"✗ entrada padrão: {erro}", file=sys.stderr)
-                codigo = 1
-                continue
-            sys.stdout.write(res.dados.decode("utf-8"))
-            todos += res.resultados
-            continue
-        entrada = Path(caminho)
-        try:
-            res = anonimizar_arquivo(entrada.read_bytes(), entrada.name, anon, ocr=not args.sem_ocr,
-                                     limite_bytes=args.limite_mb * 1024 * 1024,
-                                     colunas_integrais=args.coluna_integral)
-        except (ArquivoInvalido, VazamentoDetectado, FalhaOCR, OSError) as erro:
-            print(f"✗ {entrada.name}: {erro}", file=sys.stderr)
-            codigo = 1
-            continue
-        except Exception as erro:  # noqa: BLE001 - nenhum arquivo é gerado; o lote segue para o próximo
-            # A mensagem de bibliotecas de terceiros pode citar trechos do arquivo: só o tipo é exibido.
-            print(f"✗ {entrada.name}: erro interno ({type(erro).__name__}); nenhum arquivo foi gerado.",
-                  file=sys.stderr)
-            codigo = 2
-            continue
-        destino = _saida_para(entrada, args, res.nome)
-        if destino.resolve() == entrada.resolve():
-            print(f"✗ {entrada.name}: a saída sobrescreveria a entrada.", file=sys.stderr)
-            codigo = 1
-            continue
-        destino.write_bytes(res.dados)
-        todos += res.resultados
-        if args.cofre:
-            if res.formato != "txt":
-                print("  ! --cofre só é suportado para arquivos de texto (.txt).", file=sys.stderr)
-            else:
-                from .cofre import criar_cofre
+    try:
+        res = anonimizar_txt(sys.stdin.buffer.read(), _anonimizador(args), "entrada.txt")
+    except VazamentoDetectado as erro:
+        print(f"✗ entrada padrão: {erro}", file=sys.stderr)
+        return 1
+    sys.stdout.write(res.dados.decode("utf-8"))
+    if args.relatorio:
+        _gravar_relatorio(args.relatorio, res.resultados, args.incluir_valores)
+    return 0
 
-                senha = os.environ.get("THEMIS_SENHA_COFRE") or getpass.getpass("Senha para o cofre (mín. 12): ")
-                Path(args.cofre).write_bytes(criar_cofre(res.resultados[0], senha))
-                print(f"  ✓ cofre de reversão: {args.cofre} (guarde-o separado do documento)", file=sys.stderr)
-        tarjados = sum(len(r.tarjadas) for r in res.resultados)
-        alertas = sum(len(r.alertas) for r in res.resultados)
-        print(f"✓ {entrada.name} → {destino}  ({tarjados} tarjado(s), {alertas} para revisar)", file=sys.stderr)
-        for aviso in res.avisos:
-            print(f"  ! {aviso}", file=sys.stderr)
-    if args.relatorio and todos:
-        _gravar_relatorio(args.relatorio, todos, args.incluir_valores)
+
+def _senha_do_cofre() -> str:
+    return os.environ.get("THEMIS_SENHA_COFRE") or getpass.getpass("Senha para o cofre (mín. 12): ")
+
+
+def cmd_anonimizar(args) -> int:
+    """Anonimiza arquivos, pastas ou a entrada padrão.
+
+    Pastas são percorridas (com ``--recursivo``, inclusive as subpastas) e a árvore é preservada na
+    pasta de saída. Cada arquivo concluído é registrado no manifesto (``--manifesto``), que permite
+    retomar um lote interrompido (``--retomar``).
+
+    Returns:
+        A maior gravidade do lote: ``0`` sucesso; ``1`` arquivo rejeitado (inválido, vazamento
+        detectado na verificação, OCR indisponível) ou erro de uso; ``2`` erro interno; ``130``
+        interrupção pelo usuário. Os demais arquivos do lote continuam sendo processados.
+    """
+    from . import lote
+    from .cofre import MINIMO_SENHA
+    from .configuracao import ConfiguracaoInvalida
+
+    if args.entradas == ["-"]:
+        return _anonimizar_entrada_padrao(args)
+    if "-" in args.entradas:
+        print("✗ a entrada padrão ('-') não pode ser combinada com arquivos.", file=sys.stderr)
+        return 1
+    if args.retomar and not args.manifesto:
+        print("✗ --retomar exige --manifesto (o registro dos arquivos já concluídos).", file=sys.stderr)
+        return 1
+    try:
+        cfg = _configuracao(args)
+        tarefas = lote.coletar(args.entradas, args.recursivo)
+    except (ConfiguracaoInvalida, FileNotFoundError) as erro:
+        print(f"✗ {erro}", file=sys.stderr)
+        return 1
+    if not tarefas:
+        print("✗ nenhum arquivo suportado encontrado (PDF, DOCX, XLSX, CSV, TXT, PNG, JPG).", file=sys.stderr)
+        return 1
+
+    # Uma única entrada de arquivo com --saida que não é pasta: --saida é o próprio arquivo gerado.
+    saida_arquivo = (bool(args.saida) and len(args.entradas) == 1 and Path(args.entradas[0]).is_file()
+                     and not args.saida.endswith(("/", "\\")) and not Path(args.saida).is_dir())
+    senha = _senha_do_cofre() if args.cofre else None
+    if senha is not None and len(senha) < MINIMO_SENHA:
+        print(f"✗ use uma senha com pelo menos {MINIMO_SENHA} caracteres para o cofre.", file=sys.stderr)
+        return 1
+    opcoes = lote.Opcoes(
+        sobrepor=_sobrepor(args), config=_caminho_config(args), ocr=cfg.ocr and not args.sem_ocr,
+        limite_bytes=args.limite_mb * 1024 * 1024, colunas_integrais=args.coluna_integral,
+        saida=None if saida_arquivo else args.saida, arquivo_saida=args.saida if saida_arquivo else None,
+        cofre=args.cofre, senha_cofre=senha,
+    )
+    if args.retomar:
+        tarefas = _pendentes(tarefas, lote.concluidos(lote.ler_manifesto(args.manifesto), opcoes.identificador()))
+
+    manifesto = lote.Manifesto(args.manifesto)
+    concluidas, codigo = [], 0
+    try:
+        for linha in lote.executar(tarefas, opcoes, args.trabalhos):
+            manifesto.registrar(linha)
+            codigo = max(codigo, lote.CODIGOS[linha["situacao"]])
+            if linha["situacao"] != lote.OK:
+                print(f"✗ {linha['arquivo']}: {linha['mensagem']}", file=sys.stderr)
+                continue
+            concluidas.append(linha)
+            print(f"✓ {linha['arquivo']} → {linha['saida']}  ({linha['tarjados']} tarjado(s), "
+                  f"{linha['para_revisar']} para revisar)", file=sys.stderr)
+            if "cofre" in linha:
+                print(f"  ✓ cofre de reversão: {linha['cofre']} (guarde-o separado do documento)", file=sys.stderr)
+            for aviso in linha["avisos"]:
+                print(f"  ! {aviso}", file=sys.stderr)
+    except KeyboardInterrupt:
+        print("✗ interrompido: os arquivos concluídos estão registrados no manifesto.", file=sys.stderr)
+        codigo = 130
+    finally:
+        manifesto.fechar()
+    if args.relatorio and concluidas:
+        resultados, documentos = lote.documentos_do_relatorio(concluidas)
+        if resultados:
+            _gravar_relatorio(args.relatorio, resultados, args.incluir_valores, documentos)
     return codigo
+
+
+def _pendentes(tarefas: list, feitos: dict[str, dict]) -> list:
+    """Tarefas ainda não concluídas: muda o conteúdo, a configuração ou falta a saída, o arquivo é refeito."""
+    from . import lote
+
+    pendentes = []
+    for t in tarefas:
+        anterior = feitos.get(t.relativo.as_posix())
+        if (anterior and Path(anterior.get("saida", "")).exists()
+                and anterior.get("sha256_entrada") == lote.sha256(t.caminho.read_bytes())):
+            print(f"↷ {t.relativo}: já concluído com a mesma configuração (retomada)", file=sys.stderr)
+            continue
+        pendentes.append(t)
+    return pendentes
 
 
 def cmd_analisar(args) -> int:
     """Lista em JSON o que seria tarjado ou sinalizado em um texto, sem alterá-lo."""
-    anon = _anonimizador(args)
-    texto = sys.stdin.read() if args.entrada == "-" else Path(args.entrada).read_text(encoding="utf-8")
+    from .configuracao import ConfiguracaoInvalida
+
+    try:
+        anon = _anonimizador(args)
+        texto = sys.stdin.read() if args.entrada == "-" else Path(args.entrada).read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        print(f"✗ {args.entrada}: o texto não está em UTF-8; para outros formatos, use 'themis anonimizar'.",
+              file=sys.stderr)
+        return 1
+    except (ConfiguracaoInvalida, ValueError) as erro:
+        print(f"✗ {erro}", file=sys.stderr)
+        return 1
+    except OSError as erro:
+        print(f"✗ {args.entrada}: não foi possível ler o arquivo ({erro.strerror}).", file=sys.stderr)
+        return 1
     ents = anon.analisar(texto)
     print(json.dumps([e.para_dict(incluir_valor=args.incluir_valores) for e in ents], ensure_ascii=False, indent=2))
     return 0
@@ -166,9 +233,21 @@ def cmd_reverter(args) -> int:
     """Reconstitui o texto original a partir do texto pseudonimizado e do cofre."""
     from .cofre import reverter
 
+    try:
+        texto = Path(args.texto).read_text(encoding="utf-8")
+        cofre = Path(args.cofre).read_bytes()
+    except UnicodeDecodeError:
+        print(f"✗ {args.texto}: o texto não está em UTF-8.", file=sys.stderr)
+        return 1
+    except OSError as erro:
+        print(f"✗ não foi possível ler {erro.filename}: {erro.strerror}.", file=sys.stderr)
+        return 1
     senha = os.environ.get("THEMIS_SENHA_COFRE") or getpass.getpass("Senha do cofre: ")
-    texto = Path(args.texto).read_text(encoding="utf-8")
-    print(reverter(texto, Path(args.cofre).read_bytes(), senha), end="")
+    try:
+        print(reverter(texto, cofre, senha), end="")
+    except ValueError as erro:
+        print(f"✗ {erro}", file=sys.stderr)
+        return 1
     return 0
 
 
@@ -185,12 +264,28 @@ STREAMLIT_SEGURO = [
 ]
 
 
+def _validar_config_servico(args) -> bool:
+    """Valida ``--config`` antes de iniciar um serviço e o repassa pela variável ``THEMIS_CONFIG``."""
+    from .configuracao import ConfiguracaoInvalida, carregar
+
+    if args.config:
+        os.environ["THEMIS_CONFIG"] = str(Path(args.config).resolve())
+    try:
+        carregar()
+    except ConfiguracaoInvalida as erro:
+        print(f"✗ {erro}", file=sys.stderr)
+        return False
+    return True
+
+
 def cmd_interface(args) -> int:
     """Inicia a interface web local (Streamlit) com as opções de :data:`STREAMLIT_SEGURO`."""
     import subprocess  # noqa: S404  # nosec B404
 
     from .config import carregar
 
+    if not _validar_config_servico(args):
+        return 1
     app = Path(__file__).with_name("ui") / "app.py"
     cmd = [sys.executable, "-m", "streamlit", "run", str(app), "--server.port", str(args.porta),
            "--server.address", args.endereco, "--server.maxUploadSize", str(carregar().max_mb), *STREAMLIT_SEGURO]
@@ -198,9 +293,17 @@ def cmd_interface(args) -> int:
 
 
 def cmd_api(args) -> int:
-    """Inicia a API HTTP local, sem log de acesso e sem cabeçalho de identificação do servidor."""
+    """Inicia a API HTTP local, sem log de acesso e sem cabeçalho de identificação do servidor.
+
+    Com ``--processos N``, as análises são distribuídas entre N processos de trabalho, num único
+    processo HTTP — o que mantém as tarefas assíncronas consultáveis em qualquer requisição.
+    """
     import uvicorn
 
+    if not _validar_config_servico(args):
+        return 1
+    if args.processos:
+        os.environ["THEMIS_PROCESSOS"] = str(args.processos)
     uvicorn.run("themis_lgpd.api.app:app", host=args.endereco, port=args.porta, access_log=False,
                 server_header=False, proxy_headers=False)
     return 0
@@ -208,8 +311,10 @@ def cmd_api(args) -> int:
 
 def _opcoes_motor(p: argparse.ArgumentParser) -> None:
     """Opções comuns aos subcomandos que analisam texto."""
-    p.add_argument("--perfil", default=PERFIL_PADRAO, choices=list(PERFIS), help="padrão: lai")
-    p.add_argument("--modo", default="etiqueta", choices=list(MODOS), help="como substituir (padrão: etiqueta)")
+    p.add_argument("--config", metavar="ARQ",
+                   help="configuração do órgão (themis.toml); padrão: variável THEMIS_CONFIG, se definida")
+    p.add_argument("--perfil", help=f"{', '.join(PERFIS)} ou perfil do themis.toml (padrão: {PERFIL_PADRAO})")
+    p.add_argument("--modo", choices=list(MODOS), help="como substituir (padrão: etiqueta)")
     p.add_argument("--permitir", action="append", metavar="TERMO", help="nunca tarjar este termo (repetível)")
     p.add_argument("--permitir-arquivo", metavar="ARQ", help="lista de termos permitidos, um por linha")
     p.add_argument("--bloquear", action="append", metavar="TERMO", help="sempre tarjar este termo (repetível)")
@@ -231,15 +336,25 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--versao", action="version", version=f"themis-lgpd {__version__}")
     sub = ap.add_subparsers(dest="comando", required=True)
 
-    a = sub.add_parser("anonimizar", help="anonimiza arquivos (PDF, DOCX, XLSX, CSV, TXT, PNG/JPG) ou '-' (stdin)")
-    a.add_argument("entradas", nargs="+")
-    a.add_argument("-o", "--saida", help="arquivo ou pasta de saída (padrão: <nome>_anonimizado.<ext>)")
+    a = sub.add_parser("anonimizar",
+                       help="anonimiza arquivos e pastas (PDF, DOCX, XLSX, CSV, TXT, PNG/JPG) ou '-' (stdin)")
+    a.add_argument("entradas", nargs="+", help="arquivos e pastas; '-' lê a entrada padrão")
+    a.add_argument("-o", "--saida",
+                   help="arquivo ou pasta de saída, com a árvore das entradas (padrão: <nome>_anonimizado.<ext>)")
+    a.add_argument("-R", "--recursivo", action="store_true", help="inclui as subpastas das pastas indicadas")
+    a.add_argument("-j", "--trabalhos", type=int, default=1, metavar="N",
+                   help="arquivos processados em paralelo (cada processo carrega o modelo: ~1 GB de memória)")
+    a.add_argument("--manifesto", metavar="ARQ.jsonl",
+                   help="manifesto de cadeia de custódia: uma linha por arquivo, com SHA-256 de entrada e saída")
+    a.add_argument("--retomar", action="store_true",
+                   help="pula arquivos já concluídos com a mesma configuração, conforme o manifesto")
     a.add_argument("-r", "--relatorio", help="relatório de tarjamento (.json, .csv, .xlsx ou .txt = nota de tarjamento)")
     a.add_argument("--coluna-integral", action="append", metavar="CABEÇALHO",
                    help="em planilhas, tarjar a coluna inteira (repetível)")
     a.add_argument("--sem-ocr", action="store_true", help="não usar OCR em páginas digitalizadas")
-    a.add_argument("--cofre", metavar="ARQ",
-                   help="(texto) gera cofre cifrado para reverter a pseudonimização — senha via THEMIS_SENHA_COFRE")
+    a.add_argument("--cofre", metavar="ARQ|PASTA",
+                   help="(texto) cofre cifrado para reverter a pseudonimização: um arquivo para uma entrada ou "
+                        "uma pasta com um .cofre por documento; senha via THEMIS_SENHA_COFRE")
     a.add_argument("--limite-mb", type=int, default=50)
     _opcoes_motor(a)
     a.set_defaults(func=cmd_anonimizar)
@@ -255,11 +370,15 @@ def main(argv: list[str] | None = None) -> int:
     ui = sub.add_parser("interface", help="abre a interface web local (Streamlit)")
     ui.add_argument("--porta", type=int, default=8501)
     ui.add_argument("--endereco", default="127.0.0.1", help="use 0.0.0.0 só atrás de um proxy com HTTPS")
+    ui.add_argument("--config", metavar="ARQ", help="configuração do órgão (themis.toml)")
     ui.set_defaults(func=cmd_interface)
 
     api = sub.add_parser("api", help="inicia a API HTTP local")
     api.add_argument("--porta", type=int, default=8000)
     api.add_argument("--endereco", default="127.0.0.1")
+    api.add_argument("--config", metavar="ARQ", help="configuração do órgão (themis.toml)")
+    api.add_argument("--processos", type=int, metavar="N",
+                     help="processos de análise em paralelo (cada um carrega o modelo: ~1 GB de memória)")
     api.set_defaults(func=cmd_api)
 
     d = sub.add_parser("reverter", help="reverte um texto pseudonimizado com o cofre e a senha")

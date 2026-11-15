@@ -1,9 +1,52 @@
 # Configuração
 
-A API e a interface web são configuradas por variáveis de ambiente com o prefixo `THEMIS_`, lidas em
-`src/themis_lgpd/config.py` quando o processo é iniciado. Os valores padrão são os seguros para uso
-local. A biblioteca Python não lê variáveis de ambiente: recebe a configuração pelos parâmetros do
-`Anonimizador` e de `anonimizar_arquivo`.
+Há dois níveis de configuração:
+
+* **do órgão** — perfis, listas, cargos, tipos e reconhecedores próprios —, num arquivo `themis.toml`
+  aplicado igualmente pela CLI, pela API e pela interface;
+* **do serviço** — limites, autenticação, processos —, por variáveis de ambiente com o prefixo
+  `THEMIS_`, lidas em `src/themis_lgpd/config.py` quando a API ou a interface é iniciada.
+
+Os valores padrão são os seguros para uso local. A biblioteca Python não lê variáveis de ambiente:
+recebe a configuração pelos parâmetros do `Anonimizador` e de `anonimizar_arquivo` (ou por
+`themis_lgpd.configuracao.carregar(caminho).argumentos()`).
+
+## Configuração do órgão (`themis.toml`)
+
+O arquivo é indicado com `--config` na CLI ou na variável `THEMIS_CONFIG` (CLI, API e interface). O
+exemplo comentado [exemplos/orgao.toml](../exemplos/orgao.toml) mostra todas as seções:
+
+| Seção | Conteúdo |
+|---|---|
+| `[padrao]` | `perfil`, `modo`, `preservar_agentes_publicos`, `usar_ner`, `ocr` usados quando a chamada não indica outros |
+| `[listas]` | `permitir` e `bloquear` (listas de termos) e `permitir_arquivo`/`bloquear_arquivo` (arquivos de texto, um termo por linha, com caminho relativo ao `themis.toml`) |
+| `[agentes_publicos]` | `cargos`: cargos do órgão somados aos que o Themis reconhece ("superintendente regional de ensino") |
+| `[[tipos]]` | Tipos de dado próprios: `codigo`, `nome`, `categoria`, `etiqueta`, `prioridade` |
+| `[[reconhecedores]]` | Regras próprias: `nome`, `tipo`, `regex` (com `grupo` nomeado para delimitar o dado), `score`, `contexto`, `contexto_obrigatorio`, `janela`, `validador` (`cpf`, `cnpj`, `pis`, `titulo_eleitor`, `cns`, `cnh`, `renavam`, `processo_cnj`, `luhn`, `ano_plausivel`), `score_invalido`, `ignorar_caixa` |
+| `[perfis.<nome>]` | Perfis derivados de um perfil do Themis (`base`), com `regras` por categoria (`tarjar`, `alertar`, `manter`, `vinculado`), `score_minimo`, `score_alerta` e `tarjar_sensivel_sempre` |
+
+Os reconhecedores próprios entram no registro do Presidio como os reconhecedores do Themis e seguem a
+mesma política de decisão, propagação e verificação final. Um erro no arquivo — campo desconhecido,
+expressão regular inválida ou que aceite texto vazio, tipo ou categoria inexistente, perfil sem base —
+interrompe a execução com a indicação da seção e do campo: uma regra de proteção ignorada em silêncio
+seria um vazamento. A API e a interface não iniciam com um arquivo inválido.
+
+Na CLI, as opções informadas na linha de comando prevalecem sobre o `[padrao]`, e as listas de
+permissão e de bloqueio são somadas às do arquivo. O manifesto de lote registra um resumo da
+configuração efetiva: um lote retomado com outro `themis.toml` refaz os arquivos.
+
+## Perfis
+
+| Perfil | Finalidade |
+|---|---|
+| `lai` (padrão) | Publicação de respostas e documentos: tarja identificadores e dados sensíveis ligados a pessoas; cidades, CNPJ e termos genéricos viram alerta |
+| `identificadores` | Somente o que identifica diretamente a pessoa; dados sensíveis viram alerta (bases de dados, pesquisa) |
+| `saude` | Como `lai`, mas tarja qualquer menção a doenças, tratamentos e condições de saúde |
+| `ouvidoria` | Manifestações de ouvidoria: preserva a identidade do manifestante (Lei nº 13.460/2017, art. 10, § 7º) tarjando também cidade, lotação, função e turno e demais quase-identificadores |
+| `educacao` | Documentos escolares: RA, matrícula, dados de crianças e adolescentes (LGPD, art. 14; ECA, art. 17), turma, série e saúde de estudantes sempre tarjados |
+| `maxima` | Tarja tudo o que for detectado, inclusive cidades, CNPJ e URLs |
+
+A regra de cada perfil por categoria está em [TIPOS_DE_DADOS.md](TIPOS_DE_DADOS.md).
 
 ## Variáveis da API e da interface
 
@@ -22,6 +65,11 @@ local. A biblioteca Python não lê variáveis de ambiente: recebe a configuraç
 | `THEMIS_CONFIAR_PROXY` | `false` | `false` | Usa o primeiro endereço de `X-Forwarded-For` como IP do cliente. Habilite somente atrás de proxy reverso confiável |
 | `THEMIS_USAR_NER` | `true` | `true` | Usa o modelo de linguagem no reconhecimento de nomes |
 | `THEMIS_MODELO_SPACY` | `pt_core_news_lg` | `pt_core_news_lg` | Pacote do modelo spaCy |
+| `THEMIS_CONFIG` | vazio | vazio | Arquivo `themis.toml` da configuração do órgão |
+| `THEMIS_PROCESSOS` | `1` | `1` | Processos de análise da API (`themis api --processos`); com mais de um, cada análise roda num processo de trabalho, com o próprio modelo (cerca de 1 GB por processo). A concorrência passa a ser o maior entre este valor e `THEMIS_CONCORRENCIA` |
+| `THEMIS_MAX_TAREFAS` | `20` | `2` | Tarefas assíncronas (`/v1/tarefas`) mantidas em memória ao mesmo tempo, incluídas as concluídas ainda não baixadas; acima disso, 503 |
+| `THEMIS_TAREFA_TTL_S` | `900` | `900` | Tempo, em segundos, em que o resultado de uma tarefa concluída aguarda o download antes de ser apagado da memória |
+| `THEMIS_TAREFA_TIMEOUT_S` | `3600` | `300` | Tempo máximo de processamento de uma tarefa assíncrona, em segundos |
 
 Valores booleanos aceitam `1`, `true`, `sim`, `yes` e `on` (sem distinção de caixa) como verdadeiro;
 qualquer outro valor é falso. Valores numéricos inválidos são substituídos pelo padrão.

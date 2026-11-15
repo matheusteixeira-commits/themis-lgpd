@@ -49,14 +49,15 @@ A detecção usa o Microsoft Presidio, com reconhecedores desenvolvidos para doc
 
 Cada achado é tarjado, sinalizado para revisão (alerta) ou mantido, conforme o **perfil** escolhido:
 
-| Categoria | `lai` (padrão) | `identificadores` | `saude` | `maxima` |
-|---|---|---|---|---|
-| Nomes, documentos, contatos, endereços, dados financeiros, veículos, processos | tarja | tarja | tarja | tarja |
-| Frase que descreve a situação de alguém ("diagnosticado com…", "vítima de violência doméstica") | tarja | alerta | tarja | tarja |
-| Termo sensível isolado ("asma", "católico") | tarja se a frase se refere a uma pessoa; senão, alerta | alerta | tarja (saúde) | tarja |
-| CNPJ, endereços de internet | mantém | mantém | mantém | tarja |
-| Região administrativa isolada | alerta (tarja em "resido em…") | mantém | alerta | tarja |
-| Quase-identificador ("atendente do guichê 4 na tarde de ontem") | alerta | alerta | alerta | tarja |
+| Categoria | `lai` (padrão) | `identificadores` | `saude` | `ouvidoria` | `educacao` | `maxima` |
+|---|---|---|---|---|---|---|
+| Nomes, documentos, contatos, endereços, dados financeiros, veículos, processos | tarja | tarja | tarja | tarja | tarja | tarja |
+| Frase que descreve a situação de alguém ("diagnosticado com…", "vítima de violência doméstica") | tarja | alerta | tarja | tarja | tarja | tarja |
+| Termo sensível isolado ("asma", "católico") | tarja se a frase se refere a uma pessoa; senão, alerta | alerta | tarja (saúde) | como `lai` | como `lai`; saúde, tarja | tarja |
+| Dados de criança ou adolescente | como termo sensível | alerta | como termo sensível | tarja | tarja | tarja |
+| CNPJ, endereços de internet | mantém | mantém | mantém | alerta (CNPJ), tarja (URL) | mantém | tarja |
+| Município ou região administrativa isolada | alerta (tarja em "resido em…") | mantém | alerta | tarja | alerta | tarja |
+| Quase-identificador ("atendente do guichê 4 na tarde de ontem") | alerta | alerta | alerta | tarja | tarja | tarja |
 
 "A frase se refere a uma pessoa" significa que ela contém nome, documento, contato ou processo, ou
 marcas como "eu", "minha filha", "tenho", "sofri", "a requerente". Assim, "a política de saúde mental

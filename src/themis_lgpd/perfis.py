@@ -90,6 +90,24 @@ PERFIS: dict[str, Perfil] = {
             tarjar_sensivel_sempre=frozenset({"SAUDE", "GENETICO_BIOMETRICO"}),
         ),
         Perfil(
+            "ouvidoria", "Ouvidoria",
+            "Manifestações de ouvidoria: preserva a identidade do manifestante (Lei nº 13.460/2017, art. 10, "
+            "§ 7º). Além dos identificadores, tarja cidade, lotação, função e turno e outros "
+            "quase-identificadores que, combinados, permitiriam reconhecer quem se manifestou.",
+            {**_IDENTIFICADORES, "SENSIVEL": VINCULADO, "INTIMIDADE": VINCULADO, "MENOR": TARJAR,
+             "EMPRESA": ALERTAR, "LOCALIDADE": TARJAR, "URL": TARJAR, "QUASE_IDENTIFICADOR": TARJAR},
+            score_minimo=0.5,
+        ),
+        Perfil(
+            "educacao", "Educação",
+            "Documentos escolares e acadêmicos: RA, matrícula e dados de crianças e adolescentes sempre "
+            "tarjados (LGPD, art. 14; ECA, art. 17), assim como turma, série e outros quase-identificadores "
+            "de estudantes.",
+            {**_IDENTIFICADORES, "SENSIVEL": VINCULADO, "INTIMIDADE": VINCULADO, "MENOR": TARJAR,
+             "EMPRESA": MANTER, "LOCALIDADE": ALERTAR, "URL": MANTER, "QUASE_IDENTIFICADOR": TARJAR},
+            tarjar_sensivel_sempre=frozenset({"SAUDE"}),
+        ),
+        Perfil(
             "maxima", "Proteção máxima",
             "Tarja tudo o que for detectado, inclusive termos sensíveis isolados, cidades, CNPJ, URLs e "
             "quase-identificadores. Maior proteção, menor legibilidade.",

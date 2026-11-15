@@ -17,6 +17,7 @@ import csv
 import io
 import json
 from collections import Counter
+from collections.abc import Sequence
 from datetime import UTC, datetime
 
 from . import __version__
@@ -40,13 +41,16 @@ def _contexto(r: Resultado, e: Entidade, largura: int = 45) -> str:
     return ("…" if a else "") + r.texto[a:b].replace("\n", " ") + ("…" if b < len(r.texto) else "")
 
 
-def linhas(resultados: list[Resultado], incluir_valores: bool = False, incluir_alertas: bool = True) -> list[dict]:
+def linhas(resultados: list[Resultado], incluir_valores: bool = False, incluir_alertas: bool = True,
+           documentos: Sequence[str] | None = None) -> list[dict]:
     """Uma linha por entidade tarjada ou sinalizada para revisão.
 
     Args:
         resultados: Resultados da anonimização.
         incluir_valores: Acrescenta a coluna ``valor_original``. Torna o relatório de uso interno.
         incluir_alertas: Inclui as entidades sinalizadas para revisão (não tarjadas).
+        documentos: Identificação de cada resultado (em lotes, o arquivo de origem); sem ela, os
+            documentos são numerados.
 
     Returns:
         Dicionários com documento, ação, tipo, categoria, base legal, justificativa, confiança,
@@ -58,7 +62,7 @@ def linhas(resultados: list[Resultado], incluir_valores: bool = False, incluir_a
             if e.acao == "manter" or (e.acao == "alertar" and not incluir_alertas):
                 continue
             linha = {
-                "documento": n_doc,
+                "documento": documentos[n_doc - 1] if documentos else n_doc,
                 "acao": "Tarjado" if e.acao == "tarjar" else "Revisar (não tarjado)",
                 "tipo": e.rotulo,
                 "categoria": CATEGORIAS[e.categoria].nome,
@@ -120,17 +124,19 @@ def nota_de_tarjamento(resultados: list[Resultado], documento: str = "o document
     return "\n".join(partes)
 
 
-def para_json(resultados: list[Resultado], incluir_valores: bool = False) -> str:
+def para_json(resultados: list[Resultado], incluir_valores: bool = False,
+              documentos: Sequence[str] | None = None) -> str:
     """Relatório em JSON: resumo e itens."""
-    dados = {"resumo": resumo(resultados), "itens": linhas(resultados, incluir_valores)}
+    dados = {"resumo": resumo(resultados), "itens": linhas(resultados, incluir_valores, documentos=documentos)}
     if incluir_valores:
         dados = {"aviso": AVISO_VALORES, **dados}
     return json.dumps(dados, ensure_ascii=False, indent=2)
 
 
-def para_csv(resultados: list[Resultado], incluir_valores: bool = False) -> str:
+def para_csv(resultados: list[Resultado], incluir_valores: bool = False,
+             documentos: Sequence[str] | None = None) -> str:
     """Relatório em CSV (separador ``;``, UTF-8 com BOM para abertura direta no Excel)."""
-    itens = linhas(resultados, incluir_valores)
+    itens = linhas(resultados, incluir_valores, documentos=documentos)
     buf = io.StringIO()
     if incluir_valores:
         buf.write(f"# {AVISO_VALORES}\n")
@@ -147,10 +153,11 @@ def _sem_formula(item: dict) -> dict:
     O contexto do relatório vem do documento analisado, que pode conter texto preparado para ser
     executado como fórmula ao abrir o relatório no Excel.
     """
-    return {k: ("'" + v if isinstance(v, str) and v[:1] in "=+-@" else v) for k, v in item.items()}
+    return {k: ("'" + v if isinstance(v, str) and v[:1] and v[:1] in "=+-@" else v) for k, v in item.items()}
 
 
-def para_xlsx(resultados: list[Resultado], incluir_valores: bool = False) -> bytes:
+def para_xlsx(resultados: list[Resultado], incluir_valores: bool = False,
+              documentos: Sequence[str] | None = None) -> bytes:
     """Relatório em XLSX, com as abas "Resumo" e "Itens"."""
     import openpyxl
     from openpyxl.styles import Alignment, Font, PatternFill
@@ -169,7 +176,7 @@ def para_xlsx(resultados: list[Resultado], incluir_valores: bool = False) -> byt
     ws.append(["Categoria", "Quantidade", "Base legal", "Justificativa"])
     for f in r["fundamentacao"]:
         ws.append([f["categoria"], f["quantidade"], f["base_legal"], f["justificativa"]])
-    itens = linhas(resultados, incluir_valores)
+    itens = linhas(resultados, incluir_valores, documentos=documentos)
     ws2 = wb.create_sheet("Itens")
     if itens:
         ws2.append(list(itens[0]))

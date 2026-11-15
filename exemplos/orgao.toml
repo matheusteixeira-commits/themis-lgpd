@@ -1,0 +1,62 @@
+# Configuração do Themis LGPD para um órgão — exemplo comentado.
+#
+# Uso:  themis anonimizar processos/ -R -o publicacao/ --config orgao.toml
+#       THEMIS_CONFIG=/etc/themis/orgao.toml themis api        (API e interface)
+#
+# Campos ausentes mantêm o padrão do Themis. Erros (campo desconhecido, expressão inválida, tipo
+# inexistente) interrompem a execução com a indicação da seção e do campo.
+
+[padrao]
+perfil = "ouvidoria_estadual"          # perfil do Themis (lai, identificadores, saude, ouvidoria,
+                                       # educacao, maxima) ou um dos definidos abaixo
+modo = "etiqueta"                      # etiqueta, pseudonimo, mascara, hmac, tarja, remover
+preservar_agentes_publicos = true      # mantém nomes acompanhados de cargo público
+ocr = true
+
+[listas]
+# Termos que nunca são tarjados (nomes de programas, de unidades, de homenageados):
+permitir = ["Programa Maria da Penha vai à Escola", "Hospital Regional Dr. Fulano de Tal"]
+# Termos que sempre são tarjados:
+bloquear = []
+# As listas também podem vir de arquivos de texto, um termo por linha (caminho relativo a este arquivo):
+# permitir_arquivo = "permitidos.txt"
+
+[agentes_publicos]
+# Cargos do órgão somados aos reconhecidos pelo Themis (secretário, diretor, coordenador...):
+cargos = ["superintendente regional de ensino", "inspetor escolar", "ouvidor setorial"]
+
+# Tipos de dado próprios do órgão. Categorias: PESSOA, DOCUMENTO, DADO_PESSOAL, CONTATO, LOCALIZACAO,
+# FINANCEIRO, VEICULO, PROCESSO, SENSIVEL, INTIMIDADE, MENOR, EMPRESA, LOCALIDADE, URL,
+# QUASE_IDENTIFICADOR (ver docs/TIPOS_DE_DADOS.md).
+[[tipos]]
+codigo = "PRONTUARIO_SOCIOEDUCATIVO"
+nome = "Prontuário do sistema socioeducativo"
+categoria = "MENOR"
+etiqueta = "[PRONTUÁRIO]"
+prioridade = 90
+
+# Reconhecedores próprios: expressão regular (sintaxe do módulo regex do Python), grupo nomeado que
+# delimita o dado (o resto, como a palavra-chave, fica visível), palavras de contexto e validador de
+# dígito opcional (cpf, cnpj, pis, titulo_eleitor, cns, cnh, renavam, processo_cnj, luhn, ano_plausivel).
+[[reconhecedores]]
+nome = "prontuario-socioeducativo"
+tipo = "PRONTUARIO_SOCIOEDUCATIVO"
+regex = '\bPSE\s*(?:n[º°o]\.?\s*)?(?P<v>\d{4}/\d{5})'
+grupo = "v"
+score = 0.9
+
+[[reconhecedores]]
+nome = "protocolo-ouvidoria"
+tipo = "PROTOCOLO"
+regex = '\b(?P<v>OUV-\d{4}-\d{6})\b'
+grupo = "v"
+score = 0.9
+ignorar_caixa = false
+
+# Perfis próprios, derivados de um perfil do Themis.
+[perfis.ouvidoria_estadual]
+base = "ouvidoria"
+titulo = "Ouvidoria-Geral do Estado"
+descricao = "Manifestações publicadas no portal: identidade do manifestante e de terceiros protegida."
+regras = { EMPRESA = "manter" }        # CATEGORIA = "tarjar" | "alertar" | "manter" | "vinculado"
+tarjar_sensivel_sempre = ["SAUDE"]     # tipos sensíveis tarjados mesmo sem vínculo com pessoa

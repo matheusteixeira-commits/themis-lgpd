@@ -133,20 +133,27 @@ Nomes que integram nomes de lugares, instituições ou normas ("São Paulo", "Es
 
 ## Perfis
 
-| Categoria | `lai` (padrão) | `identificadores` | `saude` | `maxima` |
-|---|---|---|---|---|
-| `PESSOA`, `DOCUMENTO`, `DADO_PESSOAL`, `CONTATO`, `LOCALIZACAO`, `FINANCEIRO`, `VEICULO`, `PROCESSO`, `MANUAL` | tarjar | tarjar | tarjar | tarjar |
-| `SENSIVEL` | vinculado | alertar | vinculado² | tarjar |
-| `INTIMIDADE` | vinculado | alertar | vinculado | tarjar |
-| `MENOR` | vinculado | alertar | vinculado | tarjar |
-| `EMPRESA` | manter | manter | manter | tarjar |
-| `LOCALIDADE` | alertar | manter | alertar | tarjar |
-| `URL` | manter | manter | manter | tarjar |
-| `QUASE_IDENTIFICADOR` | alertar | alertar | alertar | tarjar |
-| Confiança mínima para aplicar a regra (`score_minimo`) | 0,6 | 0,6 | 0,6 | 0,4 |
-| Confiança mínima para considerar o achado (`score_alerta`) | 0,4 | 0,4 | 0,4 | 0,3 |
+| Categoria | `lai` (padrão) | `identificadores` | `saude` | `ouvidoria` | `educacao` | `maxima` |
+|---|---|---|---|---|---|---|
+| `PESSOA`, `DOCUMENTO`, `DADO_PESSOAL`, `CONTATO`, `LOCALIZACAO`, `FINANCEIRO`, `VEICULO`, `PROCESSO`, `MANUAL` | tarjar | tarjar | tarjar | tarjar | tarjar | tarjar |
+| `SENSIVEL` | vinculado | alertar | vinculado² | vinculado | vinculado³ | tarjar |
+| `INTIMIDADE` | vinculado | alertar | vinculado | vinculado | vinculado | tarjar |
+| `MENOR` | vinculado | alertar | vinculado | tarjar | tarjar | tarjar |
+| `EMPRESA` | manter | manter | manter | alertar | manter | tarjar |
+| `LOCALIDADE` | alertar | manter | alertar | tarjar | alertar | tarjar |
+| `URL` | manter | manter | manter | tarjar | manter | tarjar |
+| `QUASE_IDENTIFICADOR` | alertar | alertar | alertar | tarjar | tarjar | tarjar |
+| Confiança mínima para aplicar a regra (`score_minimo`) | 0,6 | 0,6 | 0,6 | 0,5 | 0,6 | 0,4 |
+| Confiança mínima para considerar o achado (`score_alerta`) | 0,4 | 0,4 | 0,4 | 0,4 | 0,4 | 0,3 |
 
 ² No perfil `saude`, os tipos `SAUDE` e `GENETICO_BIOMETRICO` são tarjados sempre, mesmo sem vínculo.
+³ No perfil `educacao`, o tipo `SAUDE` é tarjado sempre, mesmo sem vínculo.
+
+O perfil `ouvidoria` atende à preservação da identidade do manifestante (Lei nº 13.460/2017, art. 10,
+§ 7º): além dos identificadores, tarja a cidade, a lotação, a função e o turno, que, combinados,
+permitiriam reconhecer quem se manifestou. O perfil `educacao` protege estudantes (LGPD, art. 14; ECA,
+art. 17): RA, matrícula, turma, série e dados de crianças e adolescentes são sempre tarjados.
+Perfis próprios do órgão são derivados destes no `themis.toml` ([CONFIGURACAO.md](CONFIGURACAO.md)).
 
 ### Regras
 

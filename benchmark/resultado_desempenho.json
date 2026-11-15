@@ -1,0 +1,40 @@
+{
+  "versao": "1.0.0",
+  "python": "3.11.9",
+  "plataforma": "Windows-10",
+  "texto": [
+    {
+      "caracteres": 10000,
+      "segundos": 0.36,
+      "ms_por_mil_caracteres": 36.5
+    },
+    {
+      "caracteres": 50000,
+      "segundos": 2.03,
+      "ms_por_mil_caracteres": 40.6
+    },
+    {
+      "caracteres": 100000,
+      "segundos": 4.74,
+      "ms_por_mil_caracteres": 47.4
+    }
+  ],
+  "pdf": [
+    {
+      "paginas": 10,
+      "segundos": 3.28,
+      "segundos_por_pagina": 0.328,
+      "kb_original": 12,
+      "kb_gerado": 1001,
+      "proporcao_tamanho": 79.2
+    },
+    {
+      "paginas": 50,
+      "segundos": 15.88,
+      "segundos_por_pagina": 0.318,
+      "kb_original": 59,
+      "kb_gerado": 4990,
+      "proporcao_tamanho": 83.2
+    }
+  ]
+}

@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import logging
 import threading
+from bisect import bisect_right
 from collections.abc import Iterable, Sequence
 from functools import lru_cache
 
@@ -93,6 +94,31 @@ def _tipos(padroes: Iterable[B.Padrao]) -> list[str]:
 # E-mails e telefones ficam em reconhecedores separados porque têm palavras de contexto diferentes.
 _EMAILS = [p for p in contatos.PADROES if p.tipo == "EMAIL"]
 _TELEFONES = [p for p in contatos.PADROES if p.tipo != "EMAIL"]
+
+
+class RealceDeContexto(LemmaContextAwareEnhancer):
+    """``LemmaContextAwareEnhancer`` do Presidio com localização do token do achado por busca binária.
+
+    O original percorre os tokens do documento desde o início para cada achado, o que torna o
+    reforço de confiança quadrático no tamanho do texto: num documento de 100 mil caracteres, mais
+    da metade do tempo de análise. Aqui, o fim de cada token é calculado uma vez por documento e o
+    token é encontrado por busca binária, com o mesmo resultado: o primeiro token que termina depois
+    do início do achado.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._ultimo: tuple = (None, ())
+
+    def _find_index_of_match_token(self, word: str, start: int, tokens, tokens_indices: list[int]) -> int:
+        doc, fins = self._ultimo
+        if doc is not tokens:
+            fins = [i + len(t.text) for i, t in zip(tokens_indices, tokens)]
+            self._ultimo = (tokens, fins)  # atribuição única: segura entre threads
+        i = bisect_right(fins, start)
+        if i >= len(fins):
+            raise ValueError(f"Did not find word '{word}' in the list of tokens although it is expected to be found")
+        return i
 
 
 class ReconhecedorThemis(EntityRecognizer):
@@ -165,7 +191,7 @@ class ReconhecedorNomesModelo(EntityRecognizer):
         confiancas = nlp_artifacts.scores or [0.85] * len(nlp_artifacts.entities)
         saida = []
         for ent, score in zip(nlp_artifacts.entities, confiancas):
-            d = nomes.filtrar_entidade_nlp(doc, ent, rotulo_pessoa="PERSON", score=score)
+            d = nomes.filtrar_entidade_nlp(doc, ent, rotulo_pessoa="PERSON", score=score, texto=text)
             if d is None:
                 continue
             saida.append(RecognizerResult("NOME", d.inicio, d.fim, d.score,
@@ -266,7 +292,7 @@ def obter_analisador(modelo: str | None) -> AnalyzerEngine:
         registry=registro, nlp_engine=nlp, supported_languages=[IDIOMA],
         # Em português, a palavra de contexto costuma vir antes do dado ("CPF nº ..."); por isso a
         # janela anterior é maior que a posterior.
-        context_aware_enhancer=LemmaContextAwareEnhancer(context_prefix_count=6, context_suffix_count=2),
+        context_aware_enhancer=RealceDeContexto(context_prefix_count=6, context_suffix_count=2),
     )
 
 

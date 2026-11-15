@@ -57,7 +57,7 @@ pessoais.
 | Entidades pessoais tarjadas | 94,2% | **94,6%** |
 | Recall estrito | 91,8% | **92,4%** |
 | Pedidos com algum vazamento | 11,3% | **10,3%** |
-| Triagem: precisão / recall / F1 | 0,948 / 0,941 / 0,944 | 0,948 / **0,943** / **0,945** |
+| Triagem: precisão / recall / F1 | 0,948 / 0,941 / 0,944 | 0,948 / **0,943** / **0,946** |
 | Tarja fora do gabarito | 5,7% | 5,7% |
 | Não tarjadas: sinalizadas / não detectadas | 22 / 61 | 22 / **55** |
 | Tempo por pedido | 15 a 22 ms | 17 a 20 ms |
@@ -199,6 +199,34 @@ Os casos com dado pessoal incluem categorias de intimidade, saúde, dados sensí
 que a decisão depende de contexto. As três primeiras verificações são executadas pela suíte de testes
 (`tests/test_cli_e_regressao.py`).
 
+## Desempenho
+
+`python benchmark/desempenho.py --json benchmark/resultado_desempenho.json`: análise de textos
+fictícios de 10, 50 e 100 mil caracteres e anonimização de PDFs de texto com 10 e 50 páginas (uma
+tarja por página), no mesmo computador (CPU comum, Windows, Python 3.11).
+
+| Medida | Themis 1.0.0 | Versão atual |
+|---|---|---|
+| Texto de 10 mil caracteres | 0,42 s (41,8 ms por mil caracteres) | 0,36 s (36,5 ms) |
+| Texto de 50 mil caracteres | 3,67 s (73,4 ms por mil) | **2,03 s (40,6 ms)** |
+| Texto de 100 mil caracteres | 11,34 s (113,4 ms por mil) | **4,74 s (47,4 ms)** |
+| PDF de 50 páginas | 23,6 s (0,47 s por página) | **15,9 s (0,32 s por página)** |
+| PDF de 50 páginas: tamanho gerado | 8.560 KB (143 vezes o original) | **4.990 KB (83 vezes)** |
+
+Na versão 1.0.0, o tempo por mil caracteres quase triplicava de 10 para 100 mil caracteres: o custo
+era quadrático. Duas causas, encontradas por perfilamento: o reforço de confiança por contexto do
+Presidio localizava o token de cada achado percorrendo o documento desde o início, e o filtro de
+nomes remontava o texto do documento (`doc.text`) a cada entidade. A versão atual localiza o token
+por busca binária (mesmo resultado, verificado em teste) e lê o texto uma vez. O crescimento passa a
+ser quase linear; `tests/test_desempenho.py` falha se cinco vezes mais texto custar mais de 7,5 vezes
+mais tempo.
+
+No PDF, as páginas com tarja passaram a ser gravadas em escala de cinza quando não têm cor (um terço
+dos dados, sem perdas) e em JPEG quando a página é fotográfica — digitalizações —, e a composição e a
+compressão das páginas rodam em paralelo. As páginas sem tarja continuam copiadas sem alteração. As
+detecções não mudaram: os resultados do esic-ner, do sintético e do nacional são idênticos antes e
+depois dessas otimizações.
+
 ## Comparação com o Presidio puro
 
 `benchmark/comparar.py` mede, com os mesmos dados e as mesmas métricas, o Presidio 2.2.366 configurado
@@ -207,14 +235,14 @@ para português com o modelo `pt_core_news_lg` e os reconhecedores que ele habil
 tudo o que detecta. É o resultado obtido ao configurar o Presidio para português sem reconhecedores
 brasileiros.
 
-| Métrica | Presidio puro (pt) | Themis 1.0.0 |
+| Métrica | Presidio puro (pt) | Themis (versão atual) |
 |---|---|---|
-| esic-ner: entidades pessoais tarjadas | 53,3% | **94,5%** |
+| esic-ner: entidades pessoais tarjadas | 53,3% | **94,6%** |
 | esic-ner: nomes tarjados | 98,9% | **100,0%** |
 | esic-ner: documentos pessoais tarjados | 7,9% | **100,0%** |
 | esic-ner: datas de nascimento tarjadas | 100,0% | 100,0% |
-| esic-ner: pedidos com algum vazamento | 93,3% | **10,5%** |
-| esic-ner: triagem (F1) | 0,733 | **0,944** |
+| esic-ner: pedidos com algum vazamento | 93,3% | **10,3%** |
+| esic-ner: triagem (F1) | 0,733 | **0,946** |
 | esic-ner: triagem (precisão) | 0,583 | **0,948** |
 | esic-ner: tarja fora do gabarito | 30,8% | **5,7%** |
 | sintético: identificadores tarjados | 57,7% | **99,6%** |

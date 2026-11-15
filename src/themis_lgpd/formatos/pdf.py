@@ -32,6 +32,7 @@ Todas as bibliotecas usadas têm licença compatível com MIT.
 from __future__ import annotations
 
 import io
+import os
 import unicodedata
 from dataclasses import dataclass, field
 
@@ -398,6 +399,90 @@ def _desenhar(img, pag: Pagina, escala: float):
     return img
 
 
+#: Diferença máxima entre os canais de cor para que a página seja gravada em escala de cinza.
+_TOLERANCIA_CINZA = 12
+_QUALIDADE_JPEG = 85
+#: O JPEG só é usado quando ocupa menos que esta fração da imagem sem perdas: isso ocorre com
+#: digitalizações e fotos, nunca com páginas de texto, em que a compressão sem perdas vence.
+_VANTAGEM_JPEG = 0.5
+
+
+def _imagem_compacta(img):
+    """Imagem da página no modo mais econômico que preserva a leitura.
+
+    * sem cor (texto, a maioria dos documentos): escala de cinza — um terço dos dados;
+    * fotográfica (digitalização, foto): JPEG, como as próprias digitalizadoras gravam, quando ele
+      ocupa menos da metade da versão sem perdas;
+    * demais casos: sem perdas (Flate), em cinza ou em cor.
+
+    Returns:
+        Imagem PIL ou arquivo JPEG em memória, ambos aceitos pelo ``ImageReader`` do ReportLab.
+    """
+    import zlib
+
+    import numpy as np
+
+    arr = np.asarray(img, dtype=np.int16)
+    cinza = (int(np.abs(arr[..., 0] - arr[..., 1]).max()) <= _TOLERANCIA_CINZA
+             and int(np.abs(arr[..., 1] - arr[..., 2]).max()) <= _TOLERANCIA_CINZA)
+    base = img.convert("L") if cinza else img
+    jpeg = io.BytesIO()
+    base.save(jpeg, "JPEG", quality=_QUALIDADE_JPEG, optimize=True)
+    if jpeg.tell() >= _VANTAGEM_JPEG * len(zlib.compress(base.tobytes(), 6)):
+        return base
+    jpeg.seek(0)
+    return jpeg
+
+
+def _jpeg_sem_ascii85(pagina) -> None:
+    """Retira a codificação ASCII85 que o ReportLab aplica às imagens JPEG (25% de bytes a mais).
+
+    As imagens sem perdas não precisam disso: o pikepdf as recomprime ao gravar o arquivo; o JPEG,
+    filtro especializado, é mantido como está.
+    """
+    import base64
+
+    import pikepdf
+
+    for _, fluxo in pagina.images.items():
+        filtro = fluxo.get("/Filter")
+        if isinstance(filtro, pikepdf.Array) and [str(f) for f in filtro] == ["/ASCII85Decode", "/DCTDecode"]:
+            bruto = fluxo.read_raw_bytes().strip()
+            jpeg = base64.a85decode(bruto.removesuffix(b"~>"), ignorechars=b" \t\r\n")
+            fluxo.write(jpeg, filter=pikepdf.Name.DCTDecode)
+
+
+#: Páginas rasterizadas em paralelo (e, portanto, imagens de página em memória ao mesmo tempo).
+_PAGINAS_EM_PARALELO = max(1, min(4, (os.cpu_count() or 2) - 1))
+
+
+def _rasterizar_paginas(doc_pdfium, paginas: list[Pagina]) -> dict[int, bytes]:
+    """PDF de uma página, tarjada, para cada página indicada, pelo índice.
+
+    A renderização (PDFium, que não admite uso simultâneo do mesmo documento) é feita em sequência;
+    a composição e a compressão de cada página, que liberam o GIL, rodam em paralelo, com no máximo
+    :data:`_PAGINAS_EM_PARALELO` imagens de página em memória.
+    """
+    from concurrent.futures import ThreadPoolExecutor
+
+    def compor(img, pag: Pagina, escala: float) -> bytes:
+        _desenhar(img, pag, escala)
+        return _pagina_rasterizada(img, pag)
+
+    geradas: dict[int, bytes] = {}
+    with ThreadPoolExecutor(max_workers=_PAGINAS_EM_PARALELO) as pool:
+        pendentes: dict[int, object] = {}
+        for pag in paginas:
+            img, escala = _renderizar(doc_pdfium, pag.indice, pag)
+            pendentes[pag.indice] = pool.submit(compor, img, pag, escala)
+            while len(pendentes) >= _PAGINAS_EM_PARALELO:
+                indice = next(iter(pendentes))
+                geradas[indice] = pendentes.pop(indice).result()
+        for indice, futuro in pendentes.items():
+            geradas[indice] = futuro.result()
+    return geradas
+
+
 def _pagina_rasterizada(img, pag: Pagina) -> bytes:
     """Gera um PDF de uma página: a imagem tarjada e a camada de texto invisível das palavras restantes."""
     from reportlab.lib.utils import ImageReader
@@ -406,7 +491,7 @@ def _pagina_rasterizada(img, pag: Pagina) -> bytes:
 
     buf = io.BytesIO()
     c = canvas.Canvas(buf, pagesize=(pag.largura, pag.altura), invariant=True, pageCompression=1)
-    c.drawImage(ImageReader(img), 0, 0, width=pag.largura, height=pag.altura)
+    c.drawImage(ImageReader(_imagem_compacta(img)), 0, 0, width=pag.largura, height=pag.altura)
     texto = c.beginText()
     texto.setTextRenderMode(3)  # texto invisível: serve à busca, à seleção e a leitores de tela
     for seg in pag.segmentos:
@@ -802,11 +887,11 @@ def anonimizar_pdf(dados: bytes, anon: Anonimizador, nome: str, *, limite_pagina
     doc_pdfium = pdfium.PdfDocument(dados)
     rasterizadas = 0
     with origem:
+        geradas = _rasterizar_paginas(doc_pdfium, [p for p in paginas if p.tarjas])
         for pag in paginas:
             if pag.tarjas:
-                img, escala = _renderizar(doc_pdfium, pag.indice, pag)
-                _desenhar(img, pag, escala)
-                nova = pikepdf.open(io.BytesIO(_pagina_rasterizada(img, pag)))
+                nova = pikepdf.open(io.BytesIO(geradas[pag.indice]))
+                _jpeg_sem_ascii85(nova.pages[0])
                 saida.pages.append(nova.pages[0])
                 if pag.rotacao:
                     saida.pages[-1].obj["/Rotate"] = pag.rotacao

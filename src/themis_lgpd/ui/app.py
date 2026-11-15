@@ -25,6 +25,7 @@ import streamlit as st
 
 from themis_lgpd import __version__, relatorio
 from themis_lgpd.config import carregar
+from themis_lgpd.configuracao import carregar as carregar_orgao
 from themis_lgpd.formatos import ArquivoInvalido, FalhaOCR, VazamentoDetectado, anonimizar_arquivo
 from themis_lgpd.motor import Anonimizador
 from themis_lgpd.operadores import MODOS
@@ -32,6 +33,10 @@ from themis_lgpd.perfis import PERFIS
 from themis_lgpd.ui.realce import realcar_original, realcar_saida
 
 CFG = carregar()
+#: Configuração do órgão (``THEMIS_CONFIG``): perfis próprios, listas, cargos e reconhecedores.
+ORGAO = carregar_orgao()
+_PERFIS = {**PERFIS, **ORGAO.perfis}
+_PERFIL_PADRAO = ORGAO.perfil if isinstance(ORGAO.perfil, str) else ORGAO.perfil.nome
 
 #: Análises permitidas por sessão a cada hora. Na demonstração pública, o proxy reverso também limita
 #: as requisições por endereço IP.
@@ -64,13 +69,16 @@ def _linhas(texto: str) -> list[str]:
 # ------------------------------------------------------------------ barra lateral
 with st.sidebar:
     st.markdown(f"### Themis LGPD\n<small>v{__version__} · código aberto (MIT)</small>", unsafe_allow_html=True)
-    perfil = st.selectbox("Perfil", list(PERFIS), format_func=lambda p: PERFIS[p].titulo,
+    perfil = st.selectbox("Perfil", list(_PERFIS), index=list(_PERFIS).index(_PERFIL_PADRAO),
+                          format_func=lambda p: _PERFIS[p].titulo,
                           help="Define o que é tarjado e o que vira alerta para revisão.")
-    st.caption(PERFIS[perfil].descricao)
+    st.caption(_PERFIS[perfil].descricao)
     # Na demonstração pública, o modo HMAC usaria uma chave do servidor compartilhada entre usuários.
     modos = [m for m in MODOS if not (CFG.demo and m == "hmac")]
-    modo = st.selectbox("Como substituir", modos, help="\n\n".join(f"**{k}**: {v}" for k, v in MODOS.items()))
+    modo = st.selectbox("Como substituir", modos, index=modos.index(ORGAO.modo) if ORGAO.modo in modos else 0,
+                        help="\n\n".join(f"**{k}**: {v}" for k, v in MODOS.items()))
     preservar = st.checkbox("Manter nomes de agentes públicos em exercício da função",
+                            value=ORGAO.preservar_agentes_publicos,
                             help="Ex.: 'Secretária de Estado de Saúde, Fulana'. Valide com a área jurídica.")
     with st.expander("Listas de permissão e bloqueio"):
         permitir = _linhas(st.text_area("Nunca tarjar (um por linha)", height=90,
@@ -92,9 +100,10 @@ st.caption("Tarja nomes, CPF, CNPJ, RG, CNH, PIS, título de eleitor, Cartão SU
 
 def _anonimizador(extra_bloquear: list[str] | None = None, extra_permitir: list[str] | None = None) -> Anonimizador:
     """Anonimizador com as opções da barra lateral e as decisões da revisão."""
-    return Anonimizador(perfil, modo, permitir=permitir + (extra_permitir or []),
-                        bloquear=bloquear + (extra_bloquear or []), preservar_agentes_publicos=preservar,
-                        usar_ner=CFG.usar_ner, modelo_spacy=CFG.modelo_spacy)
+    return Anonimizador(**ORGAO.argumentos(
+        perfil=perfil, modo=modo, permitir=permitir + (extra_permitir or []),
+        bloquear=bloquear + (extra_bloquear or []), preservar_agentes_publicos=preservar,
+        usar_ner=CFG.usar_ner, modelo_spacy=CFG.modelo_spacy))
 
 
 def _downloads_relatorio(resultados, nome: str, chave: str) -> None:
