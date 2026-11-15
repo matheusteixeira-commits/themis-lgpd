@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  testes:
+    name: Testes (Python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - name: Cache do modelo spaCy
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/themis-modelo
+          key: spacy-pt_core_news_lg-3.8.0
+      - name: Instalar
+        run: |
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-por
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          mkdir -p ~/.cache/themis-modelo
+          WHL=~/.cache/themis-modelo/pt_core_news_lg-3.8.0-py3-none-any.whl
+          [ -f "$WHL" ] || curl -sSL -o "$WHL" https://github.com/explosion/spacy-models/releases/download/pt_core_news_lg-3.8.0/pt_core_news_lg-3.8.0-py3-none-any.whl
+          pip install "$WHL"
+      - name: Lint
+        run: ruff check src tests benchmark scripts
+      - name: Análise de segurança do código
+        run: bandit -q -r src -c pyproject.toml
+      - name: Testes
+        run: pytest --cov --cov-report=term-missing:skip-covered
+      - name: Trava de regressão — benchmark sintético (recall mínimo 99%)
+        run: python benchmark/sintetico.py --n 400 --minimo 0.99
+
+  dependencias:
+    name: Dependências e segredos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.11"
+      - name: Vulnerabilidades conhecidas (pip-audit)
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements/producao.txt
+      - name: Segredos no histórico (gitleaks)
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  imagem:
+    name: Imagem Docker
+    runs-on: ubuntu-latest
+    needs: testes
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Construir
+        run: docker build -t themis-lgpd:ci .
+      - name: Varredura de vulnerabilidades (Trivy)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: themis-lgpd:ci
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+      - name: Verificar que roda sem root e responde
+        run: |
+          test "$(docker run --rm --entrypoint id themis-lgpd:ci -u)" = "10001"
+          docker run --rm themis-lgpd:ci --versao

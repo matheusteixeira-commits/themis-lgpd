@@ -1,0 +1,231 @@
+"""Reconhecedores de dados pessoais sensíveis, de intimidade, de menores e de quase-identificadores.
+
+Abrangem os dados sensíveis do art. 5º, II, da LGPD (saúde, convicção religiosa, opinião política,
+filiação sindical, vida sexual, dado genético ou biométrico, origem racial ou étnica), as
+informações relativas à intimidade e à vida privada protegidas pelo art. 31 da LAI (violência,
+situação de risco) e os dados de crianças e adolescentes (art. 14 da LGPD).
+
+As regras se dividem em duas camadas, tratadas de forma diferente pelos perfis:
+
+``contextual``
+    Frases que já descrevem a situação de uma pessoa ("diagnosticado com…", "vítima de violência
+    doméstica", "CID F41.1"). São tarjadas no perfil LAI.
+``semantica``
+    Termos isolados ("asma", "católico", "homossexual"). São tarjados apenas quando a frase se
+    refere a uma pessoa determinada; caso contrário, são sinalizados para revisão. Assim, "a
+    política de saúde mental prevê atendimento para depressão", conteúdo de interesse público, não
+    é tarjado.
+"""
+
+from __future__ import annotations
+
+from .base import CONTEXTUAL, SEMANTICA, Padrao, ReconhecedorPadroes
+
+
+def _termos(*t: str) -> str:
+    """Alternativa entre termos, delimitada por fronteiras de palavra."""
+    return r"\b(?:" + "|".join(t) + r")\b"
+
+
+# --------------------------------------------------------------------------- Saúde
+#: Doenças, condições, deficiências, tratamentos e procedimentos de saúde. Cada item é uma expressão
+#: regular; variações de gênero, número e acentuação estão incluídas na própria expressão.
+DOENCAS = (
+    r"asm[áa]tic[oa]s?", r"asma(?:\s+cr[ôo]nica)?", r"diabetes(?:\s+(?:tipo\s+[12]|mellitus))?", r"diab[ée]tic[oa]s?",
+    r"hipertens[ãa]o(?:\s+arterial)?", r"hipertens[oa]s?", r"c[âa]ncer(?:\s+de\s+\w+)?", r"neoplasia(?:\s+maligna)?",
+    r"tumor(?:es)?(?:\s+maligno)?", r"leucemia", r"linfoma", r"met[áa]stase", r"carcinoma", r"melanoma",
+    r"hiv", r"aids", r"soropositiv[oa]", r"sida", r"hepatite(?:\s+[a-e])?", r"tuberculose", r"hansen[íi]ase",
+    r"s[íi]filis", r"hpv", r"gonorreia", r"herpes", r"covid(?:-?19)?", r"dengue", r"zika", r"chikungunya",
+    r"mal[áa]ria", r"esclerose\s+(?:m[úu]ltipla|lateral\s+amiotr[óo]fica)", r"parkinson", r"alzheimer",
+    r"dem[êe]ncia", r"epilepsia", r"epil[ée]ptic[oa]s?", r"convuls[õo]es", r"avc", r"acidente\s+vascular\s+cerebral",
+    r"infarto", r"insufici[êe]ncia\s+(?:renal|card[íi]aca|respirat[óo]ria|hep[áa]tica)", r"cirrose",
+    r"cardiopatia", r"arritmia", r"trombose", r"embolia", r"aneurisma", r"l[úu]pus", r"fibromialgia",
+    r"artrite(?:\s+reumatoide)?", r"artrose", r"h[ée]rnia\s+de\s+disco", r"doen[çc]a\s+de\s+\w+",
+    r"s[íi]ndrome\s+de\s+\w+", r"s[íi]ndrome\s+do\s+p[âa]nico", r"autismo", r"autista", r"tea", r"tdah",
+    r"transtorno\s+(?:do\s+espectro\s+autista|bipolar|obsessivo[- ]compulsivo|de\s+ansiedade|depressivo|mental|"
+    r"de\s+personalidade|alimentar|de\s+estresse\s+p[óo]s-traum[áa]tico)", r"transtornos\s+mentais(?:\s+e\s+comportamentais)?",
+    r"transtornos?\s+emocionais", r"depress[ãa]o", r"depressiv[oa]", r"ansiedade\s+generalizada", r"bipolaridade",
+    r"esquizofrenia", r"esquizofr[êe]nic[oa]", r"psicose", r"burnout", r"esgotamento\s+(?:profissional|mental)",
+    r"anorexia", r"bulimia", r"obesidade(?:\s+m[óo]rbida)?", r"depend[êe]ncia\s+qu[íi]mica", r"alcoolismo",
+    r"alco[óo]latra", r"dependente\s+qu[íi]mic[oa]", r"tabagismo", r"paraplegi[ao]", r"tetraplegi[ao]",
+    r"cadeirante", r"deficiente\s+(?:visual|auditiv[oa]|f[íi]sic[oa]|intelectual)",
+    r"defici[êe]ncia\s+(?:visual|auditiva|f[íi]sica|intelectual|mental|m[úu]ltipla)", r"surdez", r"cegueira",
+    r"surd[oa]", r"ceg[oa]", r"pcd", r"amputa[çc][ãa]o", r"amputad[oa]", r"gravidez\s+de\s+risco",
+    r"aborto", r"gestante", r"gr[áa]vida", r"infertilidade", r"endometriose", r"menopausa", r"osteoporose",
+    r"glaucoma", r"catarata", r"retinopatia", r"queimaduras?\s+de\s+\w+\s+grau", r"intoxica[çc][ãa]o(?:\s+por\s+\w+)?",
+    r"hemodi[áa]lise", r"di[áa]lise", r"quimioterapia", r"radioterapia", r"transplante",
+    r"mastectomia", r"histerectomia", r"bari[áa]trica", r"tratamento\s+(?:psiqui[áa]trico|psicol[óo]gico|oncol[óo]gico|"
+    r"antirretroviral|hormonal)", r"f[áa]rmacos?\s+(?:hormonais|controlados|psiqui[áa]tricos)",
+    r"antidepressivos?", r"ansiol[íi]ticos?", r"antipsic[óo]ticos?", r"insulina", r"internad[oa]",
+    r"interna[çc][ãa]o(?:\s+psiqui[áa]trica)?", r"uti", r"coma", r"sequelas?", r"crise\s+(?:de\s+)?(?:ansiedade|"
+    r"p[âa]nico|convulsiva|epil[ée]ptica)", r"traumatismo(?:\s+craniano)?", r"fratura\s+(?:de|no|na|exposta)\s*\w*",
+    r"condi[çc][ãa]o\s+(?:de\s+sa[úu]de|cl[íi]nica|m[ée]dica)(?:\s+pr[ée]-?existente)?", r"grupo\s+de\s+risco",
+    r"comorbidades?", r"doen[çc]as?\s+(?:pr[ée]-?existentes?|cr[ôo]nicas?|raras?|graves?)",
+    r"enfermidade(?:\s+(?:respirat[óo]ria|cr[ôo]nica|grave|rara))*", r"(?:pessoa|crian[çc]a|aluno|aluna|filh[oa])\s+com\s+"
+    r"defici[êe]ncia", r"doen[çc]a\s+de\s+crohn", r"crohn", r"covid", r"surto\s+(?:psic[óo]tico|de\s+\w+)",
+    r"transtorno\s+de\s+p[âa]nico", r"pr[óo]teses?", r"[óo]rteses?", r"fisioterapia", r"medicamentos?\s+controlados?",
+    r"bi[óo]psia", r"cirurgias?(?:\s+\w+)?", r"per[íi]cia\s+m[ée]dica", r"hospitalizad[oa]", r"exame\s+de\s+sangue",
+    r"tratamento\s+(?:hospitalar|m[ée]dico|quimioter[áa]pico|radioter[áa]pico|cl[íi]nico|odontol[óo]gico)",
+)
+
+#: Regras de saúde que descrevem a condição de uma pessoa.
+SAUDE_CONTEXTUAL = [
+    # Código da CID-10 ou CID-11 com o rótulo "CID" e, opcionalmente, a descrição que o acompanha.
+    Padrao("SAUDE", r"\bCID(?:[\s-]?1[01])?\s*[:\-]?\s*[A-Z]-?\d{2}(?:\.\d{1,2})?(?:\s*[-–]\s*[^\n.;,]{3,60})?", 0.95,
+           camada=CONTEXTUAL, nome="saude:cid"),
+    # Expressão de diagnóstico, tratamento ou afastamento seguida da condição.
+    Padrao("SAUDE",
+           r"\b(?:diagn[óo]stico\s+(?:de|confirmado\s+de)|diagnosticad[oa]s?\s+com|portador(?:a|es)?\s+de|"
+           r"acometid[oa]\s+(?:de|por)|sofre\s+de|sofro\s+de|tem\s+(?:um\s+)?(?:quadro|hist[óo]rico)\s+de|"
+           r"em\s+tratamento\s+(?:de|para|contra)|faz\s+tratamento\s+(?:de|para)|tratando\s+(?:de|um)|"
+           r"laudo\s+(?:que\s+)?(?:atesta|indica|comprova)|afastad[oa]\s+por|licen[çc]a\s+(?:m[ée]dica\s+)?(?:por|para\s+tratamento\s+de))"
+           r"\s+[^\n.;,()]{3,60}", 0.9, camada=CONTEXTUAL, nome="saude:frase"),
+    # Código da CID sem o rótulo ("F41.1"): exige vocabulário médico próximo, pois o formato se
+    # confunde com outros códigos. Os códigos iniciados por U, de uso especial, não são considerados.
+    Padrao("SAUDE", r"\(?\b[A-TV-Z]\d{2}\.\d\b\)?", 0.6, camada=SEMANTICA, ignorar_caixa=False,
+           contexto=("cid", "diagn[óo]stico", "laudo", "atestado", "m[ée]dic[oa]", "doen[çc]a", "afastamento"),
+           contexto_obrigatorio=True, janela=80, nome="saude:cid-sem-rotulo"),
+]
+#: Qualificador opcional de gravidade ou estágio, incluído no trecho tarjado ("asma grave",
+#: "câncer em estágio avançado"), que também revela a condição.
+_GRAVIDADE = (r"(?:\s+(?:severa|severo|grave|leve|moderad[oa]|cr[ôo]nic[oa]|agud[oa]|avan[çc]ad[oa]|inicial|"
+              r"terminal|maligna|maligno|benign[oa]|descompensad[oa]|persistente|refrat[áa]ri[oa]|"
+              r"(?:em\s+)?est[áa]gio\s+\w+|tipo\s+[12]|de\s+grau\s+\w+))?")
+_DOENCA = r"(?:" + "|".join(DOENCAS) + r")" + _GRAVIDADE
+#: Regras de saúde baseadas em termos isolados.
+SAUDE_SEMANTICA = [
+    Padrao("SAUDE", r"\b" + _DOENCA + r"\b", 0.8, camada=SEMANTICA, nome="saude:termo"),
+    Padrao("SAUDE", r"\btratamento\s+(?:\w+\s+)?(?:de|para|contra|da|do)\s+[^\n.;,()]{3,50}", 0.75, camada=SEMANTICA,
+           nome="saude:tratamento-de"),
+]
+# Termo de saúde precedido de verbo que o atribui a alguém ("possui diabetes", "convive com HIV"):
+# deixa de ser termo isolado e passa à camada contextual. Apenas o termo é tarjado, não o verbo.
+SAUDE_CONTEXTUAL.append(
+    Padrao("SAUDE", r"(?<=\b(?:possui|apresenta|teve|desenvolveu|contraiu|convive\s+com|portador(?:a)?\s+de|"
+                    r"tem(?:\s+um[a]?)?)\s{1,3})" + _DOENCA + r"\b", 0.9, camada=CONTEXTUAL, nome="saude:possui"))
+
+# --------------------------------------------------------------------------- Outros sensíveis
+#: Termos das demais categorias de dado sensível do art. 5º, II, da LGPD.
+SENSIVEIS_SEMANTICA = [
+    Padrao("RELIGIAO", _termos(
+        r"cat[óo]lic[oa]s?(?:\s+praticante)?", r"evang[ée]lic[oa]s?", r"esp[íi]rita", r"umbandista", r"umbanda",
+        r"candombl[ée]", r"candomblecista", r"judeu|judia|judaica?", r"mu[çc]ulman[oa]s?", r"isl[âa]mic[oa]",
+        r"budista", r"hindu[íi]sta", r"ateu|ateia", r"agn[óo]stic[oa]", r"testemunhas?\s+de\s+jeov[áa]",
+        r"adventista", r"pentecostal", r"presbiterian[oa]", r"batista", r"m[óo]rmon", r"protestante",
+        r"minha\s+(?:religi[ãa]o|f[ée]|cren[çc]a)", r"pr[áa]tica\s+religiosa", r"pai\s+de\s+santo", r"m[ãa]e\s+de\s+santo",
+        r"convic[çc][ãa]o\s+religiosa", r"religi[ãa]o\s+de\s+matriz\s+africana"), 0.8, camada=SEMANTICA),
+    Padrao("OPINIAO_POLITICA", _termos(
+        r"filiad[oa]\s+(?:ao|à)\s+(?:partido\s+)?[A-Z][\w-]+", r"militante\s+(?:do|da|de)\s+\w+", r"bolsonarista",
+        r"lulista", r"petista", r"tucan[oa]", r"comunista", r"socialista", r"anarquista", r"eleitor(?:a)?\s+(?:do|da|de)\s+\w+",
+        r"vot(?:ei|ou|amos|aram)\s+(?:em|no|na)\s+\w+", r"meu\s+voto", r"simpatizante\s+(?:do|da|de)\s+\w+",
+        r"opini[ãa]o\s+pol[íi]tica", r"persegui[çc][ãa]o\s+pol[íi]tica", r"posicionamento\s+pol[íi]tico",
+        r"sou\s+(?:militante|ativista|filiad[oa]|simpatizante|conservador(?:a)?|progressista|de\s+esquerda|"
+        r"de\s+direita|comunista|socialista|anarquista|liberal)", r"minha\s+ideologia",
+        r"particip(?:o|ei|amos|ava)\s+d[aoe]s?\s+(?:greve|manifesta[çc][ãa]o|protesto|movimentos?\s+socia(?:l|is)|ato)\w*",
+        r"fui\s+candidat[oa](?:\s+a\s+\w+)?", r"membro\s+d[aoe]\s+partido(?:\s+\w+)?"),
+        0.8, camada=SEMANTICA),
+    Padrao("FILIACAO_SINDICAL", _termos(
+        r"sindicalizad[oa]", r"sindicalista", r"filiad[oa]\s+(?:ao|à)\s+sindicato(?:\s+\w+)?",
+        r"membro\s+do\s+sindicato(?:\s+\w+)?", r"associad[oa]\s+(?:ao|à)\s+sindicato(?:\s+\w+)?",
+        r"dirigente\s+sindical", r"representante\s+sindical", r"delegad[oa]\s+sindical", r"ma[çc]om",
+        r"ma[çc]onaria", r"filia[çc][ãa]o\s+sindical", r"membro\s+d[ao]\s+(?:CUT|CTB|UGT|CSP-Conlutas|For[çc]a\s+Sindical)",
+        r"diretor(?:a)?\s+do\s+sindicato(?:\s+\w+)?", r"sou\s+sindicalizad[oa]",
+        r"sou\s+membro\s+d[aoe]\s+(?:associa[çc][ãa]o|cooperativa|movimento|sindicato)(?:\s+\w+)*?(?=[.,;]|$)"),
+        0.85, camada=SEMANTICA),
+    Padrao("VIDA_SEXUAL", _termos(
+        r"homossexual", r"heterossexual", r"bissexual", r"pansexual", r"assexual", r"gay", r"l[ée]sbica",
+        r"transexual", r"transg[êe]ner[oa]", r"travesti", r"pessoas?\s+trans", r"mulher(?:es)?\s+trans",
+        r"home(?:m|ns)\s+trans", r"trans", r"processo\s+transexualizador", r"hormoniza[çc][ãa]o", r"terapia\s+hormonal",
+        r"n[ãa]o[- ]bin[áa]ri[oa]", r"intersexo", r"lgbt\w*\+?", r"orienta[çc][ãa]o\s+sexual", r"identidade\s+de\s+g[êe]nero",
+        r"nome\s+social", r"vida\s+sexual", r"rela[çc][ãa]o\s+homoafetiva", r"homoafetiv[oa]", r"companheir[oa]\s+do\s+mesmo\s+sexo"),
+        0.85, camada=SEMANTICA),
+    Padrao("GENETICO_BIOMETRICO", _termos(
+        r"exame\s+de\s+dna", r"teste\s+(?:de\s+)?(?:dna|gen[ée]tico)", r"perfil\s+gen[ée]tico", r"doen[çc]a\s+gen[ée]tica",
+        r"mapeamento\s+gen[ée]tico", r"dados?\s+biom[ée]tricos?", r"biometria(?:\s+facial)?", r"impress[ãa]o\s+digital",
+        r"impress[õo]es\s+digitais", r"reconhecimento\s+facial", r"leitura\s+de\s+[íi]ris", r"dados?\s+gen[ée]ticos?"),
+        0.85, camada=SEMANTICA),
+    Padrao("ORIGEM_RACIAL", _termos(
+        r"negr[oa]s?", r"pret[oa]s?", r"pard[oa]s?", r"ind[íi]gena", r"quilombola", r"afrodescendentes?",
+        r"afro-?brasileir[oa]s?", r"autodeclarad[oa]\s+\w+", r"cor\s+da\s+pele", r"origem\s+(?:[ée]tnica|racial)",
+        r"etnia\s+\w+", r"ra[çc]a\s+\w+", r"cotista\s+racial", r"racismo", r"inj[úu]ria\s+racial",
+        r"comunidade\s+(?:quilombola|ind[íi]gena|cigana)"), 0.75, camada=SEMANTICA),
+]
+
+# --------------------------------------------------------------------------- Intimidade e risco (LAI art. 31)
+#: Relatos de violência e de situação de risco. A divulgação pode expor a vítima a nova violência;
+#: por isso a confiança é alta e a camada é contextual.
+INTIMIDADE_CONTEXTUAL = [
+    # Tipos de violência, com o enquadramento opcional ("vítima de", "medo de").
+    Padrao("VIOLENCIA",
+           r"\b(?:(?:medo|v[íi]tima|situa[çc][ãa]o|sofr(?:e|o|i|endo|eu)|alvo)\s+de\s+)?(?:viol[êe]ncia\s+"
+           r"(?:dom[ée]stica|familiar|sexual|f[íi]sica|psicol[óo]gica|patrimonial|obst[ée]trica|contra\s+a\s+mulher)|"
+           r"abuso\s+(?:sexual|f[íi]sico|psicol[óo]gico)|estupro(?:\s+de\s+vulner[áa]vel)?|ass[ée]dio\s+(?:moral|sexual)|"
+           r"medida\s+protetiva(?:\s+de\s+urg[êe]ncia)?|"
+           r"amea[çc]as?\s+de\s+morte|c[áa]rcere\s+privado|tentativa\s+de\s+(?:homic[íi]dio|feminic[íi]dio|suic[íi]dio)|"
+           r"feminic[íi]dio|explora[çc][ãa]o\s+sexual|tr[áa]fico\s+de\s+pessoas|inj[úu]ria\s+racial)",
+           0.95, camada=CONTEXTUAL, nome="intimidade:violencia"),
+    # Relatos em primeira pessoa de ameaça, agressão, fuga ou risco à vida.
+    Padrao("VIOLENCIA",
+           r"\b(?:estou\s+em\s+perigo|corro\s+risco|fugindo\s+de\s+casa|preciso\s+de\s+abrigo|casa[- ]abrigo|"
+           r"escolta\s+policial|medo\s+de\s+denunciar|n[ãa]o\s+tenho\s+para\s+onde\s+ir|vai\s+me\s+matar|"
+           r"amea[çc]ou\s+me\s+matar|me\s+amea[çc](?:a|ou|ando)|me\s+persegue|me\s+agrid(?:e|iu)|me\s+bate|me\s+bateu|"
+           r"me\s+espanc\w+|me\s+humilh\w+|marcas\s+no\s+corpo|quebrou\s+a\s+medida|agredid[oa]\s+(?:pel[oa]|por)\s+\w+|"
+           r"sofr(?:o|i)\s+(?:agress[õo]es|amea[çc]as|viol[êe]ncia)|recebi\s+amea[çc]as|tentou\s+me\s+\w+|"
+           r"medo\s+de\s+(?:sofrer\s+)?(?:viol[êe]ncia|apanhar|agress[ãa]o|morrer|ser\s+morta?)|"
+           r"situa[çc][ãa]o\s+de\s+(?:risco|viol[êe]ncia|vulnerabilidade)|me\s+vigia|controla\s+tudo|"
+           r"fugi\s+de\s+casa|amea[çc]a\s+levar\s+(?:meus|minhas|os|as)\s+filh[oa]s|apanh(?:ar|ei|o)\s+(?:de|do|da|novamente)|"
+           r"tentativa\s+de\s+suic[íi]dio|pensamentos\s+suicidas|idea[çc][ãa]o\s+suicida|automutila[çc][ãa]o)",
+           0.95, camada=CONTEXTUAL, nome="intimidade:risco"),
+]
+#: Termos isolados de vida privada: violência, conflitos familiares, situação prisional.
+INTIMIDADE_SEMANTICA = [
+    Padrao("VIOLENCIA", _termos(r"agress[ãa]o", r"agress[õo]es", r"viol[êe]ncia", r"medo\s+de\s+retalia[çc][ãa]o",
+                                r"agredid[oa]", r"amea[çc]ad[oa]", r"espancad[oa]", r"abusad[oa]",
+                                r"violentad[oa]", r"suic[íi]dio", r"trai[çc][ãa]o", r"div[óo]rcio", r"separa[çc][ãa]o\s+"
+                                r"(?:conjugal|judicial)", r"pens[ãa]o\s+aliment[íi]cia", r"guarda\s+(?:dos?\s+filhos?|"
+                                r"compartilhada|unilateral)", r"usu[áa]ri[oa]\s+de\s+drogas", r"presidi[áa]ri[oa]",
+                                r"egress[oa]\s+do\s+sistema\s+prisional", r"antecedentes\s+criminais", r"condenad[oa]"),
+            0.75, camada=SEMANTICA, nome="intimidade:termo"),
+]
+
+# --------------------------------------------------------------------------- Menores (LGPD art. 14)
+#: Referências a criança ou adolescente determinado e a situações protegidas pelo ECA.
+MENOR_CONTEXTUAL = [
+    # Criança ou adolescente com a idade ("meu filho de 8 anos"): a idade, combinada ao vínculo
+    # familiar do requerente, identifica o menor.
+    Padrao("DADO_DE_MENOR",
+           r"\b(?:(?:minhas?|meus?|suas?|seus?|as?|os?)\s+)?(?:crian[çc]as?|beb[êe]s?|adolescentes?|filh[oa]s?|net[oa]s?|"
+           r"entead[oa]s?|menin[oa]s?|menor(?:es)?|dependentes?)\s+(?:de|com)\s+\d{1,2}\s+(?:anos?|meses)"
+           r"(?:\s+de\s+idade)?", 0.9, camada=CONTEXTUAL, nome="menor:idade"),
+    # Medidas e procedimentos do ECA cuja divulgação é vedada (arts. 17 e 143).
+    Padrao("DADO_DE_MENOR",
+           r"\b(?:conselho\s+tutelar|medida\s+socioeducativa|ato\s+infracional|acolhimento\s+institucional|"
+           r"abrigo\s+de\s+menores|guarda\s+provis[óo]ria|destitui[çc][ãa]o\s+do\s+poder\s+familiar|"
+           r"processo\s+de\s+ado[çc][ãa]o|menor\s+infrator(?:a)?|menor\s+sob\s+guarda|menor\s+de\s+idade\s+sob\s+\w+\s+"
+           r"(?:responsabilidade|guarda|tutela)|menor\s+[óo]rf[ãa]o?|sob\s+tutela(?:\s+do\s+estado)?|"
+           r"crian[çc]a\s+em\s+situa[çc][ãa]o\s+de\s+(?:abrigo|rua|risco|acolhimento))", 0.85, camada=CONTEXTUAL,
+           nome="menor:situacao"),
+]
+
+# --------------------------------------------------------------------------- Quase-identificadores
+#: Descrições que, sem nome, apontam para uma pessoa determinada: função somada a local e turno ("a
+#: atendente do guichê 3 no plantão da manhã"). São sinalizadas para revisão.
+QUASE_IDENTIFICADORES = [
+    Padrao("QUASE_IDENTIFICADOR",
+           r"\b(?:(?:o|a)\s+)?(?:atendente|recepcionista|motorista|cobrador(?:a)?|vigilante|porteir[oa]|fiscal|"
+           r"servidor(?:a)?|funcion[áa]ri[oa]|professor(?:a)?|m[ée]dic[oa]|enfermeir[oa]|plantonista|condutor(?:a)?|"
+           r"agente|t[ée]cnic[oa]|estagi[áa]ri[oa]|bolsista)\s+(?:do|da|de|que)\s+[^\n.;]{5,80}?"
+           r"(?:\b(?:turno|plant[ãa]o|hor[áa]rio|guich[êe]|linha|sala|bloco|per[íi]odo)\b[^\n.;,]{0,30}|\b\d{1,2}h\d{0,2}\b|"
+           r"\b(?:ontem|anteontem|manh[ãa]|tarde|noite)\b)", 0.6, camada=CONTEXTUAL, nome="quase:funcao-turno"),
+]
+
+
+def reconhecedores():
+    """Reconhecedores deste módulo, na forma esperada por :mod:`themis_lgpd.analisador`."""
+    return [
+        ReconhecedorPadroes("saude", SAUDE_CONTEXTUAL + SAUDE_SEMANTICA),
+        ReconhecedorPadroes("sensiveis", SENSIVEIS_SEMANTICA),
+        ReconhecedorPadroes("intimidade", INTIMIDADE_CONTEXTUAL + INTIMIDADE_SEMANTICA),
+        ReconhecedorPadroes("menores", MENOR_CONTEXTUAL),
+        ReconhecedorPadroes("quase_identificadores", QUASE_IDENTIFICADORES),
+    ]

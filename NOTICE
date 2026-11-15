@@ -1,0 +1,19 @@
+Themis LGPD
+Copyright (c) 2026 Gilson Maciel, Matheus Teixeira e colaboradores — licença MIT (arquivo LICENSE).
+
+Componentes e dados de terceiros
+--------------------------------
+- Microsoft Presidio (presidio-analyzer e presidio-anonymizer, licença MIT): motor de análise e de
+  anonimização sobre o qual o Themis é construído. phonenumbers (Apache-2.0), usado pelo Presidio.
+- Modelo de linguagem pt_core_news_lg (Explosion AI / spaCy): licença CC BY-SA 4.0. Não é distribuído
+  neste repositório; é baixado na instalação e incluído na imagem Docker sob a mesma licença.
+- Listas de prenomes e sobrenomes (src/themis_lgpd/dados): derivadas das listas pt_BR do projeto Faker
+  (licença MIT) e de nomes frequentes no Brasil compilados pelos autores.
+- Tesseract OCR (Apache-2.0) e RapidOCR (Apache-2.0): usados para OCR, quando instalados.
+- pdfplumber (MIT), pypdfium2 (Apache-2.0/BSD-3-Clause; PDFium BSD-3-Clause), pikepdf (MPL-2.0),
+  ReportLab (BSD), Pillow (MIT-CMU), python-docx (MIT), openpyxl (MIT): leitura e escrita de arquivos.
+- Benchmark: o conjunto EliMC/esic-ner (CC BY 4.0) é baixado sob demanda e não é redistribuído.
+- tests/data/casos_dificeis_participa.jsonl: casos sintéticos criados pelos autores para o
+  1º Hackathon em Controle Social (Participa DF), redistribuídos sob a licença MIT.
+
+O Themis LGPD não é afiliado, patrocinado nem endossado por nenhum órgão público.

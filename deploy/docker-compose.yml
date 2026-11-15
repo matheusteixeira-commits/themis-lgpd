@@ -1,0 +1,60 @@
+# Demo pública em VPS própria: Caddy (HTTPS automático + limites) na frente da interface.
+#   cp .env.exemplo .env   # ajuste DOMINIO e EMAIL_ACME
+#   docker compose up -d --build
+# Veja docs/DEPLOY.md.
+name: themis-lgpd
+
+services:
+  themis:
+    build:
+      context: ..
+    image: themis-lgpd:1.0.0
+    restart: unless-stopped
+    environment:
+      THEMIS_DEMO: "${THEMIS_DEMO:-true}"
+      THEMIS_MAX_MB: "${THEMIS_MAX_MB:-5}"
+      THEMIS_MAX_PAGINAS: "${THEMIS_MAX_PAGINAS:-10}"
+      THEMIS_MAX_CARACTERES: "${THEMIS_MAX_CARACTERES:-20000}"
+    command: ["interface", "--endereco", "0.0.0.0", "--porta", "8501"]
+    expose: ["8501"]            # só acessível pelo proxy, nunca publicado direto
+    read_only: true             # nada é gravado em disco…
+    tmpfs:
+      - /tmp:size=512m,mode=1777  # …a não ser temporários em memória, descartados no reinício
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 256
+    mem_limit: 3g
+    cpus: 2
+    logging:                    # o app não registra conteúdo; mesmo assim, logs curtos e rotativos
+      driver: json-file
+      options: { max-size: "5m", max-file: "2" }
+    networks: [interna]
+
+  proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile.caddy
+    restart: unless-stopped
+    depends_on: [themis]
+    environment:
+      DOMINIO: "${DOMINIO:?defina DOMINIO no .env}"
+      EMAIL_ACME: "${EMAIL_ACME:?defina EMAIL_ACME no .env}"
+    ports: ["80:80", "443:443", "443:443/udp"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_dados:/data
+      - caddy_config:/config
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: ["no-new-privileges:true"]
+    logging:
+      driver: json-file
+      options: { max-size: "5m", max-file: "2" }
+    networks: [interna]
+
+networks:
+  interna: {}
+
+volumes:
+  caddy_dados: {}
+  caddy_config: {}

@@ -1,0 +1,18 @@
+# Usado quando a interface é iniciada com `streamlit run` a partir da raiz do repositório.
+# O comando `themis interface` aplica estas mesmas opções por linha de comando.
+[browser]
+gatherUsageStats = false
+
+[server]
+enableXsrfProtection = true
+enableCORS = true
+fileWatcherType = "none"
+maxUploadSize = 50
+
+[client]
+showErrorDetails = "none"
+toolbarMode = "minimal"
+
+[theme]
+base = "light"
+primaryColor = "#1d4ed8"

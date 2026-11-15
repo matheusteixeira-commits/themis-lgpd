@@ -1,0 +1,1000 @@
+{"id": "LAI_VIO_001", "cat": "LAI_INTIMIDADE", "text": "Minha companheira está com medo de violência doméstica e registrou boletim de ocorrência.", "expected": ["LAI_INTIMIDADE_FULL", "CONTEXTO_FAMILIAR"], "hard": "violência/agressão"}
+{"id": "LAI_VIO_002", "cat": "LAI_INTIMIDADE", "text": "Sofro violência doméstica do meu marido e preciso de ajuda urgente.", "expected": ["LAI_INTIMIDADE_FULL", "CONTEXTO_FAMILIAR"], "hard": "violência/agressão"}
+{"id": "LAI_VIO_003", "cat": "LAI_INTIMIDADE", "text": "Vítima de agressão física pelo meu companheiro que me ameaça de morte.", "expected": ["LAI_INTIMIDADE_FULL", "CONTEXTO_FAMILIAR"], "hard": "violência/agressão"}
+{"id": "LAI_VIO_004", "cat": "LAI_INTIMIDADE", "text": "Registrei medida protetiva contra meu ex-marido que me persegue.", "expected": ["LAI_INTIMIDADE_FULL"], "hard": "violência/agressão"}
+{"id": "LAI_VIO_005", "cat": "LAI_INTIMIDADE", "text": "Situação de violência familiar, meu pai agride minha mãe constantemente.", "expected": ["LAI_INTIMIDADE_FULL", "CONTEXTO_FAMILIAR"], "hard": "violência/agressão"}
+{"id": "LAI_VIO_006", "cat": "LAI_INTIMIDADE", "text": "Sou vítima de violência contra a mulher e preciso de abrigo.", "expected": ["LAI_INTIMIDADE_FULL"], "hard": "violência/agressão"}
+{"id": "LAI_VIO_007", "cat": "LAI_INTIMIDADE", "text": "Minha esposa sofre abuso psicológico do irmão dela.", "expected": ["LAI_INTIMIDADE_FULL", "CONTEXTO_FAMILIAR"], "hard": "violência/agressão"}
+{"id": "LAI_VIO_008", "cat": "LAI_INTIMIDADE", "text": "Preciso de cópia do B.O. que registrei sobre a agressão que sofri.", "expected": ["LAI_INTIMIDADE_FULL"], "hard": "violência/agressão"}
+{"id": "LAI_VIO_009", "cat": "LAI_INTIMIDADE", "text": "Maria da Penha - solicitação de cópia do processo de medida protetiva.", "expected": ["LAI_INTIMIDADE_FULL"], "hard": "violência/agressão"}
+{"id": "LAI_VIO_010", "cat": "LAI_INTIMIDADE", "text": "Meu companheiro me ameaçou e registrei ocorrência na delegacia da mulher.", "expected": ["LAI_INTIMIDADE_FULL", "CONTEXTO_FAMILIAR"], "hard": "violência/agressão"}
+{"id": "LAI_VIO_011", "cat": "LAI_INTIMIDADE", "text": "Minha filha de 15 anos presenciou a agressão do meu ex-marido.", "expected": ["LAI_INTIMIDADE", "CONTEXTO_FAMILIAR"], "hard": "contexto indireto"}
+{"id": "LAI_VIO_012", "cat": "LAI_INTIMIDADE", "text": "Tenho medo de sair de casa porque meu companheiro me vigia.", "expected": ["LAI_INTIMIDADE", "CONTEXTO_FAMILIAR"], "hard": "contexto indireto"}
+{"id": "LAI_VIO_013", "cat": "LAI_INTIMIDADE", "text": "Fui agredida 6 vezes este mês pelo meu marido.", "expected": ["LAI_INTIMIDADE", "CONTEXTO_FAMILIAR"], "hard": "contexto indireto"}
+{"id": "LAI_VIO_014", "cat": "LAI_INTIMIDADE", "text": "Minha mãe está em situação de risco, o companheiro dela a ameaça.", "expected": ["LAI_INTIMIDADE", "CONTEXTO_FAMILIAR"], "hard": "contexto indireto"}
+{"id": "LAI_VIO_015", "cat": "LAI_INTIMIDADE", "text": "Preciso transferir meu filho de escola por causa da violência doméstica.", "expected": ["LAI_INTIMIDADE", "CONTEXTO_FAMILIAR"], "hard": "contexto indireto"}
+{"id": "LAI_VIO_020", "cat": "LAI_INTIMIDADE", "text": "Estou com muito medo de apanhar novamente.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_021", "cat": "LAI_INTIMIDADE", "text": "Meu namorado me bate e ninguém acredita em mim.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_022", "cat": "LAI_INTIMIDADE", "text": "Sofri assédio sexual no trabalho pelo meu chefe.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_023", "cat": "LAI_INTIMIDADE", "text": "Fui vítima de abuso físico durante anos.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_024", "cat": "LAI_INTIMIDADE", "text": "Minha companheira me humilha constantemente.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_025", "cat": "LAI_INTIMIDADE", "text": "Registrei queixa por ameaça de morte.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_026", "cat": "LAI_INTIMIDADE", "text": "Meu ex quebrou a medida protetiva.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_027", "cat": "LAI_INTIMIDADE", "text": "Preciso de ajuda, estou em perigo.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_028", "cat": "LAI_INTIMIDADE", "text": "Ele disse que vai me matar se eu sair de casa.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_029", "cat": "LAI_INTIMIDADE", "text": "Não tenho para onde ir, estou fugindo de casa.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_030", "cat": "LAI_INTIMIDADE", "text": "Minha vizinha é agredida pelo marido toda noite.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_031", "cat": "LAI_INTIMIDADE", "text": "A violência está afetando a saúde dos meus filhos.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_032", "cat": "LAI_INTIMIDADE", "text": "Tenho marcas no corpo das agressões.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_033", "cat": "LAI_INTIMIDADE", "text": "Ele controla tudo que eu faço, não posso sair.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_034", "cat": "LAI_INTIMIDADE", "text": "Sofro violência patrimonial, ele esconde meu dinheiro.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_035", "cat": "LAI_INTIMIDADE", "text": "Minha mãe foi hospitalizada por causa das agressões.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_036", "cat": "LAI_INTIMIDADE", "text": "Preciso de escolta policial para buscar minhas coisas.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_037", "cat": "LAI_INTIMIDADE", "text": "O agressor é policial e tenho medo de denunciar.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_038", "cat": "LAI_INTIMIDADE", "text": "Meu processo de Maria da Penha está parado há meses.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_039", "cat": "LAI_INTIMIDADE", "text": "Quero saber o andamento da minha denúncia de agressão.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_040", "cat": "LAI_INTIMIDADE", "text": "Minha filha foi abusada e preciso de justiça.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_041", "cat": "LAI_INTIMIDADE", "text": "Estou grávida e meu companheiro me agride.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_042", "cat": "LAI_INTIMIDADE", "text": "Fugi de casa com meus filhos por causa da violência.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_043", "cat": "LAI_INTIMIDADE", "text": "Preciso de advogado para o processo de violência doméstica.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_044", "cat": "LAI_INTIMIDADE", "text": "Meu ex destruiu todos os meus documentos.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_045", "cat": "LAI_INTIMIDADE", "text": "Ele ameaça levar meus filhos embora.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_046", "cat": "LAI_INTIMIDADE", "text": "Sofro violência psicológica há 10 anos.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_047", "cat": "LAI_INTIMIDADE", "text": "Minha irmã está desaparecida após discussão com o marido.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_048", "cat": "LAI_INTIMIDADE", "text": "Preciso de abrigo sigiloso para mulheres vítimas.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_VIO_049", "cat": "LAI_INTIMIDADE", "text": "O juiz negou a medida protetiva e estou em risco.", "expected": ["LAI_INTIMIDADE"], "hard": "variação"}
+{"id": "LAI_REL_001", "cat": "LAI_INTIMIDADE", "text": "Minha dependente precisa de atendimento médico urgente.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "relação familiar"}
+{"id": "LAI_REL_002", "cat": "LAI_INTIMIDADE", "text": "Meu filho está doente e preciso faltar ao trabalho.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_SAUDE"], "hard": "relação familiar"}
+{"id": "LAI_REL_003", "cat": "LAI_INTIMIDADE", "text": "Minha mãe idosa precisa de cuidados especiais.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "relação familiar"}
+{"id": "LAI_REL_004", "cat": "LAI_INTIMIDADE", "text": "Meu companheiro foi demitido e precisa de seguro desemprego.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "relação familiar"}
+{"id": "LAI_REL_005", "cat": "LAI_INTIMIDADE", "text": "Minha esposa está grávida de alto risco.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_SAUDE"], "hard": "relação familiar"}
+{"id": "LAI_REL_006", "cat": "LAI_INTIMIDADE", "text": "Meus filhos precisam de vaga na creche pública.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "relação familiar"}
+{"id": "LAI_REL_007", "cat": "LAI_INTIMIDADE", "text": "Meu marido é servidor e preciso de informação sobre ele.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "relação familiar"}
+{"id": "LAI_REL_008", "cat": "LAI_INTIMIDADE", "text": "Minha companheira está internada e preciso de licença.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_SAUDE"], "hard": "relação familiar"}
+{"id": "LAI_REL_009", "cat": "LAI_INTIMIDADE", "text": "Meu pai faleceu e preciso dar entrada na pensão.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "relação familiar"}
+{"id": "LAI_REL_010", "cat": "LAI_INTIMIDADE", "text": "Minha filha menor precisa de autorização para viagem.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "relação familiar"}
+{"id": "LAI_REL_011", "cat": "LAI_INTIMIDADE", "text": "Sou responsável pelo meu neto de 3 anos.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "relação estendida"}
+{"id": "LAI_REL_012", "cat": "LAI_INTIMIDADE", "text": "Cuido da minha avó que tem Alzheimer.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "relação estendida"}
+{"id": "LAI_REL_013", "cat": "LAI_INTIMIDADE", "text": "Meu irmão deficiente precisa de benefício.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "relação estendida"}
+{"id": "LAI_REL_014", "cat": "LAI_INTIMIDADE", "text": "Minha sobrinha órfã está sob minha guarda.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "relação estendida"}
+{"id": "LAI_REL_015", "cat": "LAI_INTIMIDADE", "text": "Meu padrasto me adotou legalmente.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "relação estendida"}
+{"id": "LAI_REL_016", "cat": "LAI_INTIMIDADE", "text": "Minha enteada precisa de matrícula escolar.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "relação estendida"}
+{"id": "LAI_REL_017", "cat": "LAI_INTIMIDADE", "text": "Meu tio está internado em estado grave.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "relação estendida"}
+{"id": "LAI_REL_018", "cat": "LAI_INTIMIDADE", "text": "Minha cunhada precisa de ajuda social.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "relação estendida"}
+{"id": "LAI_REL_019", "cat": "LAI_INTIMIDADE", "text": "Meu sogro é pensionista do GDF.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "relação estendida"}
+{"id": "LAI_REL_020", "cat": "LAI_INTIMIDADE", "text": "Minha madrasta ficou viúva e precisa de pensão.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "relação estendida"}
+{"id": "LAI_REL_021", "cat": "LAI_INTIMIDADE", "text": "Meu Filho precisa de ajuda e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_022", "cat": "LAI_INTIMIDADE", "text": "Meu Marido precisa de ajuda e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_023", "cat": "LAI_INTIMIDADE", "text": "Meu Pai sofreu acidente e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_024", "cat": "LAI_INTIMIDADE", "text": "Meu Pai precisa de benefício e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_025", "cat": "LAI_INTIMIDADE", "text": "Meu Companheiro está doente e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_026", "cat": "LAI_INTIMIDADE", "text": "Minha Mãe está doente e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_027", "cat": "LAI_INTIMIDADE", "text": "Meu Marido precisa de ajuda e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_028", "cat": "LAI_INTIMIDADE", "text": "Minha Mãe precisa de benefício e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_029", "cat": "LAI_INTIMIDADE", "text": "Meu Marido sofreu acidente e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_030", "cat": "LAI_INTIMIDADE", "text": "Meu Companheiro precisa de ajuda e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_031", "cat": "LAI_INTIMIDADE", "text": "Minha Companheira precisa de benefício e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_032", "cat": "LAI_INTIMIDADE", "text": "Meu Filho está doente e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_033", "cat": "LAI_INTIMIDADE", "text": "Minha Esposa sofreu acidente e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_034", "cat": "LAI_INTIMIDADE", "text": "Meu Companheiro foi internado(a) e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_035", "cat": "LAI_INTIMIDADE", "text": "Meu Filho precisa de ajuda e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_036", "cat": "LAI_INTIMIDADE", "text": "Meu Marido foi internado(a) e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_037", "cat": "LAI_INTIMIDADE", "text": "Meu Pai está doente e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_038", "cat": "LAI_INTIMIDADE", "text": "Meu Companheiro está doente e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_039", "cat": "LAI_INTIMIDADE", "text": "Minha Filha foi internado(a) e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_040", "cat": "LAI_INTIMIDADE", "text": "Meu Filho está doente e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_041", "cat": "LAI_INTIMIDADE", "text": "Minha Companheira precisa de benefício e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_042", "cat": "LAI_INTIMIDADE", "text": "Meu Pai está desempregado(a) e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_043", "cat": "LAI_INTIMIDADE", "text": "Meu Pai precisa de benefício e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_044", "cat": "LAI_INTIMIDADE", "text": "Meu Filho sofreu acidente e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_REL_045", "cat": "LAI_INTIMIDADE", "text": "Minha Filha precisa de benefício e preciso de orientação.", "expected": ["CONTEXTO_FAMILIAR"], "hard": "gerado"}
+{"id": "LAI_EMO_001", "cat": "LAI_INTIMIDADE", "text": "Estou muito chateada com a situação do meu processo.", "expected": ["SAUDE_EMOCIONAL"], "hard": "estado emocional"}
+{"id": "LAI_EMO_002", "cat": "LAI_INTIMIDADE", "text": "Minha saúde emocional está abalada por causa do trabalho.", "expected": ["SAUDE_EMOCIONAL"], "hard": "estado emocional"}
+{"id": "LAI_EMO_003", "cat": "LAI_INTIMIDADE", "text": "Tive uma crise de pânico no atendimento.", "expected": ["SAUDE_EMOCIONAL"], "hard": "estado emocional"}
+{"id": "LAI_EMO_004", "cat": "LAI_INTIMIDADE", "text": "Sofro de esgotamento mental por causa do assédio.", "expected": ["SAUDE_EMOCIONAL", "LAI_INTIMIDADE"], "hard": "estado emocional"}
+{"id": "LAI_EMO_005", "cat": "LAI_INTIMIDADE", "text": "Estou muito preocupada com a demora do processo.", "expected": ["SAUDE_EMOCIONAL"], "hard": "estado emocional"}
+{"id": "LAI_EMO_006", "cat": "LAI_INTIMIDADE", "text": "Minha saúde mental está comprometida.", "expected": ["SAUDE_EMOCIONAL"], "hard": "estado emocional"}
+{"id": "LAI_EMO_007", "cat": "LAI_INTIMIDADE", "text": "Estou em crise de ansiedade aguardando resposta.", "expected": ["SAUDE_EMOCIONAL", "LGPD_SAUDE"], "hard": "estado emocional"}
+{"id": "LAI_EMO_008", "cat": "LAI_INTIMIDADE", "text": "Muito assustada com as ameaças que recebi.", "expected": ["SAUDE_EMOCIONAL", "LAI_INTIMIDADE"], "hard": "estado emocional"}
+{"id": "LAI_EMO_009", "cat": "LAI_INTIMIDADE", "text": "Estado emocional fragilizado após a perda.", "expected": ["SAUDE_EMOCIONAL"], "hard": "estado emocional"}
+{"id": "LAI_EMO_010", "cat": "LAI_INTIMIDADE", "text": "Estou abalada e não consigo trabalhar.", "expected": ["SAUDE_EMOCIONAL"], "hard": "estado emocional"}
+{"id": "LAI_EMO_011", "cat": "LAI_INTIMIDADE", "text": "Estou muito preocupada com a situação.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_012", "cat": "LAI_INTIMIDADE", "text": "Estou muito chateado com o atendimento.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_013", "cat": "LAI_INTIMIDADE", "text": "Estou muito assustado com a situação.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_014", "cat": "LAI_INTIMIDADE", "text": "Estou muito preocupada com a situação.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_015", "cat": "LAI_INTIMIDADE", "text": "Estou muito abalado com a demora.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_016", "cat": "LAI_INTIMIDADE", "text": "Estou muito abalada com a demora.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_017", "cat": "LAI_INTIMIDADE", "text": "Estou muito preocupado com a demora.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_018", "cat": "LAI_INTIMIDADE", "text": "Estou muito assustada com o atendimento.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_019", "cat": "LAI_INTIMIDADE", "text": "Estou muito assustado com a situação.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_020", "cat": "LAI_INTIMIDADE", "text": "Estou muito desesperada com o atendimento.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_021", "cat": "LAI_INTIMIDADE", "text": "Estou muito desesperado com o atendimento.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_022", "cat": "LAI_INTIMIDADE", "text": "Estou muito preocupado com a resposta.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_023", "cat": "LAI_INTIMIDADE", "text": "Estou muito abalado com a demora.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_024", "cat": "LAI_INTIMIDADE", "text": "Estou muito desesperado com o atendimento.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_025", "cat": "LAI_INTIMIDADE", "text": "Estou muito assustada com a situação.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_026", "cat": "LAI_INTIMIDADE", "text": "Estou muito preocupada com a situação.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_027", "cat": "LAI_INTIMIDADE", "text": "Estou muito assustada com a resposta.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_028", "cat": "LAI_INTIMIDADE", "text": "Estou muito assustado com a situação.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_029", "cat": "LAI_INTIMIDADE", "text": "Estou muito preocupada com o processo.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_030", "cat": "LAI_INTIMIDADE", "text": "Estou muito assustada com o atendimento.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_031", "cat": "LAI_INTIMIDADE", "text": "Estou muito abalada com a resposta.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_032", "cat": "LAI_INTIMIDADE", "text": "Estou muito abalada com o atendimento.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_033", "cat": "LAI_INTIMIDADE", "text": "Estou muito assustado com o atendimento.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_034", "cat": "LAI_INTIMIDADE", "text": "Estou muito preocupada com o processo.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_035", "cat": "LAI_INTIMIDADE", "text": "Estou muito desesperado com a demora.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_036", "cat": "LAI_INTIMIDADE", "text": "Estou muito desesperada com a resposta.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_037", "cat": "LAI_INTIMIDADE", "text": "Estou muito desesperada com a resposta.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_038", "cat": "LAI_INTIMIDADE", "text": "Estou muito assustada com o atendimento.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_039", "cat": "LAI_INTIMIDADE", "text": "Estou muito preocupado com o processo.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_040", "cat": "LAI_INTIMIDADE", "text": "Estou muito abalada com a situação.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_041", "cat": "LAI_INTIMIDADE", "text": "Estou muito chateado com a situação.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_042", "cat": "LAI_INTIMIDADE", "text": "Estou muito preocupado com o atendimento.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_043", "cat": "LAI_INTIMIDADE", "text": "Estou muito abalado com o processo.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_044", "cat": "LAI_INTIMIDADE", "text": "Estou muito chateada com a resposta.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_EMO_045", "cat": "LAI_INTIMIDADE", "text": "Estou muito abalado com o processo.", "expected": ["SAUDE_EMOCIONAL"], "hard": "gerado"}
+{"id": "LAI_MED_001", "cat": "LAI_INTIMIDADE", "text": "Tenho medo de represália se fizer a denúncia.", "expected": ["LAI_INTIMIDADE"], "hard": "medo/ameaça"}
+{"id": "LAI_MED_002", "cat": "LAI_INTIMIDADE", "text": "Estou com medo de perder meu emprego.", "expected": ["LAI_INTIMIDADE"], "hard": "medo/ameaça"}
+{"id": "LAI_MED_003", "cat": "LAI_INTIMIDADE", "text": "Medo de agressão se voltar para casa.", "expected": ["LAI_INTIMIDADE"], "hard": "medo/ameaça"}
+{"id": "LAI_MED_004", "cat": "LAI_INTIMIDADE", "text": "Tenho receio de sofrer perseguição.", "expected": ["LAI_INTIMIDADE"], "hard": "medo/ameaça"}
+{"id": "LAI_MED_005", "cat": "LAI_INTIMIDADE", "text": "Medo que descubram minha denúncia.", "expected": ["LAI_INTIMIDADE"], "hard": "medo/ameaça"}
+{"id": "LAI_MED_006", "cat": "LAI_INTIMIDADE", "text": "Estou ameaçada de morte pelo meu ex.", "expected": ["LAI_INTIMIDADE"], "hard": "medo/ameaça"}
+{"id": "LAI_MED_007", "cat": "LAI_INTIMIDADE", "text": "Recebi ameaças por telefone.", "expected": ["LAI_INTIMIDADE"], "hard": "medo/ameaça"}
+{"id": "LAI_MED_008", "cat": "LAI_INTIMIDADE", "text": "Medo de retaliação no trabalho.", "expected": ["LAI_INTIMIDADE"], "hard": "medo/ameaça"}
+{"id": "LAI_MED_009", "cat": "LAI_INTIMIDADE", "text": "Temo pela segurança dos meus filhos.", "expected": ["LAI_INTIMIDADE", "LGPD_MENOR"], "hard": "medo/ameaça"}
+{"id": "LAI_MED_010", "cat": "LAI_INTIMIDADE", "text": "Sofro ameaças constantes do vizinho.", "expected": ["LAI_INTIMIDADE"], "hard": "medo/ameaça"}
+{"id": "LAI_MED_011", "cat": "LAI_INTIMIDADE", "text": "Tenho pavor de ser demitido.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_012", "cat": "LAI_INTIMIDADE", "text": "Tenho temor de ser demitido.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_013", "cat": "LAI_INTIMIDADE", "text": "Tenho medo de perseguição.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_014", "cat": "LAI_INTIMIDADE", "text": "Tenho medo de perseguição.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_015", "cat": "LAI_INTIMIDADE", "text": "Tenho temor de perseguição.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_016", "cat": "LAI_INTIMIDADE", "text": "Tenho temor de perder o emprego.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_017", "cat": "LAI_INTIMIDADE", "text": "Tenho temor de represália.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_018", "cat": "LAI_INTIMIDADE", "text": "Tenho receio de represália.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_019", "cat": "LAI_INTIMIDADE", "text": "Tenho medo de perseguição.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_020", "cat": "LAI_INTIMIDADE", "text": "Tenho temor de ser demitido.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_021", "cat": "LAI_INTIMIDADE", "text": "Tenho receio de ser demitido.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_022", "cat": "LAI_INTIMIDADE", "text": "Tenho medo de perseguição.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_023", "cat": "LAI_INTIMIDADE", "text": "Tenho temor de perseguição.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_024", "cat": "LAI_INTIMIDADE", "text": "Tenho receio de sofrer agressão.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_025", "cat": "LAI_INTIMIDADE", "text": "Tenho temor de sofrer agressão.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_026", "cat": "LAI_INTIMIDADE", "text": "Tenho medo de ser demitido.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_027", "cat": "LAI_INTIMIDADE", "text": "Tenho temor de represália.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_028", "cat": "LAI_INTIMIDADE", "text": "Tenho medo de perder o emprego.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_029", "cat": "LAI_INTIMIDADE", "text": "Tenho temor de ser descoberto.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_030", "cat": "LAI_INTIMIDADE", "text": "Tenho receio de perder o emprego.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_031", "cat": "LAI_INTIMIDADE", "text": "Tenho receio de ser demitido.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_032", "cat": "LAI_INTIMIDADE", "text": "Tenho medo de perder o emprego.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_033", "cat": "LAI_INTIMIDADE", "text": "Tenho pavor de perder o emprego.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_034", "cat": "LAI_INTIMIDADE", "text": "Tenho receio de sofrer agressão.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_035", "cat": "LAI_INTIMIDADE", "text": "Tenho pavor de ser demitido.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_036", "cat": "LAI_INTIMIDADE", "text": "Tenho receio de ser descoberto.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_037", "cat": "LAI_INTIMIDADE", "text": "Tenho pavor de sofrer agressão.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_038", "cat": "LAI_INTIMIDADE", "text": "Tenho receio de perseguição.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_039", "cat": "LAI_INTIMIDADE", "text": "Tenho temor de represália.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_040", "cat": "LAI_INTIMIDADE", "text": "Tenho temor de represália.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_041", "cat": "LAI_INTIMIDADE", "text": "Tenho pavor de perder o emprego.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_042", "cat": "LAI_INTIMIDADE", "text": "Tenho receio de sofrer agressão.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_043", "cat": "LAI_INTIMIDADE", "text": "Tenho medo de ser descoberto.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_044", "cat": "LAI_INTIMIDADE", "text": "Tenho medo de ser demitido.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "LAI_MED_045", "cat": "LAI_INTIMIDADE", "text": "Tenho receio de ser demitido.", "expected": ["LAI_INTIMIDADE"], "hard": "gerado"}
+{"id": "GDF_SEI_001", "cat": "GDF_DOCUMENTOS", "text": "Solicito cópia do processo 00015.00045678/2024-91 referente ao meu pedido de LAI.", "expected": ["GDF_SEI_PROCESS"], "hard": "sei_strict"}
+{"id": "GDF_SEI_002", "cat": "GDF_DOCUMENTOS", "text": "Solicito cópia do processo SEI 00015-01009853/2026-01 referente ao meu pedido de LAI.", "expected": ["GDF_SEI_PROCESS"], "hard": "sei_prefixed"}
+{"id": "GDF_SEI_003", "cat": "GDF_DOCUMENTOS", "text": "Solicito cópia do processo 00410.002123/2024-11 referente ao meu pedido de LAI.", "expected": ["GDF_SEI_PROCESS"], "hard": "sei_strict"}
+{"id": "GDF_SEI_004", "cat": "GDF_DOCUMENTOS", "text": "Solicito cópia do processo Processo SEI nº 00040.00098765/2023-12 referente ao meu pedido de LAI.", "expected": ["GDF_SEI_PROCESS"], "hard": "sei_prefixed"}
+{"id": "GDF_SEI_005", "cat": "GDF_DOCUMENTOS", "text": "Solicito cópia do processo 00015-01009853/2026-01 referente ao meu pedido de LAI.", "expected": ["GDF_SEI_PROCESS"], "hard": "sei_esic"}
+{"id": "GDF_SEI_006", "cat": "GDF_DOCUMENTOS", "text": "Solicito cópia do processo SEI-GDF 00020.00012345/2025-00 referente ao meu pedido de LAI.", "expected": ["GDF_SEI_PROCESS"], "hard": "sei_prefixed"}
+{"id": "GDF_SEI_007", "cat": "GDF_DOCUMENTOS", "text": "Solicito cópia do processo 00100.00054321/2024-55 referente ao meu pedido de LAI.", "expected": ["GDF_SEI_PROCESS"], "hard": "sei_strict"}
+{"id": "GDF_SEI_008", "cat": "GDF_DOCUMENTOS", "text": "Solicito cópia do processo Ref: SEI 00015.00098765/2024-01 referente ao meu pedido de LAI.", "expected": ["GDF_SEI_PROCESS"], "hard": "sei_prefixed"}
+{"id": "GDF_SEI_009", "cat": "GDF_DOCUMENTOS", "text": "Solicito informações sobre o processo 00040.00975138/2020-90.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_010", "cat": "GDF_DOCUMENTOS", "text": "Solicito informações sobre o processo 00040.09056318/2020-42.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_011", "cat": "GDF_DOCUMENTOS", "text": "Gostaria de acompanhar o andamento do 00020.31954441/2022-85.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_012", "cat": "GDF_DOCUMENTOS", "text": "Solicito acesso ao processo 00040.72384753/2021-92.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_013", "cat": "GDF_DOCUMENTOS", "text": "Gostaria de acompanhar o andamento do 00020.63450831/2021-60.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_014", "cat": "GDF_DOCUMENTOS", "text": "Gostaria de acompanhar o andamento do 00040.12670194/2020-84.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_015", "cat": "GDF_DOCUMENTOS", "text": "Solicito informações sobre o processo 00100.56861760/2023-59.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_016", "cat": "GDF_DOCUMENTOS", "text": "Solicito informações sobre o processo 00060.87715310/2025-12.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_017", "cat": "GDF_DOCUMENTOS", "text": "Preciso de cópia dos autos do 00410.97749173/2022-13.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_018", "cat": "GDF_DOCUMENTOS", "text": "Preciso de cópia dos autos do 00040.25539407/2024-57.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_019", "cat": "GDF_DOCUMENTOS", "text": "Preciso de cópia dos autos do 00410.24637347/2022-59.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_020", "cat": "GDF_DOCUMENTOS", "text": "Solicito informações sobre o processo 00015.59486001/2026-70.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_021", "cat": "GDF_DOCUMENTOS", "text": "Solicito informações sobre o processo 00015.87539405/2024-01.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_022", "cat": "GDF_DOCUMENTOS", "text": "Gostaria de acompanhar o andamento do 00040.22331899/2023-62.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_023", "cat": "GDF_DOCUMENTOS", "text": "Gostaria de acompanhar o andamento do 00040.53836716/2020-21.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_024", "cat": "GDF_DOCUMENTOS", "text": "Referente ao processo SEI 00015.52411521/2022-58.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_025", "cat": "GDF_DOCUMENTOS", "text": "Gostaria de acompanhar o andamento do 00410.93504928/2025-71.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_026", "cat": "GDF_DOCUMENTOS", "text": "Solicito informações sobre o processo 00040.25497660/2022-27.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_027", "cat": "GDF_DOCUMENTOS", "text": "Referente ao processo SEI 00020.98758972/2024-07.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_028", "cat": "GDF_DOCUMENTOS", "text": "Solicito acesso ao processo 00015.06739990/2024-61.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_029", "cat": "GDF_DOCUMENTOS", "text": "Solicito informações sobre o processo 00020.21140263/2020-65.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_030", "cat": "GDF_DOCUMENTOS", "text": "Preciso de cópia dos autos do 00040.09206777/2024-08.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_031", "cat": "GDF_DOCUMENTOS", "text": "Solicito acesso ao processo 00410.16100908/2024-31.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_032", "cat": "GDF_DOCUMENTOS", "text": "Gostaria de acompanhar o andamento do 00020.05344035/2024-10.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_033", "cat": "GDF_DOCUMENTOS", "text": "Referente ao processo SEI 00060.78349168/2024-66.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_034", "cat": "GDF_DOCUMENTOS", "text": "Referente ao processo SEI 00100.27425205/2025-91.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_035", "cat": "GDF_DOCUMENTOS", "text": "Referente ao processo SEI 00040.35660176/2023-16.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_036", "cat": "GDF_DOCUMENTOS", "text": "Solicito informações sobre o processo 00410.42446584/2026-09.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_037", "cat": "GDF_DOCUMENTOS", "text": "Solicito informações sobre o processo 00410.83380583/2024-12.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_038", "cat": "GDF_DOCUMENTOS", "text": "Preciso de cópia dos autos do 00020.28619087/2024-33.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_039", "cat": "GDF_DOCUMENTOS", "text": "Referente ao processo SEI 00100.09243013/2021-47.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_040", "cat": "GDF_DOCUMENTOS", "text": "Referente ao processo SEI 00040.58822137/2026-69.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_041", "cat": "GDF_DOCUMENTOS", "text": "Solicito acesso ao processo 00020.87785215/2024-01.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_042", "cat": "GDF_DOCUMENTOS", "text": "Referente ao processo SEI 00100.89048526/2020-17.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_043", "cat": "GDF_DOCUMENTOS", "text": "Preciso de cópia dos autos do 00015.14376125/2025-70.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_044", "cat": "GDF_DOCUMENTOS", "text": "Referente ao processo SEI 00100.37826686/2024-26.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_045", "cat": "GDF_DOCUMENTOS", "text": "Solicito acesso ao processo 00040.92284302/2025-33.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_046", "cat": "GDF_DOCUMENTOS", "text": "Solicito informações sobre o processo 00410.33714923/2026-06.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_047", "cat": "GDF_DOCUMENTOS", "text": "Solicito informações sobre o processo 00060.56861377/2026-35.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_048", "cat": "GDF_DOCUMENTOS", "text": "Referente ao processo SEI 00015.44779200/2026-16.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_049", "cat": "GDF_DOCUMENTOS", "text": "Gostaria de acompanhar o andamento do 00040.99496328/2023-70.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_SEI_050", "cat": "GDF_DOCUMENTOS", "text": "Preciso de cópia dos autos do 00020.01307845/2020-09.", "expected": ["GDF_SEI_PROCESS"], "hard": "gerado"}
+{"id": "GDF_MAT_001", "cat": "GDF_DOCUMENTOS", "text": "Referente ao servidor mat. 582092-0.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_002", "cat": "GDF_DOCUMENTOS", "text": "Matrícula GDF: 620805-8, solicito contracheque.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_003", "cat": "GDF_DOCUMENTOS", "text": "Referente ao servidor mat. 143636-0.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_004", "cat": "GDF_DOCUMENTOS", "text": "Servidor de matrícula 952650-0 solicita licença.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_005", "cat": "GDF_DOCUMENTOS", "text": "O técnico matrícula 725198-3 precisa atualizar seus dados.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_006", "cat": "GDF_DOCUMENTOS", "text": "Matrícula GDF: 380858-8, solicito contracheque.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_007", "cat": "GDF_DOCUMENTOS", "text": "Servidor de matrícula 660810-2 solicita licença.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_008", "cat": "GDF_DOCUMENTOS", "text": "O funcionária matrícula 848742-2 precisa atualizar seus dados.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_009", "cat": "GDF_DOCUMENTOS", "text": "Matrícula GDF: 198073-5, solicito contracheque.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_010", "cat": "GDF_DOCUMENTOS", "text": "Servidor de matrícula 851204-3 solicita licença.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_011", "cat": "GDF_DOCUMENTOS", "text": "O funcionária matrícula 835622-1 precisa atualizar seus dados.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_012", "cat": "GDF_DOCUMENTOS", "text": "Servidor de matrícula 910300-7 solicita licença.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_013", "cat": "GDF_DOCUMENTOS", "text": "Referente ao servidor mat. 866253-7.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_014", "cat": "GDF_DOCUMENTOS", "text": "O servidora matrícula 870394-3 precisa atualizar seus dados.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_015", "cat": "GDF_DOCUMENTOS", "text": "Referente ao servidor mat. 702094-3.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_016", "cat": "GDF_DOCUMENTOS", "text": "Referente ao servidor mat. 302136-1.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_017", "cat": "GDF_DOCUMENTOS", "text": "Referente ao servidor mat. 378203-8.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_018", "cat": "GDF_DOCUMENTOS", "text": "Referente ao servidor mat. 994861-0.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_019", "cat": "GDF_DOCUMENTOS", "text": "O funcionário matrícula 197241-9 precisa atualizar seus dados.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_020", "cat": "GDF_DOCUMENTOS", "text": "Referente ao servidor mat. 123668-9.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_021", "cat": "GDF_DOCUMENTOS", "text": "O funcionária matrícula 773934-5 precisa atualizar seus dados.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_022", "cat": "GDF_DOCUMENTOS", "text": "Referente ao servidor mat. 413906-9.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_023", "cat": "GDF_DOCUMENTOS", "text": "Servidor de matrícula 56542-6 solicita licença.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_024", "cat": "GDF_DOCUMENTOS", "text": "Referente ao servidor mat. 391913-6.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_025", "cat": "GDF_DOCUMENTOS", "text": "O técnico matrícula 663425-5 precisa atualizar seus dados.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_026", "cat": "GDF_DOCUMENTOS", "text": "Referente ao servidor mat. 764717-4.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_027", "cat": "GDF_DOCUMENTOS", "text": "Matrícula GDF: 709287-6, solicito contracheque.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_028", "cat": "GDF_DOCUMENTOS", "text": "Servidor de matrícula 741076-4 solicita licença.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_029", "cat": "GDF_DOCUMENTOS", "text": "Matrícula GDF: 211158-6, solicito contracheque.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_030", "cat": "GDF_DOCUMENTOS", "text": "Referente ao servidor mat. 720219-2.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_031", "cat": "GDF_DOCUMENTOS", "text": "O analista matrícula 435800-8 precisa atualizar seus dados.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_032", "cat": "GDF_DOCUMENTOS", "text": "Matrícula GDF: 328635-4, solicito contracheque.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_033", "cat": "GDF_DOCUMENTOS", "text": "Referente ao servidor mat. 833927-9.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_034", "cat": "GDF_DOCUMENTOS", "text": "Servidor de matrícula 497575-7 solicita licença.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_035", "cat": "GDF_DOCUMENTOS", "text": "Servidor de matrícula 546004-7 solicita licença.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_036", "cat": "GDF_DOCUMENTOS", "text": "Referente ao servidor mat. 700855-1.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_037", "cat": "GDF_DOCUMENTOS", "text": "Referente ao servidor mat. 107923-3.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_038", "cat": "GDF_DOCUMENTOS", "text": "O servidora matrícula 245552-3 precisa atualizar seus dados.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_039", "cat": "GDF_DOCUMENTOS", "text": "O funcionária matrícula 58458-3 precisa atualizar seus dados.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_MAT_040", "cat": "GDF_DOCUMENTOS", "text": "Servidor de matrícula 487538-6 solicita licença.", "expected": ["GDF_MATRICULA"], "hard": "matrícula"}
+{"id": "GDF_PROT_001", "cat": "GDF_DOCUMENTOS", "text": "Protocolo Protocolo nº 8295272/2025 sem resposta há 30 dias.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_002", "cat": "GDF_DOCUMENTOS", "text": "Aguardo manifestação sobre o OUV 94026/2022.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_003", "cat": "GDF_DOCUMENTOS", "text": "Aguardo manifestação sobre o OUV 2951888/2026.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_004", "cat": "GDF_DOCUMENTOS", "text": "Solicito resposta do LAI-9352717/2023.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_005", "cat": "GDF_DOCUMENTOS", "text": "Referente à solicitação Protocolo 2238058/2025.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_006", "cat": "GDF_DOCUMENTOS", "text": "Aguardo manifestação sobre o Protocolo 8469772/2025.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_007", "cat": "GDF_DOCUMENTOS", "text": "Referente à solicitação OUV 7964715/2025.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_008", "cat": "GDF_DOCUMENTOS", "text": "Aguardo manifestação sobre o OUV 4653512/2026.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_009", "cat": "GDF_DOCUMENTOS", "text": "Solicito resposta do OUV-4607980/2025.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_010", "cat": "GDF_DOCUMENTOS", "text": "Referente à solicitação e-SIC 3935149/2024.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_011", "cat": "GDF_DOCUMENTOS", "text": "Protocolo e-SIC nº 9063250/2022 sem resposta há 30 dias.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_012", "cat": "GDF_DOCUMENTOS", "text": "Protocolo OUV nº 3880923/2025 sem resposta há 30 dias.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_013", "cat": "GDF_DOCUMENTOS", "text": "Aguardo manifestação sobre o OUV 1078581/2025.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_014", "cat": "GDF_DOCUMENTOS", "text": "Aguardo manifestação sobre o e-SIC 9104504/2025.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_015", "cat": "GDF_DOCUMENTOS", "text": "Aguardo manifestação sobre o LAI 3471105/2025.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_016", "cat": "GDF_DOCUMENTOS", "text": "Aguardo manifestação sobre o LAI 9659481/2025.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_017", "cat": "GDF_DOCUMENTOS", "text": "Aguardo manifestação sobre o LAI 5902533/2024.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_018", "cat": "GDF_DOCUMENTOS", "text": "Protocolo Protocolo nº 9030842/2026 sem resposta há 30 dias.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_019", "cat": "GDF_DOCUMENTOS", "text": "Aguardo manifestação sobre o Protocolo 3682284/2024.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_020", "cat": "GDF_DOCUMENTOS", "text": "Referente à solicitação Protocolo 487955/2025.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_021", "cat": "GDF_DOCUMENTOS", "text": "Protocolo Protocolo nº 2769991/2025 sem resposta há 30 dias.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_022", "cat": "GDF_DOCUMENTOS", "text": "Solicito resposta do LAI-6611562/2026.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_023", "cat": "GDF_DOCUMENTOS", "text": "Aguardo manifestação sobre o LAI 7191929/2023.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_024", "cat": "GDF_DOCUMENTOS", "text": "Aguardo manifestação sobre o OUV 844636/2024.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_025", "cat": "GDF_DOCUMENTOS", "text": "Referente à solicitação e-SIC 3552070/2025.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_026", "cat": "GDF_DOCUMENTOS", "text": "Aguardo manifestação sobre o e-SIC 6361682/2024.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_027", "cat": "GDF_DOCUMENTOS", "text": "Solicito resposta do e-SIC-1375158/2025.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_028", "cat": "GDF_DOCUMENTOS", "text": "Solicito resposta do LAI-5872360/2023.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_029", "cat": "GDF_DOCUMENTOS", "text": "Protocolo LAI nº 521596/2023 sem resposta há 30 dias.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_030", "cat": "GDF_DOCUMENTOS", "text": "Protocolo LAI nº 2557551/2023 sem resposta há 30 dias.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_031", "cat": "GDF_DOCUMENTOS", "text": "Protocolo Protocolo nº 1920136/2026 sem resposta há 30 dias.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_032", "cat": "GDF_DOCUMENTOS", "text": "Protocolo Protocolo nº 4300055/2024 sem resposta há 30 dias.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_033", "cat": "GDF_DOCUMENTOS", "text": "Solicito resposta do LAI-2748534/2024.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_034", "cat": "GDF_DOCUMENTOS", "text": "Aguardo manifestação sobre o LAI 5234774/2026.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_035", "cat": "GDF_DOCUMENTOS", "text": "Protocolo Protocolo nº 3328421/2022 sem resposta há 30 dias.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_036", "cat": "GDF_DOCUMENTOS", "text": "Solicito resposta do LAI-5060717/2026.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_037", "cat": "GDF_DOCUMENTOS", "text": "Aguardo manifestação sobre o LAI 5826112/2026.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_038", "cat": "GDF_DOCUMENTOS", "text": "Referente à solicitação e-SIC 1157902/2026.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_039", "cat": "GDF_DOCUMENTOS", "text": "Solicito resposta do LAI-7048416/2025.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_PROT_040", "cat": "GDF_DOCUMENTOS", "text": "Protocolo Protocolo nº 6077506/2025 sem resposta há 30 dias.", "expected": ["PROTOCOLO_GOV"], "hard": "protocolo"}
+{"id": "GDF_END_001", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 91, Conjunto I, Casa 84, CEP 72730-927, Sobradinho.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_002", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 397, Conjunto H, Casa 60, CEP 72945-848, Recanto das Emas.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_003", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 138, Conjunto F, Casa 32, CEP 71385-561, Santa Maria.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_004", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 385, Conjunto H, Casa 73, CEP 73784-488, Gama.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_005", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 15, Conjunto H, Casa 42, CEP 71599-317, Águas Claras.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_006", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 409, Conjunto E, Casa 44, CEP 72710-818, Águas Claras.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_007", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 285, Conjunto A, Casa 67, CEP 71187-347, Guará.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_008", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 209, Conjunto H, Casa 72, CEP 71807-587, Plano Piloto.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_009", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 365, Conjunto H, Casa 58, CEP 71195-401, Brasília.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_010", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 208, Conjunto D, Casa 40, CEP 73695-477, Gama.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_011", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 284, Conjunto I, Casa 45, CEP 72863-663, Planaltina.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_012", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 181, Conjunto H, Casa 35, CEP 72357-336, Águas Claras.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_013", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 370, Conjunto D, Casa 41, CEP 71860-648, Taguatinga.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_014", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 95, Conjunto D, Casa 28, CEP 73595-383, Plano Piloto.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_015", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 302, Conjunto I, Casa 77, CEP 72202-952, Plano Piloto.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_016", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 152, Conjunto D, Casa 47, CEP 71409-114, Gama.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_017", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 274, Conjunto C, Casa 36, CEP 71155-666, Plano Piloto.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_018", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 358, Conjunto C, Casa 82, CEP 72205-993, Guará.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_019", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 294, Conjunto E, Casa 61, CEP 72551-448, Samambaia.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_020", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 495, Conjunto A, Casa 33, CEP 72216-941, Ceilândia.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_021", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 206, Conjunto H, Casa 10, CEP 73744-802, Taguatinga.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_022", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 78, Conjunto C, Casa 73, CEP 72187-354, Samambaia.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_023", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 286, Conjunto G, Casa 78, CEP 73909-733, Taguatinga.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_024", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 398, Conjunto I, Casa 49, CEP 72553-404, Gama.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_025", "cat": "GDF_DOCUMENTOS", "text": "Moro na Quadra 220, Conjunto E, Casa 73, CEP 73161-724, Santa Maria.", "expected": ["ENDERECO_DF", "CEP_BR", "RA_DF"], "hard": "endereço completo"}
+{"id": "GDF_END_026", "cat": "GDF_DOCUMENTOS", "text": "Resido em Plano Piloto, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_027", "cat": "GDF_DOCUMENTOS", "text": "Resido em Gama Sul, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_028", "cat": "GDF_DOCUMENTOS", "text": "Resido em Brasília, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_029", "cat": "GDF_DOCUMENTOS", "text": "Resido em Gama, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_030", "cat": "GDF_DOCUMENTOS", "text": "Resido em Taguatinga, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_031", "cat": "GDF_DOCUMENTOS", "text": "Resido em Sobradinho, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_032", "cat": "GDF_DOCUMENTOS", "text": "Resido em Santa Maria, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_033", "cat": "GDF_DOCUMENTOS", "text": "Resido em Samambaia, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_034", "cat": "GDF_DOCUMENTOS", "text": "Resido em Plano Piloto, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_035", "cat": "GDF_DOCUMENTOS", "text": "Resido em Planaltina, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_036", "cat": "GDF_DOCUMENTOS", "text": "Resido em Gama, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_037", "cat": "GDF_DOCUMENTOS", "text": "Resido em Santa Maria Norte, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_038", "cat": "GDF_DOCUMENTOS", "text": "Resido em Sobradinho, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_039", "cat": "GDF_DOCUMENTOS", "text": "Resido em Gama Sul, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_040", "cat": "GDF_DOCUMENTOS", "text": "Resido em Ceilândia, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_041", "cat": "GDF_DOCUMENTOS", "text": "Resido em Ceilândia, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_042", "cat": "GDF_DOCUMENTOS", "text": "Resido em Plano Piloto Sul, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_043", "cat": "GDF_DOCUMENTOS", "text": "Resido em Planaltina, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_044", "cat": "GDF_DOCUMENTOS", "text": "Resido em Plano Piloto, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_045", "cat": "GDF_DOCUMENTOS", "text": "Resido em Sobradinho, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_046", "cat": "GDF_DOCUMENTOS", "text": "Resido em Recanto das Emas, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_047", "cat": "GDF_DOCUMENTOS", "text": "Resido em Taguatinga Sul, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_048", "cat": "GDF_DOCUMENTOS", "text": "Resido em Plano Piloto, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_049", "cat": "GDF_DOCUMENTOS", "text": "Resido em Guará, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "GDF_END_050", "cat": "GDF_DOCUMENTOS", "text": "Resido em Gama, preciso de atendimento na minha região.", "expected": ["RA_DF"], "hard": "RA isolada"}
+{"id": "SAUDE_CID_001", "cat": "LGPD_SAUDE", "text": "Laudo médico indica CID F41.1.", "expected": ["CID_CODE"], "hard": "CID isolado"}
+{"id": "SAUDE_CID_002", "cat": "LGPD_SAUDE", "text": "Laudo médico indica CID F32.0.", "expected": ["CID_CODE"], "hard": "CID isolado"}
+{"id": "SAUDE_CID_003", "cat": "LGPD_SAUDE", "text": "Laudo médico indica CID F33.1.", "expected": ["CID_CODE"], "hard": "CID isolado"}
+{"id": "SAUDE_CID_004", "cat": "LGPD_SAUDE", "text": "Laudo médico indica CID Z00.0.", "expected": ["CID_CODE"], "hard": "CID isolado"}
+{"id": "SAUDE_CID_005", "cat": "LGPD_SAUDE", "text": "Laudo médico indica CID J06.9.", "expected": ["CID_CODE"], "hard": "CID isolado"}
+{"id": "SAUDE_CID_006", "cat": "LGPD_SAUDE", "text": "Laudo médico indica CID I10.", "expected": ["CID_CODE"], "hard": "CID isolado"}
+{"id": "SAUDE_CID_007", "cat": "LGPD_SAUDE", "text": "Laudo médico indica CID E11.9.", "expected": ["CID_CODE"], "hard": "CID isolado"}
+{"id": "SAUDE_CID_008", "cat": "LGPD_SAUDE", "text": "Laudo médico indica CID M54.5.", "expected": ["CID_CODE"], "hard": "CID isolado"}
+{"id": "SAUDE_CID_009", "cat": "LGPD_SAUDE", "text": "Laudo médico indica CID K29.7.", "expected": ["CID_CODE"], "hard": "CID isolado"}
+{"id": "SAUDE_CID_010", "cat": "LGPD_SAUDE", "text": "Laudo médico indica CID G43.9.", "expected": ["CID_CODE"], "hard": "CID isolado"}
+{"id": "SAUDE_CID_011", "cat": "LGPD_SAUDE", "text": "Laudo médico indica CID F41.0.", "expected": ["CID_CODE"], "hard": "CID isolado"}
+{"id": "SAUDE_CID_012", "cat": "LGPD_SAUDE", "text": "Laudo médico indica CID F40.1.", "expected": ["CID_CODE"], "hard": "CID isolado"}
+{"id": "SAUDE_CID_013", "cat": "LGPD_SAUDE", "text": "Laudo médico indica CID F31.9.", "expected": ["CID_CODE"], "hard": "CID isolado"}
+{"id": "SAUDE_CID_014", "cat": "LGPD_SAUDE", "text": "Laudo médico indica CID F20.0.", "expected": ["CID_CODE"], "hard": "CID isolado"}
+{"id": "SAUDE_CID_015", "cat": "LGPD_SAUDE", "text": "O paciente apresenta CID F40.1 (fobia social).", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_016", "cat": "LGPD_SAUDE", "text": "O paciente apresenta (F20.0 esquizofrenia paranoide).", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_017", "cat": "LGPD_SAUDE", "text": "O paciente apresenta CID F40.1 (fobia social).", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_018", "cat": "LGPD_SAUDE", "text": "O paciente apresenta CID F20.0 - esquizofrenia paranoide.", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_019", "cat": "LGPD_SAUDE", "text": "O paciente apresenta diagnóstico: CID F41.0.", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_020", "cat": "LGPD_SAUDE", "text": "O paciente apresenta CID F33.1 - transtorno depressivo recorrente.", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_021", "cat": "LGPD_SAUDE", "text": "O paciente apresenta diagnóstico: CID F40.1.", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_022", "cat": "LGPD_SAUDE", "text": "O paciente apresenta diagnóstico: CID F31.9.", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_023", "cat": "LGPD_SAUDE", "text": "O paciente apresenta diagnóstico: CID F41.1.", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_024", "cat": "LGPD_SAUDE", "text": "O paciente apresenta diagnóstico: CID F33.1.", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_025", "cat": "LGPD_SAUDE", "text": "O paciente apresenta (F33.1 transtorno depressivo recorrente).", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_026", "cat": "LGPD_SAUDE", "text": "O paciente apresenta CID F31.9 (transtorno bipolar).", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_027", "cat": "LGPD_SAUDE", "text": "O paciente apresenta CID F20.0 - esquizofrenia paranoide.", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_028", "cat": "LGPD_SAUDE", "text": "O paciente apresenta diagnóstico: CID F33.1.", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_029", "cat": "LGPD_SAUDE", "text": "O paciente apresenta diagnóstico: CID F31.9.", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_030", "cat": "LGPD_SAUDE", "text": "O paciente apresenta diagnóstico: CID F33.1.", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_031", "cat": "LGPD_SAUDE", "text": "O paciente apresenta CID F20.0 (esquizofrenia paranoide).", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_032", "cat": "LGPD_SAUDE", "text": "O paciente apresenta CID F41.0 (transtorno de pânico).", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_033", "cat": "LGPD_SAUDE", "text": "O paciente apresenta (F33.1 transtorno depressivo recorrente).", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_034", "cat": "LGPD_SAUDE", "text": "O paciente apresenta CID F33.1 (transtorno depressivo recorrente).", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_035", "cat": "LGPD_SAUDE", "text": "O paciente apresenta diagnóstico: CID F20.0.", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_036", "cat": "LGPD_SAUDE", "text": "O paciente apresenta CID F20.0 (esquizofrenia paranoide).", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_037", "cat": "LGPD_SAUDE", "text": "O paciente apresenta diagnóstico: CID F31.9.", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_038", "cat": "LGPD_SAUDE", "text": "O paciente apresenta CID F41.0 (transtorno de pânico).", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_039", "cat": "LGPD_SAUDE", "text": "O paciente apresenta (F32.0 episódio depressivo leve).", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_CID_040", "cat": "LGPD_SAUDE", "text": "O paciente apresenta diagnóstico: CID F40.1.", "expected": ["CID_COMPLETO", "DIAGNOSTICO_FULL"], "hard": "CID com descrição"}
+{"id": "SAUDE_DIAG_001", "cat": "LGPD_SAUDE", "text": "Fui diagnosticado com depressão há 2 anos.", "expected": ["DIAGNOSTICO_FULL"], "hard": "diagnóstico"}
+{"id": "SAUDE_DIAG_002", "cat": "LGPD_SAUDE", "text": "Fui diagnóstico de transtorno de ansiedade há 2 anos.", "expected": ["DIAGNOSTICO_FULL"], "hard": "diagnóstico"}
+{"id": "SAUDE_DIAG_003", "cat": "LGPD_SAUDE", "text": "Fui diagnosticada com síndrome do pânico há 2 anos.", "expected": ["DIAGNOSTICO_FULL"], "hard": "diagnóstico"}
+{"id": "SAUDE_DIAG_004", "cat": "LGPD_SAUDE", "text": "Fui diagnóstico de câncer de mama há 2 anos.", "expected": ["DIAGNOSTICO_FULL"], "hard": "diagnóstico"}
+{"id": "SAUDE_DIAG_005", "cat": "LGPD_SAUDE", "text": "Fui diagnosticado com HIV há 2 anos.", "expected": ["DIAGNOSTICO_FULL"], "hard": "diagnóstico"}
+{"id": "SAUDE_DIAG_006", "cat": "LGPD_SAUDE", "text": "Fui diagnóstico de diabetes tipo 2 há 2 anos.", "expected": ["DIAGNOSTICO_FULL"], "hard": "diagnóstico"}
+{"id": "SAUDE_DIAG_007", "cat": "LGPD_SAUDE", "text": "Fui diagnosticada com fibromialgia há 2 anos.", "expected": ["DIAGNOSTICO_FULL"], "hard": "diagnóstico"}
+{"id": "SAUDE_DIAG_008", "cat": "LGPD_SAUDE", "text": "Fui diagnóstico de esquizofrenia há 2 anos.", "expected": ["DIAGNOSTICO_FULL"], "hard": "diagnóstico"}
+{"id": "SAUDE_DIAG_009", "cat": "LGPD_SAUDE", "text": "Fui diagnosticado com autismo há 2 anos.", "expected": ["DIAGNOSTICO_FULL"], "hard": "diagnóstico"}
+{"id": "SAUDE_DIAG_010", "cat": "LGPD_SAUDE", "text": "Fui diagnóstico de TDAH há 2 anos.", "expected": ["DIAGNOSTICO_FULL"], "hard": "diagnóstico"}
+{"id": "SAUDE_DIAG_011", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de esquizofrenia e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_012", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de depressão e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_013", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de diabetes e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_014", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de hipertensão e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_015", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de câncer e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_016", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de hipertensão e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_017", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de esquizofrenia e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_018", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de esquizofrenia e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_019", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de ansiedade e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_020", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de depressão e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_021", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de diabetes e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_022", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de câncer e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_023", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de hipertensão e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_024", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de depressão e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_025", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de tuberculose e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_026", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de ansiedade e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_027", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de diabetes e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_028", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de ansiedade e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_029", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de esquizofrenia e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_030", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de ansiedade e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_031", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de câncer e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_032", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de esquizofrenia e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_033", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de hipertensão e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_034", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de hipertensão e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_DIAG_035", "cat": "LGPD_SAUDE", "text": "Tenho diagnóstico de tuberculose e preciso de tratamento.", "expected": ["DIAGNOSTICO_FULL", "LGPD_SAUDE"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_001", "cat": "LGPD_SAUDE", "text": "Faço tratamento psiquiátrico há 6 meses.", "expected": ["TRATAMENTO_FULL"], "hard": "tratamento"}
+{"id": "SAUDE_TRAT_002", "cat": "LGPD_SAUDE", "text": "Faço tratamento antirretroviral há 6 meses.", "expected": ["TRATAMENTO_FULL"], "hard": "tratamento"}
+{"id": "SAUDE_TRAT_003", "cat": "LGPD_SAUDE", "text": "Faço tratamento psicológico há 6 meses.", "expected": ["TRATAMENTO_FULL"], "hard": "tratamento"}
+{"id": "SAUDE_TRAT_004", "cat": "LGPD_SAUDE", "text": "Faço tratamento quimioterápico há 6 meses.", "expected": ["TRATAMENTO_FULL"], "hard": "tratamento"}
+{"id": "SAUDE_TRAT_005", "cat": "LGPD_SAUDE", "text": "Faço tratamento de hemodiálise há 6 meses.", "expected": ["TRATAMENTO_FULL"], "hard": "tratamento"}
+{"id": "SAUDE_TRAT_006", "cat": "LGPD_SAUDE", "text": "Faço tratamento oncológico há 6 meses.", "expected": ["TRATAMENTO_FULL"], "hard": "tratamento"}
+{"id": "SAUDE_TRAT_007", "cat": "LGPD_SAUDE", "text": "Faço tratamento para dependência química há 6 meses.", "expected": ["TRATAMENTO_FULL"], "hard": "tratamento"}
+{"id": "SAUDE_TRAT_008", "cat": "LGPD_SAUDE", "text": "Faço tratamento hormonal há 6 meses.", "expected": ["TRATAMENTO_FULL"], "hard": "tratamento"}
+{"id": "SAUDE_TRAT_009", "cat": "LGPD_SAUDE", "text": "Estou em tratamento hospitalar em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_010", "cat": "LGPD_SAUDE", "text": "Estou em tratamento hospitalar em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_011", "cat": "LGPD_SAUDE", "text": "Estou em tratamento psicológico em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_012", "cat": "LGPD_SAUDE", "text": "Estou em tratamento hospitalar em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_013", "cat": "LGPD_SAUDE", "text": "Estou em tratamento psicológico em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_014", "cat": "LGPD_SAUDE", "text": "Estou em tratamento hospitalar em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_015", "cat": "LGPD_SAUDE", "text": "Estou em tratamento psicológico em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_016", "cat": "LGPD_SAUDE", "text": "Estou em tratamento psicológico em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_017", "cat": "LGPD_SAUDE", "text": "Estou em tratamento psiquiátrico em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_018", "cat": "LGPD_SAUDE", "text": "Estou em tratamento médico em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_019", "cat": "LGPD_SAUDE", "text": "Estou em tratamento hospitalar em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_020", "cat": "LGPD_SAUDE", "text": "Estou em tratamento médico em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_021", "cat": "LGPD_SAUDE", "text": "Estou em tratamento médico em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_022", "cat": "LGPD_SAUDE", "text": "Estou em tratamento psiquiátrico em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_023", "cat": "LGPD_SAUDE", "text": "Estou em tratamento médico em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_024", "cat": "LGPD_SAUDE", "text": "Estou em tratamento médico em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_025", "cat": "LGPD_SAUDE", "text": "Estou em tratamento hospitalar em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_026", "cat": "LGPD_SAUDE", "text": "Estou em tratamento psicológico em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_027", "cat": "LGPD_SAUDE", "text": "Estou em tratamento hospitalar em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_028", "cat": "LGPD_SAUDE", "text": "Estou em tratamento hospitalar em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_029", "cat": "LGPD_SAUDE", "text": "Estou em tratamento médico em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_030", "cat": "LGPD_SAUDE", "text": "Estou em tratamento médico em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_031", "cat": "LGPD_SAUDE", "text": "Estou em tratamento hospitalar em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_032", "cat": "LGPD_SAUDE", "text": "Estou em tratamento hospitalar em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_033", "cat": "LGPD_SAUDE", "text": "Estou em tratamento médico em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_034", "cat": "LGPD_SAUDE", "text": "Estou em tratamento psicológico em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TRAT_035", "cat": "LGPD_SAUDE", "text": "Estou em tratamento psicológico em andamento.", "expected": ["TRATAMENTO_FULL"], "hard": "gerado"}
+{"id": "SAUDE_TERM_001", "cat": "LGPD_SAUDE", "text": "Sobre o laudo médico.", "expected": ["LGPD_SAUDE"], "hard": "termo médico"}
+{"id": "SAUDE_TERM_002", "cat": "LGPD_SAUDE", "text": "Solicito cópia do prontuário.", "expected": ["LGPD_SAUDE"], "hard": "termo médico"}
+{"id": "SAUDE_TERM_003", "cat": "LGPD_SAUDE", "text": "Sobre o exame de sangue.", "expected": ["LGPD_SAUDE"], "hard": "termo médico"}
+{"id": "SAUDE_TERM_004", "cat": "LGPD_SAUDE", "text": "Preciso de perícia médica.", "expected": ["LGPD_SAUDE"], "hard": "termo médico"}
+{"id": "SAUDE_TERM_005", "cat": "LGPD_SAUDE", "text": "Referente ao atestado.", "expected": ["LGPD_SAUDE"], "hard": "termo médico"}
+{"id": "SAUDE_TERM_006", "cat": "LGPD_SAUDE", "text": "Sobre o internação.", "expected": ["LGPD_SAUDE"], "hard": "termo médico"}
+{"id": "SAUDE_TERM_007", "cat": "LGPD_SAUDE", "text": "Sobre o cirurgia.", "expected": ["LGPD_SAUDE"], "hard": "termo médico"}
+{"id": "SAUDE_TERM_008", "cat": "LGPD_SAUDE", "text": "Sobre o biópsia.", "expected": ["LGPD_SAUDE"], "hard": "termo médico"}
+{"id": "SAUDE_TERM_009", "cat": "LGPD_SAUDE", "text": "Solicito cópia do medicamento controlado.", "expected": ["LGPD_SAUDE"], "hard": "termo médico"}
+{"id": "SAUDE_TERM_010", "cat": "LGPD_SAUDE", "text": "Sobre o remédio.", "expected": ["LGPD_SAUDE"], "hard": "termo médico"}
+{"id": "SAUDE_TERM_011", "cat": "LGPD_SAUDE", "text": "Preciso de hospital.", "expected": ["LGPD_SAUDE"], "hard": "termo médico"}
+{"id": "SAUDE_TERM_012", "cat": "LGPD_SAUDE", "text": "Solicito cópia do UTI.", "expected": ["LGPD_SAUDE"], "hard": "termo médico"}
+{"id": "SAUDE_TERM_013", "cat": "LGPD_SAUDE", "text": "Referente ao emergência.", "expected": ["LGPD_SAUDE"], "hard": "termo médico"}
+{"id": "SAUDE_TERM_014", "cat": "LGPD_SAUDE", "text": "Preciso de ambulância.", "expected": ["LGPD_SAUDE"], "hard": "termo médico"}
+{"id": "SAUDE_TERM_015", "cat": "LGPD_SAUDE", "text": "Sobre o vacina.", "expected": ["LGPD_SAUDE"], "hard": "termo médico"}
+{"id": "SAUDE_TERM_016", "cat": "LGPD_SAUDE", "text": "Preciso de deficiência.", "expected": ["LGPD_SAUDE"], "hard": "termo médico"}
+{"id": "SAUDE_TERM_017", "cat": "LGPD_SAUDE", "text": "Sobre o cadeirante.", "expected": ["LGPD_SAUDE"], "hard": "termo médico"}
+{"id": "SAUDE_TERM_018", "cat": "LGPD_SAUDE", "text": "Preciso de prótese.", "expected": ["LGPD_SAUDE"], "hard": "termo médico"}
+{"id": "SAUDE_TERM_019", "cat": "LGPD_SAUDE", "text": "Solicito cópia do órtese.", "expected": ["LGPD_SAUDE"], "hard": "termo médico"}
+{"id": "SAUDE_TERM_020", "cat": "LGPD_SAUDE", "text": "Sobre o fisioterapia.", "expected": ["LGPD_SAUDE"], "hard": "termo médico"}
+{"id": "SAUDE_TERM_021", "cat": "LGPD_SAUDE", "text": "Meu atestado está anexo ao processo.", "expected": ["LGPD_SAUDE"], "hard": "contexto"}
+{"id": "SAUDE_TERM_022", "cat": "LGPD_SAUDE", "text": "Meu exame de sangue está anexo ao processo.", "expected": ["LGPD_SAUDE"], "hard": "contexto"}
+{"id": "SAUDE_TERM_023", "cat": "LGPD_SAUDE", "text": "Meu deficiência está anexo ao processo.", "expected": ["LGPD_SAUDE"], "hard": "contexto"}
+{"id": "SAUDE_TERM_024", "cat": "LGPD_SAUDE", "text": "Meu medicamento controlado está anexo ao processo.", "expected": ["LGPD_SAUDE"], "hard": "contexto"}
+{"id": "SAUDE_TERM_025", "cat": "LGPD_SAUDE", "text": "Meu hospital está anexo ao processo.", "expected": ["LGPD_SAUDE"], "hard": "contexto"}
+{"id": "SAUDE_TERM_026", "cat": "LGPD_SAUDE", "text": "Meu fisioterapia está anexo ao processo.", "expected": ["LGPD_SAUDE"], "hard": "contexto"}
+{"id": "SAUDE_TERM_027", "cat": "LGPD_SAUDE", "text": "Meu emergência está anexo ao processo.", "expected": ["LGPD_SAUDE"], "hard": "contexto"}
+{"id": "SAUDE_TERM_028", "cat": "LGPD_SAUDE", "text": "Meu exame de sangue está anexo ao processo.", "expected": ["LGPD_SAUDE"], "hard": "contexto"}
+{"id": "SAUDE_TERM_029", "cat": "LGPD_SAUDE", "text": "Meu hospital está anexo ao processo.", "expected": ["LGPD_SAUDE"], "hard": "contexto"}
+{"id": "SAUDE_TERM_030", "cat": "LGPD_SAUDE", "text": "Meu prótese está anexo ao processo.", "expected": ["LGPD_SAUDE"], "hard": "contexto"}
+{"id": "SAUDE_TERM_031", "cat": "LGPD_SAUDE", "text": "Meu emergência está anexo ao processo.", "expected": ["LGPD_SAUDE"], "hard": "contexto"}
+{"id": "SAUDE_TERM_032", "cat": "LGPD_SAUDE", "text": "Meu hospital está anexo ao processo.", "expected": ["LGPD_SAUDE"], "hard": "contexto"}
+{"id": "SAUDE_TERM_033", "cat": "LGPD_SAUDE", "text": "Meu deficiência está anexo ao processo.", "expected": ["LGPD_SAUDE"], "hard": "contexto"}
+{"id": "SAUDE_TERM_034", "cat": "LGPD_SAUDE", "text": "Meu prótese está anexo ao processo.", "expected": ["LGPD_SAUDE"], "hard": "contexto"}
+{"id": "SAUDE_TERM_035", "cat": "LGPD_SAUDE", "text": "Meu prontuário está anexo ao processo.", "expected": ["LGPD_SAUDE"], "hard": "contexto"}
+{"id": "SAUDE_TERM_036", "cat": "LGPD_SAUDE", "text": "Meu fisioterapia está anexo ao processo.", "expected": ["LGPD_SAUDE"], "hard": "contexto"}
+{"id": "SAUDE_TERM_037", "cat": "LGPD_SAUDE", "text": "Meu exame de sangue está anexo ao processo.", "expected": ["LGPD_SAUDE"], "hard": "contexto"}
+{"id": "SAUDE_TERM_038", "cat": "LGPD_SAUDE", "text": "Meu biópsia está anexo ao processo.", "expected": ["LGPD_SAUDE"], "hard": "contexto"}
+{"id": "SAUDE_TERM_039", "cat": "LGPD_SAUDE", "text": "Meu remédio está anexo ao processo.", "expected": ["LGPD_SAUDE"], "hard": "contexto"}
+{"id": "SAUDE_TERM_040", "cat": "LGPD_SAUDE", "text": "Meu biópsia está anexo ao processo.", "expected": ["LGPD_SAUDE"], "hard": "contexto"}
+{"id": "PESSOAL_CPF_001", "cat": "LGPD_PESSOAL", "text": "Portador do CPF 16117240017", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_002", "cat": "LGPD_PESSOAL", "text": "CPF nº 55623869220", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_003", "cat": "LGPD_PESSOAL", "text": "CPF nº 93792374711", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_004", "cat": "LGPD_PESSOAL", "text": "Portador do CPF 482.175.946-68", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_005", "cat": "LGPD_PESSOAL", "text": "Portador do CPF 36713695999", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_006", "cat": "LGPD_PESSOAL", "text": "Portador do CPF 064.090.974-39", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_007", "cat": "LGPD_PESSOAL", "text": "CPF: 33942104756", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_008", "cat": "LGPD_PESSOAL", "text": "CPF: 145.623.285-44", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_009", "cat": "LGPD_PESSOAL", "text": "CPF nº 474.517.123-96", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_010", "cat": "LGPD_PESSOAL", "text": "Portador do CPF 85160481796", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_011", "cat": "LGPD_PESSOAL", "text": "CPF: 96513709888", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_012", "cat": "LGPD_PESSOAL", "text": "Meu CPF é 174.612.004-24.", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_013", "cat": "LGPD_PESSOAL", "text": "CPF nº 382.675.869-29", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_014", "cat": "LGPD_PESSOAL", "text": "Portador do CPF 17964053740", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_015", "cat": "LGPD_PESSOAL", "text": "Meu CPF é 158.506.431-68.", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_016", "cat": "LGPD_PESSOAL", "text": "CPF: 39005329380", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_017", "cat": "LGPD_PESSOAL", "text": "Portador do CPF 933.529.042-79", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_018", "cat": "LGPD_PESSOAL", "text": "Meu CPF é 21020539543.", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_019", "cat": "LGPD_PESSOAL", "text": "CPF: 268.117.758-67", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_020", "cat": "LGPD_PESSOAL", "text": "CPF nº 90847007623", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_021", "cat": "LGPD_PESSOAL", "text": "Portador do CPF 711.592.124-84", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_022", "cat": "LGPD_PESSOAL", "text": "CPF: 698.478.961-24", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_023", "cat": "LGPD_PESSOAL", "text": "Portador do CPF 67365766150", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_024", "cat": "LGPD_PESSOAL", "text": "CPF: 527.111.161-57", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_025", "cat": "LGPD_PESSOAL", "text": "Meu CPF é 809.885.165-64.", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_026", "cat": "LGPD_PESSOAL", "text": "Meu CPF é 494.519.832-38.", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_027", "cat": "LGPD_PESSOAL", "text": "Meu CPF é 585.149.368-89.", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_028", "cat": "LGPD_PESSOAL", "text": "CPF nº 94024455028", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_029", "cat": "LGPD_PESSOAL", "text": "Portador do CPF 12018366757", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_030", "cat": "LGPD_PESSOAL", "text": "CPF nº 599.102.290-44", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_031", "cat": "LGPD_PESSOAL", "text": "Portador do CPF 67976438124", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_032", "cat": "LGPD_PESSOAL", "text": "CPF: 97840369048", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_033", "cat": "LGPD_PESSOAL", "text": "CPF: 24451076278", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_034", "cat": "LGPD_PESSOAL", "text": "CPF nº 885.160.607-50", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_035", "cat": "LGPD_PESSOAL", "text": "CPF nº 966.416.052-89", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_036", "cat": "LGPD_PESSOAL", "text": "Portador do CPF 51613696849", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_037", "cat": "LGPD_PESSOAL", "text": "Portador do CPF 352.181.883-54", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_038", "cat": "LGPD_PESSOAL", "text": "Meu CPF é 231.243.292-93.", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_039", "cat": "LGPD_PESSOAL", "text": "Portador do CPF 277.997.995-90", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_CPF_040", "cat": "LGPD_PESSOAL", "text": "Portador do CPF 27177449019", "expected": ["CPF_PATTERN"], "hard": "CPF"}
+{"id": "PESSOAL_EMAIL_001", "cat": "LGPD_PESSOAL", "text": "Meu email é ana463@gmail.com.", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_002", "cat": "LGPD_PESSOAL", "text": "Meu email é pedro852@outlook.com.", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_003", "cat": "LGPD_PESSOAL", "text": "E-mail para resposta: lucia885@gmail.com", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_004", "cat": "LGPD_PESSOAL", "text": "Contato: carlos520@gov.br", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_005", "cat": "LGPD_PESSOAL", "text": "Meu email é carlos568@yahoo.com.br.", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_006", "cat": "LGPD_PESSOAL", "text": "E-mail para resposta: ana931@gdf.gov.br", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_007", "cat": "LGPD_PESSOAL", "text": "Contato: maria330@gdf.gov.br", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_008", "cat": "LGPD_PESSOAL", "text": "Contato: carlos155@gmail.com", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_009", "cat": "LGPD_PESSOAL", "text": "E-mail para resposta: joao831@outlook.com", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_010", "cat": "LGPD_PESSOAL", "text": "Meu email é joao517@yahoo.com.br.", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_011", "cat": "LGPD_PESSOAL", "text": "Contato: joao254@yahoo.com.br", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_012", "cat": "LGPD_PESSOAL", "text": "E-mail para resposta: ana537@gdf.gov.br", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_013", "cat": "LGPD_PESSOAL", "text": "Contato: maria373@outlook.com", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_014", "cat": "LGPD_PESSOAL", "text": "E-mail para resposta: ana419@outlook.com", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_015", "cat": "LGPD_PESSOAL", "text": "E-mail para resposta: carlos54@yahoo.com.br", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_016", "cat": "LGPD_PESSOAL", "text": "Meu email é pedro68@outlook.com.", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_017", "cat": "LGPD_PESSOAL", "text": "Contato: carlos695@gov.br", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_018", "cat": "LGPD_PESSOAL", "text": "E-mail para resposta: pedro742@yahoo.com.br", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_019", "cat": "LGPD_PESSOAL", "text": "E-mail para resposta: maria342@gmail.com", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_020", "cat": "LGPD_PESSOAL", "text": "Contato: lucia145@outlook.com", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_021", "cat": "LGPD_PESSOAL", "text": "Contato: lucia716@yahoo.com.br", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_022", "cat": "LGPD_PESSOAL", "text": "Meu email é maria610@yahoo.com.br.", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_023", "cat": "LGPD_PESSOAL", "text": "E-mail para resposta: pedro573@gov.br", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_024", "cat": "LGPD_PESSOAL", "text": "E-mail para resposta: pedro833@hotmail.com", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_025", "cat": "LGPD_PESSOAL", "text": "E-mail para resposta: lucia849@yahoo.com.br", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_026", "cat": "LGPD_PESSOAL", "text": "E-mail para resposta: carlos96@yahoo.com.br", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_027", "cat": "LGPD_PESSOAL", "text": "Meu email é ana521@outlook.com.", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_028", "cat": "LGPD_PESSOAL", "text": "Meu email é pedro317@hotmail.com.", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_029", "cat": "LGPD_PESSOAL", "text": "Meu email é pedro971@gov.br.", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_EMAIL_030", "cat": "LGPD_PESSOAL", "text": "Meu email é maria141@hotmail.com.", "expected": ["EMAIL"], "hard": "email"}
+{"id": "PESSOAL_TEL_001", "cat": "LGPD_PESSOAL", "text": "Telefone: (63) 99519-9843", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_002", "cat": "LGPD_PESSOAL", "text": "Contato telefone (31) 9 9897-3147", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_003", "cat": "LGPD_PESSOAL", "text": "Telefone: (62) 99851-3712", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_004", "cat": "LGPD_PESSOAL", "text": "Celular: (11) 9 9692-4891", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_005", "cat": "LGPD_PESSOAL", "text": "WhatsApp 31 9 9239-9749", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_006", "cat": "LGPD_PESSOAL", "text": "Celular: 62 9 9694-8218", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_007", "cat": "LGPD_PESSOAL", "text": "Contato telefone (11) 9540-7859", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_008", "cat": "LGPD_PESSOAL", "text": "WhatsApp 21 99893-5096", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_009", "cat": "LGPD_PESSOAL", "text": "Telefone: (63) 9956-2680", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_010", "cat": "LGPD_PESSOAL", "text": "Contato telefone 63 99781-3626", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_011", "cat": "LGPD_PESSOAL", "text": "Celular: (11) 99969-4637", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_012", "cat": "LGPD_PESSOAL", "text": "Contato telefone (61) 9 9054-7495", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_013", "cat": "LGPD_PESSOAL", "text": "Telefone: 11 99383-4678", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_014", "cat": "LGPD_PESSOAL", "text": "Celular: 31 9343-3392", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_015", "cat": "LGPD_PESSOAL", "text": "WhatsApp (11) 9851-3273", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_016", "cat": "LGPD_PESSOAL", "text": "Contato telefone 11 9005-2298", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_017", "cat": "LGPD_PESSOAL", "text": "Celular: 62 9962-9647", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_018", "cat": "LGPD_PESSOAL", "text": "WhatsApp 62 9 9124-1782", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_019", "cat": "LGPD_PESSOAL", "text": "Telefone: (61) 99856-9189", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_020", "cat": "LGPD_PESSOAL", "text": "Celular: (31) 9588-4963", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_021", "cat": "LGPD_PESSOAL", "text": "WhatsApp 11 99629-6780", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_022", "cat": "LGPD_PESSOAL", "text": "Celular: (62) 9684-2402", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_023", "cat": "LGPD_PESSOAL", "text": "Telefone: (61) 9557-9312", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_024", "cat": "LGPD_PESSOAL", "text": "Celular: (11) 9 9044-7338", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_025", "cat": "LGPD_PESSOAL", "text": "Telefone: 31 99365-2106", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_026", "cat": "LGPD_PESSOAL", "text": "Celular: 21 9774-6447", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_027", "cat": "LGPD_PESSOAL", "text": "WhatsApp (21) 9 9833-3868", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_028", "cat": "LGPD_PESSOAL", "text": "Telefone: (31) 9 9646-3986", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_029", "cat": "LGPD_PESSOAL", "text": "Contato telefone 31 9 9037-5807", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_030", "cat": "LGPD_PESSOAL", "text": "WhatsApp (61) 9 9955-6080", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_031", "cat": "LGPD_PESSOAL", "text": "Telefone: 63 99771-4131", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_032", "cat": "LGPD_PESSOAL", "text": "WhatsApp (31) 9 9279-3039", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_033", "cat": "LGPD_PESSOAL", "text": "Contato telefone 11 9450-7334", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_034", "cat": "LGPD_PESSOAL", "text": "Celular: (11) 9509-7018", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_035", "cat": "LGPD_PESSOAL", "text": "Contato telefone 61 9434-2293", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_036", "cat": "LGPD_PESSOAL", "text": "Celular: 21 9 9328-2680", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_037", "cat": "LGPD_PESSOAL", "text": "WhatsApp 63 9 9617-7981", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_038", "cat": "LGPD_PESSOAL", "text": "WhatsApp (63) 9 9043-6776", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_039", "cat": "LGPD_PESSOAL", "text": "WhatsApp 63 9810-1939", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_TEL_040", "cat": "LGPD_PESSOAL", "text": "Contato telefone (63) 9820-3621", "expected": ["TELEFONE_BR"], "hard": "telefone"}
+{"id": "PESSOAL_END_001", "cat": "LGPD_PESSOAL", "text": "Endereço: Travessa Central, nº 695, CEP 14561-229, Belo Horizonte.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_002", "cat": "LGPD_PESSOAL", "text": "Endereço: Rua das Flores, nº 242, CEP 57467-492, Goiânia.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_003", "cat": "LGPD_PESSOAL", "text": "Endereço: Travessa Central, nº 34, CEP 30111-795, Rio de Janeiro.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_004", "cat": "LGPD_PESSOAL", "text": "Endereço: Alameda Santos, nº 972, CEP 58760-554, Goiânia.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_005", "cat": "LGPD_PESSOAL", "text": "Endereço: Rua das Flores, nº 588, CEP 79397-475, São Paulo.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_006", "cat": "LGPD_PESSOAL", "text": "Endereço: Alameda Santos, nº 322, CEP 42717-216, Goiânia.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_007", "cat": "LGPD_PESSOAL", "text": "Endereço: Rua das Flores, nº 754, CEP 75410-630, São Paulo.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_008", "cat": "LGPD_PESSOAL", "text": "Endereço: Alameda Santos, nº 936, CEP 25435-368, Rio de Janeiro.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_009", "cat": "LGPD_PESSOAL", "text": "Endereço: Rua São Paulo, nº 721, CEP 38124-726, Belo Horizonte.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_010", "cat": "LGPD_PESSOAL", "text": "Endereço: Rua São Paulo, nº 711, CEP 36237-225, Belo Horizonte.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_011", "cat": "LGPD_PESSOAL", "text": "Endereço: Avenida Brasil, nº 874, CEP 69250-276, Taboão da Serra.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_012", "cat": "LGPD_PESSOAL", "text": "Endereço: Alameda Santos, nº 90, CEP 97535-455, Goiânia.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_013", "cat": "LGPD_PESSOAL", "text": "Endereço: Rua das Flores, nº 564, CEP 48058-407, Rio de Janeiro.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_014", "cat": "LGPD_PESSOAL", "text": "Endereço: Avenida Brasil, nº 729, CEP 57381-620, São Paulo.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_015", "cat": "LGPD_PESSOAL", "text": "Endereço: Avenida Brasil, nº 125, CEP 28202-342, São Paulo.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_016", "cat": "LGPD_PESSOAL", "text": "Endereço: Alameda Santos, nº 27, CEP 82616-686, Goiânia.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_017", "cat": "LGPD_PESSOAL", "text": "Endereço: Rua São Paulo, nº 479, CEP 27009-726, Rio de Janeiro.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_018", "cat": "LGPD_PESSOAL", "text": "Endereço: Rua das Flores, nº 68, CEP 62187-834, Goiânia.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_019", "cat": "LGPD_PESSOAL", "text": "Endereço: Alameda Santos, nº 539, CEP 63665-943, Belo Horizonte.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_020", "cat": "LGPD_PESSOAL", "text": "Endereço: Travessa Central, nº 76, CEP 51553-757, São Paulo.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_021", "cat": "LGPD_PESSOAL", "text": "Endereço: Rua das Flores, nº 461, CEP 99143-629, Belo Horizonte.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_022", "cat": "LGPD_PESSOAL", "text": "Endereço: Rua São Paulo, nº 132, CEP 93859-701, Rio de Janeiro.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_023", "cat": "LGPD_PESSOAL", "text": "Endereço: Avenida Brasil, nº 787, CEP 66704-614, São Paulo.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_024", "cat": "LGPD_PESSOAL", "text": "Endereço: Rua das Flores, nº 852, CEP 77908-256, Taboão da Serra.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_025", "cat": "LGPD_PESSOAL", "text": "Endereço: Rua São Paulo, nº 169, CEP 52291-826, São Paulo.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_026", "cat": "LGPD_PESSOAL", "text": "Endereço: Avenida Brasil, nº 355, CEP 47230-966, Rio de Janeiro.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_027", "cat": "LGPD_PESSOAL", "text": "Endereço: Rua das Flores, nº 257, CEP 93238-664, São Paulo.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_028", "cat": "LGPD_PESSOAL", "text": "Endereço: Rua São Paulo, nº 129, CEP 90534-646, Goiânia.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_029", "cat": "LGPD_PESSOAL", "text": "Endereço: Rua das Flores, nº 515, CEP 87569-694, São Paulo.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_030", "cat": "LGPD_PESSOAL", "text": "Endereço: Avenida Brasil, nº 176, CEP 89316-445, Rio de Janeiro.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_031", "cat": "LGPD_PESSOAL", "text": "Endereço: Travessa Central, nº 43, CEP 20646-146, Taboão da Serra.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_032", "cat": "LGPD_PESSOAL", "text": "Endereço: Travessa Central, nº 272, CEP 84991-526, São Paulo.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_033", "cat": "LGPD_PESSOAL", "text": "Endereço: Travessa Central, nº 655, CEP 75278-742, Taboão da Serra.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_034", "cat": "LGPD_PESSOAL", "text": "Endereço: Travessa Central, nº 297, CEP 73300-350, Goiânia.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_035", "cat": "LGPD_PESSOAL", "text": "Endereço: Alameda Santos, nº 305, CEP 19564-805, Belo Horizonte.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_036", "cat": "LGPD_PESSOAL", "text": "Endereço: Rua das Flores, nº 162, CEP 64476-595, Belo Horizonte.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_037", "cat": "LGPD_PESSOAL", "text": "Endereço: Alameda Santos, nº 209, CEP 89516-247, Goiânia.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_038", "cat": "LGPD_PESSOAL", "text": "Endereço: Rua São Paulo, nº 883, CEP 55268-508, Goiânia.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_039", "cat": "LGPD_PESSOAL", "text": "Endereço: Avenida Brasil, nº 779, CEP 77499-675, Goiânia.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "PESSOAL_END_040", "cat": "LGPD_PESSOAL", "text": "Endereço: Rua das Flores, nº 327, CEP 71141-225, São Paulo.", "expected": ["ENDERECO_BR_GENERIC", "CEP_BR", "CIDADE_BR"], "hard": "endereço fora-DF"}
+{"id": "MENOR_FIL_001", "cat": "LGPD_MENOR", "text": "Meus Filhos de 15 anos está doente.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_002", "cat": "LGPD_MENOR", "text": "Minha Filha de 4 anos precisa de vaga na escola.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_003", "cat": "LGPD_MENOR", "text": "Meus Filhos precisa de benefício social.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_004", "cat": "LGPD_MENOR", "text": "Minhas Filhas de 8 anos está doente.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_005", "cat": "LGPD_MENOR", "text": "Meus Filhos de 11 anos está doente.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_006", "cat": "LGPD_MENOR", "text": "Minha Filha precisa de benefício social.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_007", "cat": "LGPD_MENOR", "text": "Minhas Filhas precisa de atendimento médico.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_008", "cat": "LGPD_MENOR", "text": "Minhas Filhas de 1 anos precisa de vaga na escola.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_009", "cat": "LGPD_MENOR", "text": "Minhas Filhas está matriculado na rede pública.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_010", "cat": "LGPD_MENOR", "text": "Minha Filha precisa de benefício social.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_011", "cat": "LGPD_MENOR", "text": "Meus Filhos de 2 anos precisa de vaga na escola.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_012", "cat": "LGPD_MENOR", "text": "Meus Filhos precisa de benefício social.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_013", "cat": "LGPD_MENOR", "text": "Minha Dependente precisa de atendimento médico.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_014", "cat": "LGPD_MENOR", "text": "Meu Dependente de 1 anos precisa de vaga na escola.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_015", "cat": "LGPD_MENOR", "text": "Minhas Filhas precisa de atendimento médico.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_016", "cat": "LGPD_MENOR", "text": "Minha Dependente está matriculado na rede pública.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_017", "cat": "LGPD_MENOR", "text": "Meus Filhos está matriculado na rede pública.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_018", "cat": "LGPD_MENOR", "text": "Meu Filho precisa de atendimento médico.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_019", "cat": "LGPD_MENOR", "text": "Meu Dependente de 10 anos precisa de vaga na escola.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_020", "cat": "LGPD_MENOR", "text": "Minhas Filhas está matriculado na rede pública.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_021", "cat": "LGPD_MENOR", "text": "Meu Dependente precisa de benefício social.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_022", "cat": "LGPD_MENOR", "text": "Minha Dependente de 4 anos está doente.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_023", "cat": "LGPD_MENOR", "text": "Meu Filho precisa de atendimento médico.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_024", "cat": "LGPD_MENOR", "text": "Meus Filhos de 12 anos está doente.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_025", "cat": "LGPD_MENOR", "text": "Minha Filha está matriculado na rede pública.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_026", "cat": "LGPD_MENOR", "text": "Meu Dependente de 2 anos precisa de vaga na escola.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_027", "cat": "LGPD_MENOR", "text": "Meu Filho precisa de atendimento médico.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_028", "cat": "LGPD_MENOR", "text": "Minhas Filhas está matriculado na rede pública.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_029", "cat": "LGPD_MENOR", "text": "Minha Filha de 17 anos está doente.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_030", "cat": "LGPD_MENOR", "text": "Meus Filhos de 11 anos está doente.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_031", "cat": "LGPD_MENOR", "text": "Minhas Filhas precisa de benefício social.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_032", "cat": "LGPD_MENOR", "text": "Meus Filhos precisa de benefício social.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_033", "cat": "LGPD_MENOR", "text": "Meu Dependente precisa de benefício social.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_034", "cat": "LGPD_MENOR", "text": "Meus Filhos de 16 anos precisa de vaga na escola.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_035", "cat": "LGPD_MENOR", "text": "Meus Filhos de 11 anos precisa de vaga na escola.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_036", "cat": "LGPD_MENOR", "text": "Minhas Filhas de 10 anos precisa de vaga na escola.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_037", "cat": "LGPD_MENOR", "text": "Meu Dependente precisa de atendimento médico.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_038", "cat": "LGPD_MENOR", "text": "Minha Dependente de 8 anos precisa de vaga na escola.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_039", "cat": "LGPD_MENOR", "text": "Meu Dependente de 16 anos está doente.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_FIL_040", "cat": "LGPD_MENOR", "text": "Meu Dependente de 13 anos está doente.", "expected": ["CONTEXTO_FAMILIAR", "LGPD_MENOR"], "hard": "filho/dependente"}
+{"id": "MENOR_CTX_001", "cat": "LGPD_MENOR", "text": "Criança de 5 anos precisa de vaga na creche.", "expected": ["LGPD_MENOR", "MENOR_FULL"], "hard": "contexto menor"}
+{"id": "MENOR_CTX_002", "cat": "LGPD_MENOR", "text": "Adolescente de 14 anos está desempregado.", "expected": ["LGPD_MENOR", "MENOR_FULL"], "hard": "contexto menor"}
+{"id": "MENOR_CTX_003", "cat": "LGPD_MENOR", "text": "Menor de idade sob minha responsabilidade.", "expected": ["LGPD_MENOR", "MENOR_FULL"], "hard": "contexto menor"}
+{"id": "MENOR_CTX_004", "cat": "LGPD_MENOR", "text": "Conselho tutelar foi acionado sobre meu caso.", "expected": ["LGPD_MENOR", "MENOR_FULL"], "hard": "contexto menor"}
+{"id": "MENOR_CTX_005", "cat": "LGPD_MENOR", "text": "Medida socioeducativa do meu filho.", "expected": ["LGPD_MENOR", "MENOR_FULL"], "hard": "contexto menor"}
+{"id": "MENOR_CTX_006", "cat": "LGPD_MENOR", "text": "Guarda compartilhada em disputa judicial.", "expected": ["LGPD_MENOR", "MENOR_FULL"], "hard": "contexto menor"}
+{"id": "MENOR_CTX_007", "cat": "LGPD_MENOR", "text": "Processo de adoção em andamento.", "expected": ["LGPD_MENOR", "MENOR_FULL"], "hard": "contexto menor"}
+{"id": "MENOR_CTX_008", "cat": "LGPD_MENOR", "text": "Pensão alimentícia do meu filho.", "expected": ["LGPD_MENOR", "MENOR_FULL"], "hard": "contexto menor"}
+{"id": "MENOR_CTX_009", "cat": "LGPD_MENOR", "text": "Menor órfão sob tutela do estado.", "expected": ["LGPD_MENOR", "MENOR_FULL"], "hard": "contexto menor"}
+{"id": "MENOR_CTX_010", "cat": "LGPD_MENOR", "text": "Criança em situação de abrigo.", "expected": ["LGPD_MENOR", "MENOR_FULL"], "hard": "contexto menor"}
+{"id": "MENOR_CTX_011", "cat": "LGPD_MENOR", "text": "Minha criança de 8 anos precisa de ajuda.", "expected": ["LGPD_MENOR"], "hard": "gerado"}
+{"id": "MENOR_CTX_012", "cat": "LGPD_MENOR", "text": "Tenho um menor de 4 anos sob minha guarda.", "expected": ["LGPD_MENOR"], "hard": "gerado"}
+{"id": "MENOR_CTX_013", "cat": "LGPD_MENOR", "text": "Adolescente de 1 anos em situação de risco.", "expected": ["LGPD_MENOR"], "hard": "gerado"}
+{"id": "MENOR_CTX_014", "cat": "LGPD_MENOR", "text": "Adolescente de 11 anos em situação de risco.", "expected": ["LGPD_MENOR"], "hard": "gerado"}
+{"id": "MENOR_CTX_015", "cat": "LGPD_MENOR", "text": "Adolescente de 5 anos em situação de risco.", "expected": ["LGPD_MENOR"], "hard": "gerado"}
+{"id": "MENOR_CTX_016", "cat": "LGPD_MENOR", "text": "Adolescente de 7 anos em situação de risco.", "expected": ["LGPD_MENOR"], "hard": "gerado"}
+{"id": "MENOR_CTX_017", "cat": "LGPD_MENOR", "text": "Adolescente de 17 anos em situação de risco.", "expected": ["LGPD_MENOR"], "hard": "gerado"}
+{"id": "MENOR_CTX_018", "cat": "LGPD_MENOR", "text": "Tenho um menor de 2 anos sob minha guarda.", "expected": ["LGPD_MENOR"], "hard": "gerado"}
+{"id": "MENOR_CTX_019", "cat": "LGPD_MENOR", "text": "Tenho um menor de 17 anos sob minha guarda.", "expected": ["LGPD_MENOR"], "hard": "gerado"}
+{"id": "MENOR_CTX_020", "cat": "LGPD_MENOR", "text": "Adolescente de 11 anos em situação de risco.", "expected": ["LGPD_MENOR"], "hard": "gerado"}
+{"id": "MENOR_CTX_021", "cat": "LGPD_MENOR", "text": "Adolescente de 17 anos em situação de risco.", "expected": ["LGPD_MENOR"], "hard": "gerado"}
+{"id": "MENOR_CTX_022", "cat": "LGPD_MENOR", "text": "Tenho um menor de 11 anos sob minha guarda.", "expected": ["LGPD_MENOR"], "hard": "gerado"}
+{"id": "MENOR_CTX_023", "cat": "LGPD_MENOR", "text": "Meu filho de 15 anos está na escola pública.", "expected": ["LGPD_MENOR"], "hard": "gerado"}
+{"id": "MENOR_CTX_024", "cat": "LGPD_MENOR", "text": "Meu filho de 12 anos está na escola pública.", "expected": ["LGPD_MENOR"], "hard": "gerado"}
+{"id": "MENOR_CTX_025", "cat": "LGPD_MENOR", "text": "Tenho um menor de 16 anos sob minha guarda.", "expected": ["LGPD_MENOR"], "hard": "gerado"}
+{"id": "MENOR_CTX_026", "cat": "LGPD_MENOR", "text": "Meu filho de 8 anos está na escola pública.", "expected": ["LGPD_MENOR"], "hard": "gerado"}
+{"id": "MENOR_CTX_027", "cat": "LGPD_MENOR", "text": "Tenho um menor de 10 anos sob minha guarda.", "expected": ["LGPD_MENOR"], "hard": "gerado"}
+{"id": "MENOR_CTX_028", "cat": "LGPD_MENOR", "text": "Meu filho de 10 anos está na escola pública.", "expected": ["LGPD_MENOR"], "hard": "gerado"}
+{"id": "MENOR_CTX_029", "cat": "LGPD_MENOR", "text": "Adolescente de 7 anos em situação de risco.", "expected": ["LGPD_MENOR"], "hard": "gerado"}
+{"id": "MENOR_CTX_030", "cat": "LGPD_MENOR", "text": "Adolescente de 11 anos em situação de risco.", "expected": ["LGPD_MENOR"], "hard": "gerado"}
+{"id": "SENS_RAC_001", "cat": "LGPD_SENSIVEL", "text": "Sou negro e sofro discriminação no trabalho.", "expected": ["LGPD_RACIAL"], "hard": "racial"}
+{"id": "SENS_RAC_002", "cat": "LGPD_SENSIVEL", "text": "Sou pardo conforme minha autodeclaração.", "expected": ["LGPD_RACIAL"], "hard": "racial"}
+{"id": "SENS_RAC_003", "cat": "LGPD_SENSIVEL", "text": "Pertenço a comunidade quilombola.", "expected": ["LGPD_RACIAL"], "hard": "racial"}
+{"id": "SENS_RAC_004", "cat": "LGPD_SENSIVEL", "text": "Sou indígena da etnia Xavante.", "expected": ["LGPD_RACIAL"], "hard": "racial"}
+{"id": "SENS_RAC_005", "cat": "LGPD_SENSIVEL", "text": "Sofri racismo no atendimento público.", "expected": ["LGPD_RACIAL"], "hard": "racial"}
+{"id": "SENS_RAC_006", "cat": "LGPD_SENSIVEL", "text": "Afrodescendente buscando reparação.", "expected": ["LGPD_RACIAL"], "hard": "racial"}
+{"id": "SENS_RAC_007", "cat": "LGPD_SENSIVEL", "text": "Injúria racial no ambiente de trabalho.", "expected": ["LGPD_RACIAL"], "hard": "racial"}
+{"id": "SENS_RAC_008", "cat": "LGPD_SENSIVEL", "text": "Cota racial para concurso público.", "expected": ["LGPD_RACIAL"], "hard": "racial"}
+{"id": "SENS_RAC_009", "cat": "LGPD_SENSIVEL", "text": "Sou de origem afro-brasileira.", "expected": ["LGPD_RACIAL"], "hard": "racial"}
+{"id": "SENS_RAC_010", "cat": "LGPD_SENSIVEL", "text": "Comunidade indígena precisa de demarcação.", "expected": ["LGPD_RACIAL"], "hard": "racial"}
+{"id": "SENS_RAC_011", "cat": "LGPD_SENSIVEL", "text": "Me declaro pardo para fins de política afirmativa.", "expected": ["LGPD_RACIAL"], "hard": "autodeclaração"}
+{"id": "SENS_RAC_012", "cat": "LGPD_SENSIVEL", "text": "Me declaro quilombola para fins de política afirmativa.", "expected": ["LGPD_RACIAL"], "hard": "autodeclaração"}
+{"id": "SENS_RAC_013", "cat": "LGPD_SENSIVEL", "text": "Me declaro pardo para fins de política afirmativa.", "expected": ["LGPD_RACIAL"], "hard": "autodeclaração"}
+{"id": "SENS_RAC_014", "cat": "LGPD_SENSIVEL", "text": "Me declaro pardo para fins de política afirmativa.", "expected": ["LGPD_RACIAL"], "hard": "autodeclaração"}
+{"id": "SENS_RAC_015", "cat": "LGPD_SENSIVEL", "text": "Me declaro negro para fins de política afirmativa.", "expected": ["LGPD_RACIAL"], "hard": "autodeclaração"}
+{"id": "SENS_RAC_016", "cat": "LGPD_SENSIVEL", "text": "Me declaro quilombola para fins de política afirmativa.", "expected": ["LGPD_RACIAL"], "hard": "autodeclaração"}
+{"id": "SENS_RAC_017", "cat": "LGPD_SENSIVEL", "text": "Me declaro quilombola para fins de política afirmativa.", "expected": ["LGPD_RACIAL"], "hard": "autodeclaração"}
+{"id": "SENS_RAC_018", "cat": "LGPD_SENSIVEL", "text": "Me declaro indígena para fins de política afirmativa.", "expected": ["LGPD_RACIAL"], "hard": "autodeclaração"}
+{"id": "SENS_RAC_019", "cat": "LGPD_SENSIVEL", "text": "Me declaro indígena para fins de política afirmativa.", "expected": ["LGPD_RACIAL"], "hard": "autodeclaração"}
+{"id": "SENS_RAC_020", "cat": "LGPD_SENSIVEL", "text": "Me declaro pardo para fins de política afirmativa.", "expected": ["LGPD_RACIAL"], "hard": "autodeclaração"}
+{"id": "SENS_RAC_021", "cat": "LGPD_SENSIVEL", "text": "Me declaro preto para fins de política afirmativa.", "expected": ["LGPD_RACIAL"], "hard": "autodeclaração"}
+{"id": "SENS_RAC_022", "cat": "LGPD_SENSIVEL", "text": "Me declaro pardo para fins de política afirmativa.", "expected": ["LGPD_RACIAL"], "hard": "autodeclaração"}
+{"id": "SENS_RAC_023", "cat": "LGPD_SENSIVEL", "text": "Me declaro negro para fins de política afirmativa.", "expected": ["LGPD_RACIAL"], "hard": "autodeclaração"}
+{"id": "SENS_RAC_024", "cat": "LGPD_SENSIVEL", "text": "Me declaro pardo para fins de política afirmativa.", "expected": ["LGPD_RACIAL"], "hard": "autodeclaração"}
+{"id": "SENS_RAC_025", "cat": "LGPD_SENSIVEL", "text": "Me declaro negro para fins de política afirmativa.", "expected": ["LGPD_RACIAL"], "hard": "autodeclaração"}
+{"id": "SENS_RAC_026", "cat": "LGPD_SENSIVEL", "text": "Me declaro pardo para fins de política afirmativa.", "expected": ["LGPD_RACIAL"], "hard": "autodeclaração"}
+{"id": "SENS_RAC_027", "cat": "LGPD_SENSIVEL", "text": "Me declaro indígena para fins de política afirmativa.", "expected": ["LGPD_RACIAL"], "hard": "autodeclaração"}
+{"id": "SENS_RAC_028", "cat": "LGPD_SENSIVEL", "text": "Me declaro pardo para fins de política afirmativa.", "expected": ["LGPD_RACIAL"], "hard": "autodeclaração"}
+{"id": "SENS_RAC_029", "cat": "LGPD_SENSIVEL", "text": "Me declaro indígena para fins de política afirmativa.", "expected": ["LGPD_RACIAL"], "hard": "autodeclaração"}
+{"id": "SENS_RAC_030", "cat": "LGPD_SENSIVEL", "text": "Me declaro preto para fins de política afirmativa.", "expected": ["LGPD_RACIAL"], "hard": "autodeclaração"}
+{"id": "SENS_REL_001", "cat": "LGPD_SENSIVEL", "text": "Sou católico praticante.", "expected": ["LGPD_RELIGIAO"], "hard": "religião"}
+{"id": "SENS_REL_002", "cat": "LGPD_SENSIVEL", "text": "Evangélico da Igreja Universal.", "expected": ["LGPD_RELIGIAO"], "hard": "religião"}
+{"id": "SENS_REL_003", "cat": "LGPD_SENSIVEL", "text": "Pratico umbanda há 20 anos.", "expected": ["LGPD_RELIGIAO"], "hard": "religião"}
+{"id": "SENS_REL_004", "cat": "LGPD_SENSIVEL", "text": "Sou espírita kardecista.", "expected": ["LGPD_RELIGIAO"], "hard": "religião"}
+{"id": "SENS_REL_005", "cat": "LGPD_SENSIVEL", "text": "Frequento o terreiro de candomblé.", "expected": ["LGPD_RELIGIAO"], "hard": "religião"}
+{"id": "SENS_REL_006", "cat": "LGPD_SENSIVEL", "text": "Sou muçulmano e preciso de folga religiosa.", "expected": ["LGPD_RELIGIAO"], "hard": "religião"}
+{"id": "SENS_REL_007", "cat": "LGPD_SENSIVEL", "text": "Judeu praticante, respeitem meus dias santos.", "expected": ["LGPD_RELIGIAO"], "hard": "religião"}
+{"id": "SENS_REL_008", "cat": "LGPD_SENSIVEL", "text": "Sou ateu e não quero participar de orações.", "expected": ["LGPD_RELIGIAO"], "hard": "religião"}
+{"id": "SENS_REL_009", "cat": "LGPD_SENSIVEL", "text": "Minha religião não permite trabalhar aos sábados.", "expected": ["LGPD_RELIGIAO"], "hard": "religião"}
+{"id": "SENS_REL_010", "cat": "LGPD_SENSIVEL", "text": "Pastor da igreja local.", "expected": ["LGPD_RELIGIAO"], "hard": "religião"}
+{"id": "SENS_REL_011", "cat": "LGPD_SENSIVEL", "text": "Sou evangélico e solicito respeito às minhas práticas.", "expected": ["LGPD_RELIGIAO"], "hard": "genérico"}
+{"id": "SENS_REL_012", "cat": "LGPD_SENSIVEL", "text": "Sou judeu e solicito respeito às minhas práticas.", "expected": ["LGPD_RELIGIAO"], "hard": "genérico"}
+{"id": "SENS_REL_013", "cat": "LGPD_SENSIVEL", "text": "Sou budista e solicito respeito às minhas práticas.", "expected": ["LGPD_RELIGIAO"], "hard": "genérico"}
+{"id": "SENS_REL_014", "cat": "LGPD_SENSIVEL", "text": "Sou espírita e solicito respeito às minhas práticas.", "expected": ["LGPD_RELIGIAO"], "hard": "genérico"}
+{"id": "SENS_REL_015", "cat": "LGPD_SENSIVEL", "text": "Sou budista e solicito respeito às minhas práticas.", "expected": ["LGPD_RELIGIAO"], "hard": "genérico"}
+{"id": "SENS_REL_016", "cat": "LGPD_SENSIVEL", "text": "Sou muçulmano e solicito respeito às minhas práticas.", "expected": ["LGPD_RELIGIAO"], "hard": "genérico"}
+{"id": "SENS_REL_017", "cat": "LGPD_SENSIVEL", "text": "Sou espírita e solicito respeito às minhas práticas.", "expected": ["LGPD_RELIGIAO"], "hard": "genérico"}
+{"id": "SENS_REL_018", "cat": "LGPD_SENSIVEL", "text": "Sou evangélico e solicito respeito às minhas práticas.", "expected": ["LGPD_RELIGIAO"], "hard": "genérico"}
+{"id": "SENS_REL_019", "cat": "LGPD_SENSIVEL", "text": "Sou católico e solicito respeito às minhas práticas.", "expected": ["LGPD_RELIGIAO"], "hard": "genérico"}
+{"id": "SENS_REL_020", "cat": "LGPD_SENSIVEL", "text": "Sou budista e solicito respeito às minhas práticas.", "expected": ["LGPD_RELIGIAO"], "hard": "genérico"}
+{"id": "SENS_REL_021", "cat": "LGPD_SENSIVEL", "text": "Sou muçulmano e solicito respeito às minhas práticas.", "expected": ["LGPD_RELIGIAO"], "hard": "genérico"}
+{"id": "SENS_REL_022", "cat": "LGPD_SENSIVEL", "text": "Sou budista e solicito respeito às minhas práticas.", "expected": ["LGPD_RELIGIAO"], "hard": "genérico"}
+{"id": "SENS_REL_023", "cat": "LGPD_SENSIVEL", "text": "Sou evangélico e solicito respeito às minhas práticas.", "expected": ["LGPD_RELIGIAO"], "hard": "genérico"}
+{"id": "SENS_REL_024", "cat": "LGPD_SENSIVEL", "text": "Sou evangélico e solicito respeito às minhas práticas.", "expected": ["LGPD_RELIGIAO"], "hard": "genérico"}
+{"id": "SENS_REL_025", "cat": "LGPD_SENSIVEL", "text": "Sou católico e solicito respeito às minhas práticas.", "expected": ["LGPD_RELIGIAO"], "hard": "genérico"}
+{"id": "SENS_REL_026", "cat": "LGPD_SENSIVEL", "text": "Sou muçulmano e solicito respeito às minhas práticas.", "expected": ["LGPD_RELIGIAO"], "hard": "genérico"}
+{"id": "SENS_REL_027", "cat": "LGPD_SENSIVEL", "text": "Sou budista e solicito respeito às minhas práticas.", "expected": ["LGPD_RELIGIAO"], "hard": "genérico"}
+{"id": "SENS_REL_028", "cat": "LGPD_SENSIVEL", "text": "Sou evangélico e solicito respeito às minhas práticas.", "expected": ["LGPD_RELIGIAO"], "hard": "genérico"}
+{"id": "SENS_REL_029", "cat": "LGPD_SENSIVEL", "text": "Sou muçulmano e solicito respeito às minhas práticas.", "expected": ["LGPD_RELIGIAO"], "hard": "genérico"}
+{"id": "SENS_REL_030", "cat": "LGPD_SENSIVEL", "text": "Sou evangélico e solicito respeito às minhas práticas.", "expected": ["LGPD_RELIGIAO"], "hard": "genérico"}
+{"id": "SENS_POL_001", "cat": "LGPD_SENSIVEL", "text": "Sou filiado ao partido desde 2010.", "expected": ["LGPD_POLITICA"], "hard": "política"}
+{"id": "SENS_POL_002", "cat": "LGPD_SENSIVEL", "text": "Militante de esquerda há anos.", "expected": ["LGPD_POLITICA"], "hard": "política"}
+{"id": "SENS_POL_003", "cat": "LGPD_SENSIVEL", "text": "Participei da manifestação contra o governo.", "expected": ["LGPD_POLITICA"], "hard": "política"}
+{"id": "SENS_POL_004", "cat": "LGPD_SENSIVEL", "text": "Sou conservador e defendo meus valores.", "expected": ["LGPD_POLITICA"], "hard": "política"}
+{"id": "SENS_POL_005", "cat": "LGPD_SENSIVEL", "text": "Fui demitido por opinião política.", "expected": ["LGPD_POLITICA"], "hard": "política"}
+{"id": "SENS_POL_006", "cat": "LGPD_SENSIVEL", "text": "Sofri perseguição política no trabalho.", "expected": ["LGPD_POLITICA"], "hard": "política"}
+{"id": "SENS_POL_007", "cat": "LGPD_SENSIVEL", "text": "Minha ideologia não deve interferir no trabalho.", "expected": ["LGPD_POLITICA"], "hard": "política"}
+{"id": "SENS_POL_008", "cat": "LGPD_SENSIVEL", "text": "Sindicalizado e atuante politicamente.", "expected": ["LGPD_POLITICA"], "hard": "política"}
+{"id": "SENS_POL_009", "cat": "LGPD_SENSIVEL", "text": "Participo de movimentos sociais.", "expected": ["LGPD_POLITICA"], "hard": "política"}
+{"id": "SENS_POL_010", "cat": "LGPD_SENSIVEL", "text": "Fui candidato a vereador.", "expected": ["LGPD_POLITICA"], "hard": "política"}
+{"id": "SENS_POL_011", "cat": "LGPD_SENSIVEL", "text": "Sou filiado e isso não deveria afetar meu atendimento.", "expected": ["LGPD_POLITICA"], "hard": "genérico"}
+{"id": "SENS_POL_012", "cat": "LGPD_SENSIVEL", "text": "Sou filiado e isso não deveria afetar meu atendimento.", "expected": ["LGPD_POLITICA"], "hard": "genérico"}
+{"id": "SENS_POL_013", "cat": "LGPD_SENSIVEL", "text": "Sou candidato e isso não deveria afetar meu atendimento.", "expected": ["LGPD_POLITICA"], "hard": "genérico"}
+{"id": "SENS_POL_014", "cat": "LGPD_SENSIVEL", "text": "Sou ativista e isso não deveria afetar meu atendimento.", "expected": ["LGPD_POLITICA"], "hard": "genérico"}
+{"id": "SENS_POL_015", "cat": "LGPD_SENSIVEL", "text": "Sou candidato e isso não deveria afetar meu atendimento.", "expected": ["LGPD_POLITICA"], "hard": "genérico"}
+{"id": "SENS_POL_016", "cat": "LGPD_SENSIVEL", "text": "Sou filiado e isso não deveria afetar meu atendimento.", "expected": ["LGPD_POLITICA"], "hard": "genérico"}
+{"id": "SENS_POL_017", "cat": "LGPD_SENSIVEL", "text": "Sou militante e isso não deveria afetar meu atendimento.", "expected": ["LGPD_POLITICA"], "hard": "genérico"}
+{"id": "SENS_POL_018", "cat": "LGPD_SENSIVEL", "text": "Sou filiado e isso não deveria afetar meu atendimento.", "expected": ["LGPD_POLITICA"], "hard": "genérico"}
+{"id": "SENS_POL_019", "cat": "LGPD_SENSIVEL", "text": "Sou simpatizante e isso não deveria afetar meu atendimento.", "expected": ["LGPD_POLITICA"], "hard": "genérico"}
+{"id": "SENS_POL_020", "cat": "LGPD_SENSIVEL", "text": "Sou militante e isso não deveria afetar meu atendimento.", "expected": ["LGPD_POLITICA"], "hard": "genérico"}
+{"id": "SENS_POL_021", "cat": "LGPD_SENSIVEL", "text": "Sou candidato e isso não deveria afetar meu atendimento.", "expected": ["LGPD_POLITICA"], "hard": "genérico"}
+{"id": "SENS_POL_022", "cat": "LGPD_SENSIVEL", "text": "Sou candidato e isso não deveria afetar meu atendimento.", "expected": ["LGPD_POLITICA"], "hard": "genérico"}
+{"id": "SENS_POL_023", "cat": "LGPD_SENSIVEL", "text": "Sou candidato e isso não deveria afetar meu atendimento.", "expected": ["LGPD_POLITICA"], "hard": "genérico"}
+{"id": "SENS_POL_024", "cat": "LGPD_SENSIVEL", "text": "Sou militante e isso não deveria afetar meu atendimento.", "expected": ["LGPD_POLITICA"], "hard": "genérico"}
+{"id": "SENS_POL_025", "cat": "LGPD_SENSIVEL", "text": "Sou ativista e isso não deveria afetar meu atendimento.", "expected": ["LGPD_POLITICA"], "hard": "genérico"}
+{"id": "SENS_POL_026", "cat": "LGPD_SENSIVEL", "text": "Sou ativista e isso não deveria afetar meu atendimento.", "expected": ["LGPD_POLITICA"], "hard": "genérico"}
+{"id": "SENS_POL_027", "cat": "LGPD_SENSIVEL", "text": "Sou ativista e isso não deveria afetar meu atendimento.", "expected": ["LGPD_POLITICA"], "hard": "genérico"}
+{"id": "SENS_POL_028", "cat": "LGPD_SENSIVEL", "text": "Sou filiado e isso não deveria afetar meu atendimento.", "expected": ["LGPD_POLITICA"], "hard": "genérico"}
+{"id": "SENS_POL_029", "cat": "LGPD_SENSIVEL", "text": "Sou filiado e isso não deveria afetar meu atendimento.", "expected": ["LGPD_POLITICA"], "hard": "genérico"}
+{"id": "SENS_POL_030", "cat": "LGPD_SENSIVEL", "text": "Sou simpatizante e isso não deveria afetar meu atendimento.", "expected": ["LGPD_POLITICA"], "hard": "genérico"}
+{"id": "SENS_SIND_001", "cat": "LGPD_SENSIVEL", "text": "Sou filiado ao sindicato desde 2015.", "expected": ["LGPD_FILIACAO"], "hard": "sindical"}
+{"id": "SENS_SIND_002", "cat": "LGPD_SENSIVEL", "text": "Participei da greve da categoria.", "expected": ["LGPD_FILIACAO"], "hard": "sindical"}
+{"id": "SENS_SIND_003", "cat": "LGPD_SENSIVEL", "text": "Sindicalizado há 10 anos.", "expected": ["LGPD_FILIACAO"], "hard": "sindical"}
+{"id": "SENS_SIND_004", "cat": "LGPD_SENSIVEL", "text": "Representante sindical dos servidores.", "expected": ["LGPD_FILIACAO"], "hard": "sindical"}
+{"id": "SENS_SIND_005", "cat": "LGPD_SENSIVEL", "text": "Assembleia do sindicato decidiu pela greve.", "expected": ["LGPD_FILIACAO"], "hard": "sindical"}
+{"id": "SENS_SIND_006", "cat": "LGPD_SENSIVEL", "text": "Membro da CUT.", "expected": ["LGPD_FILIACAO"], "hard": "sindical"}
+{"id": "SENS_SIND_007", "cat": "LGPD_SENSIVEL", "text": "Filiado à Força Sindical.", "expected": ["LGPD_FILIACAO"], "hard": "sindical"}
+{"id": "SENS_SIND_008", "cat": "LGPD_SENSIVEL", "text": "Diretor do sindicato local.", "expected": ["LGPD_FILIACAO"], "hard": "sindical"}
+{"id": "SENS_SIND_009", "cat": "LGPD_SENSIVEL", "text": "Sofri retaliação por ser sindicalista.", "expected": ["LGPD_FILIACAO"], "hard": "sindical"}
+{"id": "SENS_SIND_010", "cat": "LGPD_SENSIVEL", "text": "Defendo os direitos dos trabalhadores.", "expected": ["LGPD_FILIACAO"], "hard": "sindical"}
+{"id": "SENS_SIND_011", "cat": "LGPD_SENSIVEL", "text": "Sou membro do associação da minha categoria.", "expected": ["LGPD_FILIACAO"], "hard": "genérico"}
+{"id": "SENS_SIND_012", "cat": "LGPD_SENSIVEL", "text": "Sou membro do sindicato da minha categoria.", "expected": ["LGPD_FILIACAO"], "hard": "genérico"}
+{"id": "SENS_SIND_013", "cat": "LGPD_SENSIVEL", "text": "Sou membro do associação da minha categoria.", "expected": ["LGPD_FILIACAO"], "hard": "genérico"}
+{"id": "SENS_SIND_014", "cat": "LGPD_SENSIVEL", "text": "Sou membro do movimento da minha categoria.", "expected": ["LGPD_FILIACAO"], "hard": "genérico"}
+{"id": "SENS_SIND_015", "cat": "LGPD_SENSIVEL", "text": "Sou membro do associação da minha categoria.", "expected": ["LGPD_FILIACAO"], "hard": "genérico"}
+{"id": "SENS_SIND_016", "cat": "LGPD_SENSIVEL", "text": "Sou membro do sindicato da minha categoria.", "expected": ["LGPD_FILIACAO"], "hard": "genérico"}
+{"id": "SENS_SIND_017", "cat": "LGPD_SENSIVEL", "text": "Sou membro do movimento da minha categoria.", "expected": ["LGPD_FILIACAO"], "hard": "genérico"}
+{"id": "SENS_SIND_018", "cat": "LGPD_SENSIVEL", "text": "Sou membro do movimento da minha categoria.", "expected": ["LGPD_FILIACAO"], "hard": "genérico"}
+{"id": "SENS_SIND_019", "cat": "LGPD_SENSIVEL", "text": "Sou membro do associação da minha categoria.", "expected": ["LGPD_FILIACAO"], "hard": "genérico"}
+{"id": "SENS_SIND_020", "cat": "LGPD_SENSIVEL", "text": "Sou membro do cooperativa da minha categoria.", "expected": ["LGPD_FILIACAO"], "hard": "genérico"}
+{"id": "SENS_SIND_021", "cat": "LGPD_SENSIVEL", "text": "Sou membro do sindicato da minha categoria.", "expected": ["LGPD_FILIACAO"], "hard": "genérico"}
+{"id": "SENS_SIND_022", "cat": "LGPD_SENSIVEL", "text": "Sou membro do sindicato da minha categoria.", "expected": ["LGPD_FILIACAO"], "hard": "genérico"}
+{"id": "SENS_SIND_023", "cat": "LGPD_SENSIVEL", "text": "Sou membro do cooperativa da minha categoria.", "expected": ["LGPD_FILIACAO"], "hard": "genérico"}
+{"id": "SENS_SIND_024", "cat": "LGPD_SENSIVEL", "text": "Sou membro do sindicato da minha categoria.", "expected": ["LGPD_FILIACAO"], "hard": "genérico"}
+{"id": "SENS_SIND_025", "cat": "LGPD_SENSIVEL", "text": "Sou membro do cooperativa da minha categoria.", "expected": ["LGPD_FILIACAO"], "hard": "genérico"}
+{"id": "SENS_SIND_026", "cat": "LGPD_SENSIVEL", "text": "Sou membro do cooperativa da minha categoria.", "expected": ["LGPD_FILIACAO"], "hard": "genérico"}
+{"id": "SENS_SIND_027", "cat": "LGPD_SENSIVEL", "text": "Sou membro do movimento da minha categoria.", "expected": ["LGPD_FILIACAO"], "hard": "genérico"}
+{"id": "SENS_SIND_028", "cat": "LGPD_SENSIVEL", "text": "Sou membro do movimento da minha categoria.", "expected": ["LGPD_FILIACAO"], "hard": "genérico"}
+{"id": "SENS_SIND_029", "cat": "LGPD_SENSIVEL", "text": "Sou membro do associação da minha categoria.", "expected": ["LGPD_FILIACAO"], "hard": "genérico"}
+{"id": "SENS_SIND_030", "cat": "LGPD_SENSIVEL", "text": "Sou membro do movimento da minha categoria.", "expected": ["LGPD_FILIACAO"], "hard": "genérico"}
+{"id": "EDGE_FRAG_001", "cat": "EDGE_CASES", "text": "tratamento psiquiátrico em andamento", "expected": ["TRATAMENTO_FULL"], "hard": "psiquiátrico completo"}
+{"id": "EDGE_FRAG_002", "cat": "EDGE_CASES", "text": "violência doméstica e familiar", "expected": ["LAI_INTIMIDADE"], "hard": "violência doméstica completo"}
+{"id": "EDGE_FRAG_003", "cat": "EDGE_CASES", "text": "católico praticante desde criança", "expected": ["LGPD_RELIGIAO"], "hard": "católico praticante completo"}
+{"id": "EDGE_FRAG_004", "cat": "EDGE_CASES", "text": "diagnóstico de ansiedade generalizada", "expected": ["DIAGNOSTICO_FULL"], "hard": "diagnóstico completo"}
+{"id": "EDGE_FRAG_005", "cat": "EDGE_CASES", "text": "transtorno de pânico severo", "expected": ["DIAGNOSTICO_FULL"], "hard": "transtorno completo"}
+{"id": "EDGE_FRAG_006", "cat": "EDGE_CASES", "text": "boletim de ocorrência registrado", "expected": ["LAI_INTIMIDADE_FULL"], "hard": "BO completo"}
+{"id": "EDGE_FRAG_007", "cat": "EDGE_CASES", "text": "medida protetiva de urgência", "expected": ["LAI_INTIMIDADE_FULL"], "hard": "medida protetiva completo"}
+{"id": "EDGE_FRAG_008", "cat": "EDGE_CASES", "text": "email@teste.com.br", "expected": ["EMAIL"], "hard": "email com .com.br"}
+{"id": "EDGE_FRAG_009", "cat": "EDGE_CASES", "text": "telefone (61) 99999-8888", "expected": ["TELEFONE_BR"], "hard": "telefone completo"}
+{"id": "EDGE_FRAG_010", "cat": "EDGE_CASES", "text": "CEP 72300-100", "expected": ["CEP_BR"], "hard": "CEP completo"}
+{"id": "EDGE_FRAG_011", "cat": "EDGE_CASES", "text": "católico apostólico romano", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_012", "cat": "EDGE_CASES", "text": "violência doméstica grave", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_013", "cat": "EDGE_CASES", "text": "tratamento psiquiátrico intensivo", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_014", "cat": "EDGE_CASES", "text": "católico apostólico romano", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_015", "cat": "EDGE_CASES", "text": "violência doméstica grave", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_016", "cat": "EDGE_CASES", "text": "email@dominio.com.br.gov", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_017", "cat": "EDGE_CASES", "text": "católico apostólico romano", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_018", "cat": "EDGE_CASES", "text": "violência doméstica grave", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_019", "cat": "EDGE_CASES", "text": "tratamento psiquiátrico intensivo", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_020", "cat": "EDGE_CASES", "text": "católico apostólico romano", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_021", "cat": "EDGE_CASES", "text": "católico apostólico romano", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_022", "cat": "EDGE_CASES", "text": "telefone celular 61 999998888", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_023", "cat": "EDGE_CASES", "text": "violência doméstica grave", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_024", "cat": "EDGE_CASES", "text": "violência doméstica grave", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_025", "cat": "EDGE_CASES", "text": "telefone celular 61 999998888", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_026", "cat": "EDGE_CASES", "text": "email@dominio.com.br.gov", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_027", "cat": "EDGE_CASES", "text": "email@dominio.com.br.gov", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_028", "cat": "EDGE_CASES", "text": "telefone celular 61 999998888", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_029", "cat": "EDGE_CASES", "text": "católico apostólico romano", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_030", "cat": "EDGE_CASES", "text": "tratamento psiquiátrico intensivo", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_031", "cat": "EDGE_CASES", "text": "email@dominio.com.br.gov", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_032", "cat": "EDGE_CASES", "text": "tratamento psiquiátrico intensivo", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_033", "cat": "EDGE_CASES", "text": "violência doméstica grave", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_034", "cat": "EDGE_CASES", "text": "violência doméstica grave", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_FRAG_035", "cat": "EDGE_CASES", "text": "email@dominio.com.br.gov", "expected": ["*"], "hard": "fragmentação"}
+{"id": "EDGE_ENC_001", "cat": "EDGE_CASES", "text": "tratamento psiquiÃ¡trico", "expected": ["*"], "hard": "psiquiátrico com mojibake"}
+{"id": "EDGE_ENC_002", "cat": "EDGE_CASES", "text": "diagnÃ³stico de depressÃ£o", "expected": ["*"], "hard": "diagnóstico com mojibake"}
+{"id": "EDGE_ENC_003", "cat": "EDGE_CASES", "text": "violÃªncia domÃ©stica", "expected": ["*"], "hard": "violência com mojibake"}
+{"id": "EDGE_ENC_004", "cat": "EDGE_CASES", "text": "CatÃ³lico praticante", "expected": ["*"], "hard": "católico com mojibake"}
+{"id": "EDGE_ENC_005", "cat": "EDGE_CASES", "text": "SoluÃ§Ã£o de problemas", "expected": ["*"], "hard": "solução com mojibake"}
+{"id": "EDGE_ENC_006", "cat": "EDGE_CASES", "text": "informaÃ§Ã£o sigilosa", "expected": ["*"], "hard": "informação com mojibake"}
+{"id": "EDGE_ENC_007", "cat": "EDGE_CASES", "text": "situaÃ§Ã£o de risco", "expected": ["*"], "hard": "situação com mojibake"}
+{"id": "EDGE_ENC_008", "cat": "EDGE_CASES", "text": "manifestaÃ§Ã£o polÃ­tica", "expected": ["*"], "hard": "manifestação com mojibake"}
+{"id": "EDGE_ENC_009", "cat": "EDGE_CASES", "text": "coraÃ§Ã£o partido", "expected": ["*"], "hard": "coração com mojibake"}
+{"id": "EDGE_ENC_010", "cat": "EDGE_CASES", "text": "orientaÃ§Ã£o sexual", "expected": ["*"], "hard": "orientação com mojibake"}
+{"id": "EDGE_ENC_011", "cat": "EDGE_CASES", "text": "preciso de ajudÃ¡ urgente", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_012", "cat": "EDGE_CASES", "text": "minha situaÃ§Ã£o Ã© grave", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_013", "cat": "EDGE_CASES", "text": "estou muito preocupadÃ£", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_014", "cat": "EDGE_CASES", "text": "preciso de ajudÃ¡ urgente", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_015", "cat": "EDGE_CASES", "text": "sofro violÃªncia hÃ¡ anos", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_016", "cat": "EDGE_CASES", "text": "minha situaÃ§Ã£o Ã© grave", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_017", "cat": "EDGE_CASES", "text": "sofro violÃªncia hÃ¡ anos", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_018", "cat": "EDGE_CASES", "text": "preciso de ajudÃ¡ urgente", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_019", "cat": "EDGE_CASES", "text": "preciso de ajudÃ¡ urgente", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_020", "cat": "EDGE_CASES", "text": "preciso de ajudÃ¡ urgente", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_021", "cat": "EDGE_CASES", "text": "estou muito preocupadÃ£", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_022", "cat": "EDGE_CASES", "text": "preciso de ajudÃ¡ urgente", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_023", "cat": "EDGE_CASES", "text": "preciso de ajudÃ¡ urgente", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_024", "cat": "EDGE_CASES", "text": "minha situaÃ§Ã£o Ã© grave", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_025", "cat": "EDGE_CASES", "text": "estou muito preocupadÃ£", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_026", "cat": "EDGE_CASES", "text": "estou muito preocupadÃ£", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_027", "cat": "EDGE_CASES", "text": "sofro violÃªncia hÃ¡ anos", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_028", "cat": "EDGE_CASES", "text": "preciso de ajudÃ¡ urgente", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_029", "cat": "EDGE_CASES", "text": "minha situaÃ§Ã£o Ã© grave", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_030", "cat": "EDGE_CASES", "text": "sofro violÃªncia hÃ¡ anos", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_031", "cat": "EDGE_CASES", "text": "preciso de ajudÃ¡ urgente", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_032", "cat": "EDGE_CASES", "text": "estou muito preocupadÃ£", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_033", "cat": "EDGE_CASES", "text": "preciso de ajudÃ¡ urgente", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_034", "cat": "EDGE_CASES", "text": "preciso de ajudÃ¡ urgente", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_ENC_035", "cat": "EDGE_CASES", "text": "minha situaÃ§Ã£o Ã© grave", "expected": ["*"], "hard": "mojibake"}
+{"id": "EDGE_OCR_001", "cat": "EDGE_CASES", "text": "CPF OI2.3456.789-OO", "expected": ["*"], "hard": "CPF com O no lugar de 0"}
+{"id": "EDGE_OCR_002", "cat": "EDGE_CASES", "text": "CPF 1Z3.456.789-OO", "expected": ["*"], "hard": "CPF com Z e O"}
+{"id": "EDGE_OCR_003", "cat": "EDGE_CASES", "text": "telefone (6l) 99999-8888", "expected": ["*"], "hard": "DDD com L minúsculo"}
+{"id": "EDGE_OCR_004", "cat": "EDGE_CASES", "text": "CEP 7Z300-l00", "expected": ["*"], "hard": "CEP com Z e L"}
+{"id": "EDGE_OCR_005", "cat": "EDGE_CASES", "text": "matrícula 4567B-9", "expected": ["*"], "hard": "matrícula com B no lugar de 8"}
+{"id": "EDGE_OCR_006", "cat": "EDGE_CASES", "text": "processo SEI 000I5.00045678/2024-91", "expected": ["*"], "hard": "SEI com I no lugar de 1"}
+{"id": "EDGE_OCR_007", "cat": "EDGE_CASES", "text": "CID F4l.l", "expected": ["*"], "hard": "CID com L minúsculo"}
+{"id": "EDGE_OCR_008", "cat": "EDGE_CASES", "text": "idade: l2 anos", "expected": ["*"], "hard": "idade com L"}
+{"id": "EDGE_OCR_009", "cat": "EDGE_CASES", "text": "R$ l.000,00", "expected": ["*"], "hard": "valor com L"}
+{"id": "EDGE_OCR_010", "cat": "EDGE_CASES", "text": "ano 2O24", "expected": ["*"], "hard": "ano com O"}
+{"id": "EDGE_OCR_011", "cat": "EDGE_CASES", "text": "telefone 6l 999998888", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_012", "cat": "EDGE_CASES", "text": "telefone 6l 999998888", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_013", "cat": "EDGE_CASES", "text": "matrícula l2345-6", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_014", "cat": "EDGE_CASES", "text": "telefone 6l 999998888", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_015", "cat": "EDGE_CASES", "text": "matrícula l2345-6", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_016", "cat": "EDGE_CASES", "text": "CEP 72OOO-lOO", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_017", "cat": "EDGE_CASES", "text": "matrícula l2345-6", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_018", "cat": "EDGE_CASES", "text": "matrícula l2345-6", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_019", "cat": "EDGE_CASES", "text": "telefone 6l 999998888", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_020", "cat": "EDGE_CASES", "text": "telefone 6l 999998888", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_021", "cat": "EDGE_CASES", "text": "CPF lll.222.333-44", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_022", "cat": "EDGE_CASES", "text": "matrícula l2345-6", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_023", "cat": "EDGE_CASES", "text": "CEP 72OOO-lOO", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_024", "cat": "EDGE_CASES", "text": "CPF lll.222.333-44", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_025", "cat": "EDGE_CASES", "text": "CPF lll.222.333-44", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_026", "cat": "EDGE_CASES", "text": "CPF lll.222.333-44", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_027", "cat": "EDGE_CASES", "text": "telefone 6l 999998888", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_028", "cat": "EDGE_CASES", "text": "telefone 6l 999998888", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_029", "cat": "EDGE_CASES", "text": "telefone 6l 999998888", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_030", "cat": "EDGE_CASES", "text": "CEP 72OOO-lOO", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_031", "cat": "EDGE_CASES", "text": "matrícula l2345-6", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_032", "cat": "EDGE_CASES", "text": "CPF lll.222.333-44", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_033", "cat": "EDGE_CASES", "text": "telefone 6l 999998888", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_034", "cat": "EDGE_CASES", "text": "matrícula l2345-6", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_OCR_035", "cat": "EDGE_CASES", "text": "CPF lll.222.333-44", "expected": ["*"], "hard": "OCR"}
+{"id": "EDGE_MIN_001", "cat": "EDGE_CASES", "text": "meu cpf é 12345678900 e moro na quadra 12 conjunto b samambaia", "expected": ["*"], "hard": "minúsculo"}
+{"id": "EDGE_MIN_002", "cat": "EDGE_CASES", "text": "o servidor joao da silva cpf 98765432100 precisa de licença", "expected": ["*"], "hard": "minúsculo"}
+{"id": "EDGE_MIN_003", "cat": "EDGE_CASES", "text": "tenho medo de violência doméstica meu marido me ameaça", "expected": ["*"], "hard": "minúsculo"}
+{"id": "EDGE_MIN_004", "cat": "EDGE_CASES", "text": "estou fazendo tratamento psiquiátrico desde 2020", "expected": ["*"], "hard": "minúsculo"}
+{"id": "EDGE_MIN_005", "cat": "EDGE_CASES", "text": "sou católico praticante e não trabalho aos domingos", "expected": ["*"], "hard": "minúsculo"}
+{"id": "EDGE_MIN_006", "cat": "EDGE_CASES", "text": "minha filha de 5 anos precisa de vaga na creche", "expected": ["*"], "hard": "minúsculo"}
+{"id": "EDGE_MIN_007", "cat": "EDGE_CASES", "text": "sofri discriminação racial no trabalho sou negro", "expected": ["*"], "hard": "minúsculo"}
+{"id": "EDGE_MIN_008", "cat": "EDGE_CASES", "text": "sou filiado ao sindicato desde 2015 e participei da greve", "expected": ["*"], "hard": "minúsculo"}
+{"id": "EDGE_MIN_009", "cat": "EDGE_CASES", "text": "processo sei 00015 00045678 2024 91 sem resposta", "expected": ["*"], "hard": "minúsculo"}
+{"id": "EDGE_MIN_010", "cat": "EDGE_CASES", "text": "email joao silva gmail com telefone 61 999998888", "expected": ["*"], "hard": "minúsculo"}
+{"id": "EDGE_MIN_011", "cat": "EDGE_CASES", "text": "tenho diagnóstico de depressão cid f32 0", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_012", "cat": "EDGE_CASES", "text": "texto todo minúsculo sem pontuação cpf 12345678900", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_013", "cat": "EDGE_CASES", "text": "tenho diagnóstico de depressão cid f32 0", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_014", "cat": "EDGE_CASES", "text": "servidor matrícula 12345 6 solicita licença médica", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_015", "cat": "EDGE_CASES", "text": "tenho diagnóstico de depressão cid f32 0", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_016", "cat": "EDGE_CASES", "text": "tenho diagnóstico de depressão cid f32 0", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_017", "cat": "EDGE_CASES", "text": "texto todo minúsculo sem pontuação cpf 12345678900", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_018", "cat": "EDGE_CASES", "text": "tenho diagnóstico de depressão cid f32 0", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_019", "cat": "EDGE_CASES", "text": "minha companheira está com medo de violência", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_020", "cat": "EDGE_CASES", "text": "texto todo minúsculo sem pontuação cpf 12345678900", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_021", "cat": "EDGE_CASES", "text": "tenho diagnóstico de depressão cid f32 0", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_022", "cat": "EDGE_CASES", "text": "minha companheira está com medo de violência", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_023", "cat": "EDGE_CASES", "text": "texto todo minúsculo sem pontuação cpf 12345678900", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_024", "cat": "EDGE_CASES", "text": "servidor matrícula 12345 6 solicita licença médica", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_025", "cat": "EDGE_CASES", "text": "texto todo minúsculo sem pontuação cpf 12345678900", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_026", "cat": "EDGE_CASES", "text": "texto todo minúsculo sem pontuação cpf 12345678900", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_027", "cat": "EDGE_CASES", "text": "tenho diagnóstico de depressão cid f32 0", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_028", "cat": "EDGE_CASES", "text": "minha companheira está com medo de violência", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_029", "cat": "EDGE_CASES", "text": "texto todo minúsculo sem pontuação cpf 12345678900", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_030", "cat": "EDGE_CASES", "text": "texto todo minúsculo sem pontuação cpf 12345678900", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_031", "cat": "EDGE_CASES", "text": "texto todo minúsculo sem pontuação cpf 12345678900", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_032", "cat": "EDGE_CASES", "text": "tenho diagnóstico de depressão cid f32 0", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_033", "cat": "EDGE_CASES", "text": "texto todo minúsculo sem pontuação cpf 12345678900", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_034", "cat": "EDGE_CASES", "text": "minha companheira está com medo de violência", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EDGE_MIN_035", "cat": "EDGE_CASES", "text": "tenho diagnóstico de depressão cid f32 0", "expected": ["*"], "hard": "sem pontuação"}
+{"id": "EXTRA_001", "cat": "EXTRA", "text": "Caso adicional 1 para completar 1000.", "expected": [], "hard": "preenchimento"}
+{"id": "EXTRA_002", "cat": "EXTRA", "text": "Caso adicional 2 para completar 1000.", "expected": [], "hard": "preenchimento"}
+{"id": "EXTRA_003", "cat": "EXTRA", "text": "Caso adicional 3 para completar 1000.", "expected": [], "hard": "preenchimento"}
+{"id": "EXTRA_004", "cat": "EXTRA", "text": "Caso adicional 4 para completar 1000.", "expected": [], "hard": "preenchimento"}
+{"id": "EXTRA_005", "cat": "EXTRA", "text": "Caso adicional 5 para completar 1000.", "expected": [], "hard": "preenchimento"}
+{"id": "EXTRA_006", "cat": "EXTRA", "text": "Caso adicional 6 para completar 1000.", "expected": [], "hard": "preenchimento"}
+{"id": "EXTRA_007", "cat": "EXTRA", "text": "Caso adicional 7 para completar 1000.", "expected": [], "hard": "preenchimento"}
+{"id": "EXTRA_008", "cat": "EXTRA", "text": "Caso adicional 8 para completar 1000.", "expected": [], "hard": "preenchimento"}
+{"id": "EXTRA_009", "cat": "EXTRA", "text": "Caso adicional 9 para completar 1000.", "expected": [], "hard": "preenchimento"}
+{"id": "EXTRA_010", "cat": "EXTRA", "text": "Caso adicional 10 para completar 1000.", "expected": [], "hard": "preenchimento"}

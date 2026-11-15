@@ -1,0 +1,9 @@
+# A imagem recebe apenas o necessário para executar (lista de permissão).
+*
+!pyproject.toml
+!README.md
+!LICENSE
+!NOTICE
+!requirements/producao.txt
+!src/
+src/**/__pycache__

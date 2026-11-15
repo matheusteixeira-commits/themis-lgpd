@@ -1,0 +1,267 @@
+"""Anonimização de documentos Word (.docx, e também .docm e .dotx, gravados como .docx).
+
+O pacote é tratado diretamente no nível do XML, parte por parte, para que nenhum conteúdo dependa
+do que uma biblioteca de alto nível sabe interpretar.
+
+**Conteúdo analisado e tarjado** (ver :mod:`themis_lgpd.formatos.xml_office`)
+
+* Texto de todas as partes: corpo, tabelas, caixas de texto, cabeçalhos e rodapés, notas de rodapé
+  e de fim, equações, gráficos (títulos, rótulos e valores em cache), SmartArt e formas.
+* Instruções de campo (ex.: ``HYPERLINK "mailto:..."``) e campos simples.
+* Atributos de texto livre: texto alternativo e nome de imagens e formas, dicas de hiperlinks,
+  rótulos e itens de controles de conteúdo e de campos de formulário, texto de WordArt.
+* Destinos de hiperlinks externos. Referências a arquivos locais são sempre removidas, pois o
+  caminho costuma conter o nome do usuário ou do servidor.
+
+**Conteúdo removido**
+
+* Alterações controladas, que são aceitas: o texto excluído é descartado e os nomes dos revisores
+  desaparecem.
+* Comentários e a lista de autores.
+* Propriedades do documento (autor, empresa, gerente, título, palavras-chave, propriedades
+  personalizadas) e a miniatura da primeira página.
+* Dados XML personalizados, variáveis do documento, modelo anexado, configuração de mala direta,
+  propriedades de marcas inteligentes e assinaturas digitais.
+* Objetos incorporados (planilhas de gráficos, objetos OLE, controles ActiveX), blocos de conteúdo
+  importado (``altChunk``), glossário e macros. O usuário é avisado.
+* Partes do pacote não referenciadas pelo documento.
+
+Ao final, todo o texto e todos os atributos do pacote gerado são relidos e comparados com os
+valores tarjados (ver :mod:`themis_lgpd.formatos.verificacao`).
+"""
+
+from __future__ import annotations
+
+import re
+from collections import Counter
+from urllib.parse import unquote
+
+from ..motor import Anonimizador
+from . import ArquivoInvalido, ResultadoArquivo, VazamentoDetectado
+from . import xml_office as X
+from .pacote import NS_R, TIPOS_CONTEUDO, Pacote, externo, gravar_xml, ler_xml, tipo_relacionamento
+from .verificacao import texto_de_pacote, valores_protegidos, valores_tarjados, verificar_ausencia
+
+_DCTERMS = "http://purl.org/dc/terms/"
+
+#: Prefixo dos namespaces do formato OOXML Strict, que não é suportado.
+_NS_STRICT = "http://purl.oclc.org/ooxml/"
+
+#: Revisões cujo conteúdo é descartado (texto excluído ou movido) ao aceitar as alterações.
+_REVISOES_DESCARTAR = ("del", "moveFrom")
+#: Revisões cujo conteúdo permanece (texto inserido ou movido) ao aceitar as alterações.
+_REVISOES_INCORPORAR = ("ins", "moveTo")
+#: Marcas de revisão sem conteúdo próprio; todas registram o autor da alteração.
+_MARCAS_REVISAO = (
+    "rPrChange", "pPrChange", "sectPrChange", "tblPrChange", "tblPrExChange", "trPrChange", "tcPrChange",
+    "tblGridChange", "numberingChange", "cellIns", "cellDel", "cellMerge", "moveFromRangeStart",
+    "moveFromRangeEnd", "moveToRangeStart", "moveToRangeEnd", "customXmlInsRangeStart", "customXmlInsRangeEnd",
+    "customXmlDelRangeStart", "customXmlDelRangeEnd", "customXmlMoveFromRangeStart", "customXmlMoveFromRangeEnd",
+    "customXmlMoveToRangeStart", "customXmlMoveToRangeEnd",
+)
+#: Elementos removidos onde aparecerem: variáveis do documento, modelo anexado (caminho local), mala
+#: direta (fonte de dados e consulta), propriedades de marcas inteligentes e de XML personalizado
+#: (repetem o texto marcado, ex.: o nome de uma pessoa) e dados binários de campos.
+_ELEMENTOS_REMOVER = frozenset({X.q("w", "docVars"), X.q("w", "attachedTemplate"), X.q("w", "mailMerge"),
+                                X.q("w", "smartTagPr"), X.q("w", "customXmlPr"), X.q("w", "fldData")})
+
+#: Relacionamentos removidos do pacote, pelo último segmento do tipo, e a categoria usada nos avisos.
+_RELACIONAMENTOS_REMOVER = {
+    "extended-properties": None, "custom-properties": None, "thumbnail": None,
+    "comments": None, "commentsextended": None, "commentsids": None, "commentsextensible": None, "people": None,
+    "customxml": None, "glossarydocument": None, "attachedtemplate": None, "printersettings": None,
+    "mailmergesource": None, "mailmergeheadersource": None, "recipientdata": None,
+    "webextensiontaskpanes": None, "extensibility": None,
+    "package": "objetos", "oleobject": "objetos", "control": "objetos", "activexcontrolbinary": "objetos",
+    "afchunk": "blocos",
+    "origin": "assinatura",
+    "vbaproject": "macros", "wordvbadata": "macros", "keymapcustomizations": "macros", "attachedtoolbars": "macros",
+}
+
+#: Tipos de conteúdo da parte principal que são convertidos para documento comum: o arquivo de saída
+#: não tem macros e é sempre um documento, não um modelo.
+_TIPO_DOCUMENTO = "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"
+_TIPOS_PRINCIPAIS = {
+    "application/vnd.ms-word.document.macroEnabled.main+xml": _TIPO_DOCUMENTO,
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml": _TIPO_DOCUMENTO,
+    "application/vnd.ms-word.template.macroEnabledTemplate.main+xml": _TIPO_DOCUMENTO,
+}
+
+#: Destinos externos aceitos como URL; qualquer outro destino externo é caminho de arquivo.
+_URL = re.compile(r"^(?:https?|mailto|ftp|tel):", re.IGNORECASE)
+IMAGENS = (".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tif", ".tiff", ".emf", ".wmf", ".svg", ".webp")
+
+
+# ---------------------------------------------------------------------------- revisões e comentários
+def _aceitar_revisoes(raiz) -> int:
+    """Aceita todas as alterações controladas e devolve quantas foram encontradas."""
+    total = 0
+    for nome in _REVISOES_DESCARTAR:
+        for el in list(raiz.iter(X.q("w", nome))):
+            el.getparent().remove(el)
+            total += 1
+    for nome in _REVISOES_INCORPORAR:
+        for el in list(raiz.iter(X.q("w", nome))):
+            pai = el.getparent()
+            posicao = pai.index(el)
+            for filho in list(el):
+                pai.insert(posicao, filho)
+                posicao += 1
+            pai.remove(el)
+            total += 1
+    for nome in _MARCAS_REVISAO:
+        for el in list(raiz.iter(X.q("w", nome))):
+            el.getparent().remove(el)
+    return total
+
+
+def _remover_comentarios(raiz) -> int:
+    """Remove as âncoras e referências de comentários e devolve quantos comentários havia."""
+    for nome in ("commentRangeStart", "commentRangeEnd"):
+        for el in list(raiz.iter(X.q("w", nome))):
+            el.getparent().remove(el)
+    total = 0
+    for el in list(raiz.iter(X.q("w", "commentReference"))):
+        pai = el.getparent()
+        if pai.tag == X.q("w", "r"):
+            pai.getparent().remove(pai)  # o trecho só existe para exibir a marca do comentário
+        else:
+            pai.remove(el)
+        total += 1
+    return total
+
+
+def _remover_elementos(raiz, ids_removidos: set[str]) -> None:
+    """Remove elementos de privacidade e os que apontam para relacionamentos removidos."""
+    from lxml import etree
+
+    for el in list(raiz.iter()):
+        if not isinstance(el.tag, str):
+            continue
+        if el.tag in _ELEMENTOS_REMOVER or etree.QName(el).localname == "dataBinding" or (
+                ids_removidos and any(etree.QName(a).namespace == NS_R and v in ids_removidos
+                                      for a, v in el.attrib.items())):
+            pai = el.getparent()
+            if pai is not None:
+                pai.remove(el)
+
+
+def _sanear_propriedades(conteudo: bytes) -> bytes:
+    """Propriedades básicas reduzidas às datas de criação e modificação."""
+    raiz = ler_xml(conteudo)
+    manter = {f"{{{_DCTERMS}}}created", f"{{{_DCTERMS}}}modified"}
+    for filho in list(raiz):
+        if filho.tag not in manter:
+            raiz.remove(filho)
+    return gravar_xml(raiz)
+
+
+# ---------------------------------------------------------------------------- ponto de entrada
+def anonimizar_docx(dados: bytes, anon: Anonimizador, nome: str, *, verificar: bool = True) -> ResultadoArquivo:
+    """Anonimiza um documento Word.
+
+    Args:
+        dados: Conteúdo do arquivo.
+        anon: Anonimizador configurado.
+        nome: Nome do arquivo de saída.
+        verificar: Relê o pacote gerado e confirma que nenhum valor tarjado continua presente.
+
+    Returns:
+        O documento anonimizado, os resultados da análise e os avisos ao usuário.
+
+    Raises:
+        ArquivoInvalido: Pacote corrompido, criptografado, no formato Strict ou com XML inválido.
+        VazamentoDetectado: A verificação encontrou valor tarjado no documento gerado.
+    """
+    try:
+        import lxml  # noqa: F401
+    except ImportError as erro:  # pragma: no cover - dependência opcional
+        raise ArquivoInvalido("Suporte a DOCX requer: pip install 'themis-lgpd[arquivos]'") from erro
+
+    pacote = Pacote.ler(dados)
+    antes = pacote.partes_a_manter()
+    removidos_por_parte: dict[str, set[str]] = {}
+    categorias: Counter[str] = Counter()
+    externos = []
+    nucleo = None
+    for origem, arvore, rel in pacote.iterar_relacionamentos():
+        tipo = tipo_relacionamento(rel)
+        if tipo in _RELACIONAMENTOS_REMOVER:
+            removidos_por_parte.setdefault(origem, set()).add(rel.get("Id"))
+            arvore.remove(rel)
+            if _RELACIONAMENTOS_REMOVER[tipo]:
+                categorias[_RELACIONAMENTOS_REMOVER[tipo]] += 1
+        elif externo(rel):
+            externos.append(rel)
+        elif tipo == "core-properties" and origem == "":
+            nucleo = pacote.destino(origem, rel)
+    manter = pacote.partes_a_manter()
+    orfas = sum(1 for n in pacote.ordem if n not in antes)
+
+    arvores: dict[str, object] = {}
+    unidades: list[X.Unidade] = []
+    revisoes = comentarios = 0
+    for parte in pacote.ordem:
+        if (parte not in manter or parte in pacote.relacionamentos or parte in (nucleo, TIPOS_CONTEUDO)
+                or not parte.lower().endswith((".xml", ".vml"))):
+            continue
+        raiz = ler_xml(pacote.partes[parte])
+        if isinstance(raiz.tag, str) and raiz.tag.startswith("{" + _NS_STRICT):
+            raise ArquivoInvalido("Documento no formato OOXML Strict, que não é suportado: salve-o como "
+                                  "'Documento do Word (.docx)' e tente novamente.")
+        revisoes += _aceitar_revisoes(raiz)
+        comentarios += _remover_comentarios(raiz)
+        _remover_elementos(raiz, removidos_por_parte.get(parte, set()))
+        unidades += X.unidades(raiz, anon)
+        arvores[parte] = raiz
+
+    locais = 0
+    for rel in externos:
+        destino = rel.get("Target") or ""
+        if _URL.match(destino):
+            unidades.append(X.Unidade(unquote(destino), X.aplicador(lambda _t, rel=rel: rel.set("Target", "#"))))
+        else:
+            rel.set("Target", "#")
+            locais += 1
+
+    resultados = X.analisar(unidades, anon)
+
+    substituir = {parte: gravar_xml(raiz) for parte, raiz in arvores.items()}
+    if nucleo:
+        substituir[nucleo] = _sanear_propriedades(pacote.partes[nucleo])
+    if TIPOS_CONTEUDO in pacote.partes:
+        substituir[TIPOS_CONTEUDO] = pacote.ajustar_tipos(manter, _TIPOS_PRINCIPAIS)
+    saida = pacote.gravar(manter, substituir)
+
+    avisos: list[str] = []
+    if revisoes:
+        avisos.append(f"{revisoes} alteração(ões) controlada(s) aceita(s): o texto excluído foi removido do arquivo.")
+    if comentarios:
+        avisos.append(f"{comentarios} comentário(s) removido(s).")
+    if categorias["objetos"]:
+        avisos.append(f"{categorias['objetos']} objeto(s) incorporado(s) (planilhas de gráficos, objetos OLE, "
+                      "controles) removido(s) sem análise; gráficos mantêm a aparência, mas deixam de ser editáveis.")
+    if categorias["blocos"]:
+        avisos.append(f"{categorias['blocos']} bloco(s) de conteúdo importado (altChunk) removido(s) sem análise: "
+                      "confira se o documento está completo.")
+    if categorias["assinatura"]:
+        avisos.append("A assinatura digital do documento foi removida (ela identifica o signatário e deixaria de "
+                      "ser válida após a anonimização).")
+    if categorias["macros"]:
+        avisos.append("Macros e personalizações removidas.")
+    if locais:
+        avisos.append(f"{locais} referência(s) a arquivos locais removida(s) (o caminho pode conter o nome do "
+                      "usuário ou do servidor).")
+    if orfas:
+        avisos.append(f"{orfas} parte(s) interna(s) sem referência no documento descartada(s).")
+    imagens = sum(1 for n in manter if n.lower().endswith(IMAGENS))
+    if imagens:
+        avisos.append(f"O documento tem {imagens} imagem(ns) não analisada(s) (assinaturas, fotos ou documentos "
+                      "digitalizados podem conter dados pessoais): revise-as manualmente.")
+
+    if verificar:
+        sobras = verificar_ausencia(texto_de_pacote(saida), valores_tarjados(resultados),
+                                    valores_protegidos(resultados, anon.permitir))
+        if sobras:
+            raise VazamentoDetectado(f"{len(sobras)} trecho(s) tarjado(s) ainda presente(s) no DOCX gerado.")
+    return ResultadoArquivo(saida, "docx", nome, resultados, avisos)
