@@ -17,8 +17,9 @@ from .base import ANTES_NUM, CONTEXTUAL, DEPOIS_NUM, Padrao
 
 #: Indicação opcional de número entre a palavra-chave e o valor: "nº", "n.", "número", "de número".
 _NUM = r"(?:(?:de\s+)?n(?:[º°o]|úm(?:ero)?|um(?:ero)?)?\.?\s*)?"
-#: Separador opcional entre a palavra-chave e o valor: "RG: 123", "RG - 123", "meu RG é 123".
-_SEP = r"\s*(?:[:\-–]|\b(?:é|e|era|sendo|seria)\b)?\s*"
+#: Separador opcional entre a palavra-chave e o valor: "RG: 123", "RG - 123", "meu RG é 123",
+#: "meu RG é o 123", "inscrito sob o nº 123".
+_SEP = r"\s*(?:[:\-–]|\b(?:é|e|era|sendo|seria)\b(?:\s+(?:o|a)\b)?|\bsob\s+o\b)?\s*"
 
 #: Contexto do CPF; "CIC" é a denominação antiga do documento.
 CTX_CPF = ("cpf", r"c\.p\.f\.?", "cadastro de pessoas? f[íi]sicas?", r"inscrit[oa] no", "cic")
@@ -98,11 +99,18 @@ PADROES: list[Padrao] = [
            + DEPOIS_NUM,
            0.9, camada=CONTEXTUAL, grupo="v"),
     # ---------------- Registro em conselho profissional (OAB, CRM, CREA, CAU…): sigla e número, em
-    # qualquer ordem. Siglas em maiúsculas, para não casar com palavras comuns.
+    # qualquer ordem. Siglas em maiúsculas, para não casar com palavras comuns. A sigla pode trazer
+    # a UF ("OAB/SP") ou o número da região ("CRN-3", "CRP-06"), que não é o número do registro.
     Padrao("REGISTRO_PROFISSIONAL",
            r"(?P<v>\b(?:OAB|CRM|CRO|CRP|COREN|CREA|CAU|CRF|CRN|CREFITO|CRMV|CRC|CRBio|CRESS|CREF|CRFa|CRQ|"
-           r"CORECON|CRA|CRECI|CRTR|CRBM)\s*[-/]?\s*(?:[A-Z]{2}\s*)?" + _NUM + r"[:\-]?\s*[A-Z]?\d{1,3}(?:\.?\d{3})*"
-           r"(?:\s*[-/]\s*[A-Z0-9]{1,2}\b)?)", 0.9, ignorar_caixa=False, nome="registro:sigla-numero"),
+           r"CORECON|CRA|CRECI|CRTR|CRBM|CRB|CRT|MTB|MTb|DRT)\s*(?:[-/]?\s*(?:[A-Z]{2}|\d{1,2}ª?)\b\s*)?"
+           r"(?:sob\s+o\s+)?" + _NUM + r"[:\-]?\s*[A-Z]?(?:\d{1,3}(?:\.\d{3})+|\d+)(?:\s*[-/]\s*[A-Z0-9]{1,2}\b){0,2})",
+           0.9, ignorar_caixa=False, nome="registro:sigla-numero"),
+    # Em minúsculas ("oab/sp 123456", "crm-df 12345"), só com a UF e um número de três dígitos ou mais.
+    Padrao("REGISTRO_PROFISSIONAL",
+           r"(?P<v>\b(?:oab|crm|cro|crp|coren|crea|cau|crf|crn|crefito|crmv|crc|cress|cref|crq|creci)\s*[-/]\s*"
+           r"[a-z]{2}\b\s*(?:sob\s+o\s+)?" + _NUM + r"[:\-]?\s*(?:\d{1,3}(?:\.\d{3})+|\d{3,})(?:\s*[-/]\s*[a-z0-9]{1,2}\b)?)",
+           0.9, nome="registro:minusculas"),
     Padrao("REGISTRO_PROFISSIONAL",
            r"(?P<v>\b\d{1,3}(?:\.?\d{3})*\s*[-/]?\s*(?:OAB|CRM|CREA|CRO|CRP|COREN|CAU)\s*[-/]\s*[A-Z]{2}\b)", 0.9,
            ignorar_caixa=False, nome="registro:numero-sigla"),

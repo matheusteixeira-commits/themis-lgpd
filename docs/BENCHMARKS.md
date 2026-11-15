@@ -39,16 +39,21 @@ pessoais.
 
 ### esic-ner
 
-| Métrica | Themis 1.0.0 |
-|---|---|
-| Entidades pessoais tarjadas | **94,2%** |
-| Recall estrito | 91,8% |
-| Pedidos com algum vazamento | 11,3% |
-| Triagem: precisão / recall / F1 | 0,948 / 0,941 / **0,944** |
-| Tarja fora do gabarito | 5,7% |
-| Tempo por pedido | 17 a 22 ms |
+| Métrica | Themis 1.0.0 | Versão atual |
+|---|---|---|
+| Entidades pessoais tarjadas | 94,2% | **94,5%** |
+| Recall estrito | 91,8% | **92,2%** |
+| Pedidos com algum vazamento | 11,3% | **10,5%** |
+| Triagem: precisão / recall / F1 | 0,948 / 0,941 / 0,944 | 0,948 / 0,941 / **0,944** |
+| Tarja fora do gabarito | 5,7% | 5,7% |
+| Tempo por pedido | 17 a 22 ms | 15 a 22 ms |
 
-Por rótulo:
+A versão atual corrige o separador "é o" ("meu RG é o …"), o número de registro em conselhos com
+região ("CRN-3 88421"), registros profissionais em minúsculas e itens de enumerações ("as CDAs X e
+Y"). Os números são gerados por `benchmark/esic_ner.py` e gravados em
+`benchmark/resultado_esic_ner.json`.
+
+Por rótulo (versão atual):
 
 | Rótulo | Entidades | Tarjadas | Estrito |
 |---|---|---|---|
@@ -58,9 +63,9 @@ Por rótulo:
 | `CONTATO` | 48 | 100,0% | 100,0% |
 | `DADO_FINANCEIRO` | 19 | 100,0% | 100,0% |
 | `ID_VEICULO` | 14 | 100,0% | 100,0% |
-| `DOC_PROFISSIONAL` | 32 | 96,9% | 68,8% |
+| `DOC_PROFISSIONAL` | 32 | 96,9% | 75,0% (1.0.0: 68,8%) |
 | `ENDERECO` | 52 | 94,2% | 65,4% |
-| `ID_PROCESSUAL` | 444 | 92,1% | 91,2% |
+| `ID_PROCESSUAL` | 444 | 93,0% (1.0.0: 92,1%) | 92,1% (1.0.0: 91,2%) |
 | `DADO_SAUDE` | 86 | 64,0% | 64,0% |
 | `QUASI_IDENTIFICADOR` | 20 | 35,0% (sinalizados) | 0,0% |
 
@@ -69,7 +74,7 @@ Leitura dos resultados:
 - **Dados de saúde (64,0%).** Parte das anotações está em pedidos estatísticos ("quantos casos de
   depressão foram registrados…"), que o perfil `lai` deliberadamente não tarja: sem vínculo com pessoa
   determinada, o termo vira alerta ([ADR 0004](adr/0004-perfis-lgpd-e-lai.md)).
-- **Identificadores processuais (92,1%).** Parte das anotações corresponde a números de editais, notas
+- **Identificadores processuais (93,0%).** Parte das anotações corresponde a números de editais, notas
   fiscais e contratos, que são informação pública.
 - **Recall estrito de endereços e registros profissionais.** A diferença para o recall comum vem de
   palavras-chave e componentes que ficam fora da tarja ("OAB/DF", nome da cidade), mantendo o número
@@ -133,11 +138,11 @@ brasileiros.
 
 | Métrica | Presidio puro (pt) | Themis 1.0.0 |
 |---|---|---|
-| esic-ner: entidades pessoais tarjadas | 53,3% | **94,2%** |
+| esic-ner: entidades pessoais tarjadas | 53,3% | **94,5%** |
 | esic-ner: nomes tarjados | 98,9% | **100,0%** |
 | esic-ner: documentos pessoais tarjados | 7,9% | **100,0%** |
 | esic-ner: datas de nascimento tarjadas | 100,0% | 100,0% |
-| esic-ner: pedidos com algum vazamento | 93,3% | **11,3%** |
+| esic-ner: pedidos com algum vazamento | 93,3% | **10,5%** |
 | esic-ner: triagem (F1) | 0,733 | **0,944** |
 | esic-ner: triagem (precisão) | 0,583 | **0,948** |
 | esic-ner: tarja fora do gabarito | 30,8% | **5,7%** |

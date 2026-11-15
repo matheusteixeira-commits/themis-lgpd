@@ -29,10 +29,17 @@ from ..motor import Anonimizador, Entidade, Resultado
 from ..texto import dobrar
 from . import ArquivoInvalido, ResultadoArquivo, VazamentoDetectado
 from . import xml_office as X
-from .docx import IMAGENS
+from .imagem import analisar_incorporadas, aviso_imagens
+from .midia import limpar_imagens
 from .pacote import Pacote, gravar_xml, ler_xml
 from .texto import decodificar
-from .verificacao import texto_de_pacote, valores_protegidos, valores_tarjados, verificar_ausencia
+from .verificacao import (
+    imagens_com_metadados,
+    texto_de_pacote,
+    valores_protegidos,
+    valores_tarjados,
+    verificar_ausencia,
+)
 
 # Cabeçalhos que contêm palavras de dado pessoal mas descrevem entidades públicas ou estrutura.
 _EXCLUI_CABECALHO = re.compile(r"orgao|empresa|unidade|secretaria|razao social|fantasia|setor|departamento|"
@@ -373,13 +380,21 @@ def _atualizar_tabelas(wb) -> None:
                     coluna.name = str(valor)
 
 
-def _sanear_desenhos(dados: bytes, anon: Anonimizador, mapa: dict[str, str]) -> tuple[bytes, list[Resultado]]:
-    """Analisa o texto de gráficos e desenhos e descarta os caches de dados dos gráficos."""
+def _sanear_desenhos(dados: bytes, anon: Anonimizador, mapa: dict[str, str], externos: list[tuple[str, str]], *,
+                     ocr: bool, verificar: bool) -> tuple[bytes, list[Resultado], list[str]]:
+    """Trata gráficos, desenhos e imagens do pacote gravado pelo openpyxl.
+
+    Analisa o texto de gráficos e desenhos, descarta os caches de dados dos gráficos, analisa por OCR e
+    QR code as imagens (com os valores já tarjados nas células propagados para elas) e remove os
+    metadados das imagens, que o openpyxl copia sem alteração.
+
+    Returns:
+        O pacote atualizado, os resultados da análise e os avisos sobre as imagens.
+    """
     pacote = Pacote.ler(dados)
     alvos = [n for n in pacote.ordem if n.lower().startswith(("xl/charts/", "xl/drawings/", "xl/chartsheets/"))
              and n.lower().endswith(".xml") and n not in pacote.relacionamentos]
-    if not alvos:
-        return dados, []
+    analisadas = analisar_incorporadas(pacote.partes, pacote.ordem, anon.modo, ocr=ocr)
     arvores, unidades = {}, []
     for parte in alvos:
         raiz = ler_xml(pacote.partes[parte])
@@ -390,13 +405,28 @@ def _sanear_desenhos(dados: bytes, anon: Anonimizador, mapa: dict[str, str]) -> 
                 referencia.text = _trocar_abas(referencia.text, mapa)
         unidades += X.unidades(raiz, anon)
         arvores[parte] = raiz
+    for analise, _formato in analisadas.values():
+        unidades += analise.unidades()
     # Mesma numeração de pseudônimos das células: "Pessoa 1" no gráfico é a "Pessoa 1" da planilha.
-    resultados = X.analisar(unidades, anon, continuar=True)
-    return pacote.gravar(set(pacote.ordem), {p: gravar_xml(r) for p, r in arvores.items()}), resultados
+    resultados = X.analisar(unidades, anon, continuar=True, externos=externos) if unidades else []
+    substituir = {p: gravar_xml(r) for p, r in arvores.items()}
+    tarjadas = 0
+    for parte, (analise, formato) in analisadas.items():
+        if analise.tarjada:
+            analise.desenhar()
+            if verificar:
+                analise.verificar(resultados, anon.permitir)
+            substituir[parte] = analise.codificar(formato)
+            tarjadas += 1
+    substituir |= limpar_imagens(pacote.partes, [p for p in pacote.ordem if p not in substituir])
+    avisos = aviso_imagens(len(analisadas), tarjadas, ocr)
+    if not substituir:
+        return dados, resultados, avisos
+    return pacote.gravar(set(pacote.ordem), substituir), resultados, avisos
 
 
 def anonimizar_xlsx(dados: bytes, anon: Anonimizador, nome: str, colunas: list[str] | None = None,
-                    integrais: list[str] | None = None, *, verificar: bool = True) -> ResultadoArquivo:
+                    integrais: list[str] | None = None, *, ocr: bool = True, verificar: bool = True) -> ResultadoArquivo:
     """Anonimiza uma pasta de trabalho do Excel.
 
     Args:
@@ -405,10 +435,12 @@ def anonimizar_xlsx(dados: bytes, anon: Anonimizador, nome: str, colunas: list[s
         nome: Nome do arquivo de saída.
         colunas: Restringe o processamento a estas colunas (pelo cabeçalho).
         integrais: Colunas a tarjar por inteiro, além das detectadas pelo cabeçalho.
+        ocr: Analisa por OCR o texto das imagens incorporadas.
         verificar: Relê o pacote gerado e confirma que nenhum valor tarjado continua presente.
 
     Raises:
         ArquivoInvalido: Pasta de trabalho corrompida ou ilegível.
+        FalhaOCR: Há imagens a analisar e nenhum mecanismo de OCR está disponível.
         VazamentoDetectado: A verificação encontrou valor tarjado na pasta de trabalho gerada.
     """
     import openpyxl
@@ -449,7 +481,9 @@ def anonimizar_xlsx(dados: bytes, anon: Anonimizador, nome: str, colunas: list[s
     comentarios, hiperlinks = _limpar(wb)
     buf = io.BytesIO()
     wb.save(buf)
-    saida, extras = _sanear_desenhos(buf.getvalue(), anon, mapa)
+    externos = [(e.tipo, e.valor) for r in resultados for e in r.tarjadas]
+    saida, extras, avisos_imagens = _sanear_desenhos(buf.getvalue(), anon, mapa, externos, ocr=ocr,
+                                                     verificar=verificar)
     resultados += extras
 
     from openpyxl.utils import get_column_letter
@@ -469,10 +503,9 @@ def anonimizar_xlsx(dados: bytes, anon: Anonimizador, nome: str, colunas: list[s
                       "do arquivo).")
     if any(n.endswith("vbaproject.bin") for n in nomes_originais):
         avisos.append("Macros removidas.")
-    imagens = sum(1 for n in Pacote.ler(saida).ordem if n.lower().endswith(IMAGENS))
-    if imagens:
-        avisos.append(f"A planilha tem {imagens} imagem(ns) não analisada(s) (fotos ou documentos digitalizados "
-                      "podem conter dados pessoais): revise-as manualmente.")
+    avisos += avisos_imagens
     if verificar:
         _verificar(texto_de_pacote(saida), resultados, anon, "XLSX")
+        if imagens_com_metadados(saida):
+            raise VazamentoDetectado("Imagem com metadados (EXIF, GPS ou XMP) no XLSX gerado.")
     return ResultadoArquivo(saida, "xlsx", nome, resultados, avisos)

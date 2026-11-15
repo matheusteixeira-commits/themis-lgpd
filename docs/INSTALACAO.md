@@ -29,8 +29,8 @@ O pacote base contém apenas o motor de texto. Os recursos adicionais são insta
 
 | Extra | Conteúdo | Necessário para |
 |---|---|---|
-| `arquivos` | pdfplumber, pdfminer.six, pypdfium2, pikepdf, ReportLab, Pillow, python-docx, openpyxl | PDF, DOCX, XLSX e imagens |
-| `ocr` | rapidocr-onnxruntime | OCR sem instalar o Tesseract |
+| `arquivos` | pdfplumber, pdfminer.six, pypdfium2, pikepdf, ReportLab, Pillow, python-docx, openpyxl, OpenCV (headless) | PDF, DOCX, XLSX e imagens; detecção de QR codes |
+| `ocr` | RapidOCR e ONNX Runtime (modelo multilíngue incluído no pacote) | OCR sem instalar o Tesseract |
 | `api` | FastAPI, Starlette, Uvicorn, python-multipart | `themis api` |
 | `ui` | Streamlit, pandas | `themis interface` |
 | `ml` | presidio-analyzer com GLiNER (PyTorch) | Reconhecedor neural opcional |

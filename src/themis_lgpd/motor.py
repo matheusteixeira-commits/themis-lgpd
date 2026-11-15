@@ -67,6 +67,17 @@ _CARGOS_DEPOIS = re.compile(r"^\s*[,–-]\s*(?:" + _CARGOS + r")(?!\w)", re.IGNO
 
 _MOTIVO_PROPAGACAO = "Mesmo dado já tarjado em outro ponto do documento"
 _MOTIVO_PRECAUCAO = "Identificador com confiança moderada — tarjado por precaução"
+_MOTIVO_ENUMERACAO = "Item de enumeração com o mesmo formato de um identificador tarjado"
+
+# Enumeração de identificadores ("as CDAs 2023.0012.345 e 2023.0012.346", "CPFs X, Y e Z"): o
+# contexto que identifica o primeiro item também se aplica aos seguintes.
+_CONECTIVO_ENUMERACAO = re.compile(r"\s*(?:,|;|\be\b|\bou\b)\s*")
+_ITEM_ENUMERACAO = re.compile(r"[0-9A-Za-z](?:[0-9A-Za-z.\-/]*[0-9A-Za-z])?")
+
+
+def _formato(valor: str) -> str:
+    """Formato de um identificador: sequências de dígitos viram "9" e de letras, "A"."""
+    return re.sub(r"[A-Za-z]+", "A", re.sub(r"\d+", "9", valor))
 
 
 @dataclass
@@ -277,7 +288,8 @@ class Anonimizador:
         return self.analisar_lote([texto])[0]
 
     def analisar_lote(self, textos: Sequence[str], *, mesmo_documento: bool = False,
-                      definidas: Sequence[list[Entidade] | None] | None = None) -> list[list[Entidade]]:
+                      definidas: Sequence[list[Entidade] | None] | None = None,
+                      externos: Iterable[tuple[str, str]] = ()) -> list[list[Entidade]]:
         """Analisa vários textos de uma vez (o modelo de linguagem processa o lote em conjunto).
 
         Args:
@@ -289,10 +301,14 @@ class Anonimizador:
                 do texto original. Esses textos não são analisados, mas participam da propagação —
                 por exemplo, uma célula de coluna "Nome", tarjada por inteiro, propaga o nome para as
                 demais células da planilha.
+            externos: Pares ``(tipo, valor)`` tarjados em outra etapa do mesmo documento, também
+                propagados para estes textos (ex.: valores das células, ao analisar os gráficos e as
+                imagens de uma planilha).
 
         Returns:
             Uma lista de entidades por texto, na mesma ordem da entrada.
         """
+        externos = list(externos)
         normais = [normalizar(t or "") for t in textos]
         definidas = list(definidas) if definidas is not None else [None] * len(normais)
         pendentes = [i for i, d in enumerate(definidas) if d is None]
@@ -301,9 +317,10 @@ class Anonimizador:
         lotes = [list(d) if d is not None else [] for d in definidas]
         for i, dets in zip(pendentes, deteccoes):
             lotes[i] = self._decidir(normais[i], dets)
+            self._enumeracoes(normais[i].original, lotes[i])
         grupos = [list(range(len(normais)))] if mesmo_documento else [[i] for i in range(len(normais))]
         for grupo in grupos:
-            self._propagar([normais[i] for i in grupo], [lotes[i] for i in grupo])
+            self._propagar([normais[i] for i in grupo], [lotes[i] for i in grupo], externos)
         return [self._consolidar(n.original, ents) for n, ents in zip(normais, lotes)]
 
     def _intervalos_permitidos(self, norm: TextoNormalizado) -> list[tuple[int, int]]:
@@ -379,14 +396,46 @@ class Anonimizador:
                                       d.validado, acao, motivo))
         return self._consolidar(norm.original, entidades)
 
-    def _propagar(self, normais: list[TextoNormalizado], lotes: list[list[Entidade]]) -> None:
+    @staticmethod
+    def _enumeracoes(original: str, entidades: list[Entidade]) -> None:
+        """Tarja os demais itens de uma enumeração que começa por um identificador tarjado.
+
+        Em "as CDAs 2023.0012.345 e 2023.0012.346", o contexto ("CDAs") identifica só o primeiro
+        número. Itens seguintes ligados por vírgula, ponto e vírgula, "e" ou "ou", com o mesmo
+        formato (mesma sequência de grupos de dígitos, letras e pontuação) e quantidade de dígitos
+        próxima, recebem o mesmo tipo. Só se aplica a valores com quatro dígitos ou mais.
+        """
+        ocupados = [(e.inicio, e.fim) for e in entidades]
+        novos: list[Entidade] = []
+        for e in [e for e in entidades if e.acao == P.TARJAR and sum(c.isdigit() for c in e.valor) >= 4]:
+            formato, digitos, fim = _formato(e.valor), sum(c.isdigit() for c in e.valor), e.fim
+            while (conectivo := _CONECTIVO_ENUMERACAO.match(original, fim)) is not None:
+                item = _ITEM_ENUMERACAO.match(original, conectivo.end())
+                if item is None or _formato(item.group()) != formato or \
+                        abs(sum(c.isdigit() for c in item.group()) - digitos) > 2:
+                    break
+                a, b = item.span()
+                if not any(x < b and a < y for x, y in ocupados):
+                    novos.append(Entidade(a, b, e.tipo, original[a:b], e.score, "enumeracao", e.camada, None,
+                                          P.TARJAR, _MOTIVO_ENUMERACAO))
+                    ocupados.append((a, b))
+                fim = b
+        entidades.extend(novos)
+
+    def _propagar(self, normais: list[TextoNormalizado], lotes: list[list[Entidade]],
+                  externos: Sequence[tuple[str, str]] = ()) -> None:
         """Tarja, em todos os textos do grupo, as demais ocorrências de valores já tarjados.
 
         As novas entidades são acrescentadas às listas de ``lotes``. Não são alteradas as ocorrências
         já cobertas por uma tarja, as protegidas pela lista de permissão ou mantidas por decisão
         explícita, e as que fazem parte de um nome de lugar ou de organização não tarjado.
+
+        Args:
+            normais: Textos do grupo.
+            lotes: Entidades de cada texto.
+            externos: Valores tarjados em outra etapa do mesmo documento.
         """
-        tarjadas = [(e.tipo, e.valor) for ents in lotes for e in ents if e.acao == P.TARJAR]
+        tarjadas = [(e.tipo, e.valor) for ents in lotes for e in ents if e.acao == P.TARJAR] + list(externos)
         if not tarjadas:
             return
         originais = [n.original for n in normais]
@@ -502,7 +551,7 @@ class Anonimizador:
 
     def anonimizar_lote(self, textos: Sequence[str], entidades: Sequence[list[Entidade] | None] | None = None,
                         consistente: bool = True, *, mesmo_documento: bool = False,
-                        continuar: bool = False) -> list[Resultado]:
+                        continuar: bool = False, externos: Iterable[tuple[str, str]] = ()) -> list[Resultado]:
         """Anonimiza vários textos.
 
         Args:
@@ -513,13 +562,15 @@ class Anonimizador:
             mesmo_documento: Os textos são partes de um mesmo documento (ver :meth:`analisar_lote`).
             continuar: Mantém a numeração de pseudônimos da chamada anterior, para partes de um
                 mesmo arquivo processadas em etapas (ex.: células e, depois, gráficos de uma planilha).
+            externos: Valores tarjados em etapa anterior do mesmo arquivo (ver :meth:`analisar_lote`).
 
         Returns:
             Um :class:`Resultado` por texto, na ordem da entrada.
         """
         normais = [normalizar(t or "") for t in textos]
         if entidades is None or any(e is None for e in entidades):
-            entidades = self.analisar_lote(textos, mesmo_documento=mesmo_documento, definidas=entidades)
+            entidades = self.analisar_lote(textos, mesmo_documento=mesmo_documento, definidas=entidades,
+                                           externos=externos)
         resultados = []
         if not continuar:
             self.substituidor.reiniciar()

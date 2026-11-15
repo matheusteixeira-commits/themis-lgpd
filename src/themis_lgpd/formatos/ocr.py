@@ -4,8 +4,9 @@ Mecanismos, em ordem de preferência:
 
 1. **Tesseract** com o idioma ``por``, quando instalado no sistema: melhor qualidade em português.
    A imagem é enviada pela entrada padrão do processo, sem arquivo temporário em disco.
-2. **RapidOCR** (pacote ``rapidocr-onnxruntime``, modelos ONNX incluídos no pacote): não requer
-   instalação no sistema e fornece a caixa de cada caractere.
+2. **RapidOCR** (pacote ``rapidocr`` com ``onnxruntime``; modelo multilíngue PP-OCRv6 incluído no
+   pacote, com suporte a português e acentuação): não requer instalação no sistema nem acesso à
+   rede e fornece a caixa de cada caractere.
 
 Nenhuma imagem sai da máquina. Uma falha do mecanismo de OCR interrompe o processamento: tratar a
 falha como "página sem texto" entregaria a página sem tarja.
@@ -63,10 +64,11 @@ def _tesseract() -> str | None:
 @lru_cache(maxsize=1)
 def _rapidocr():
     try:
-        from rapidocr_onnxruntime import RapidOCR
+        from rapidocr import RapidOCR
     except ImportError:
         return None
-    return RapidOCR()
+    # Os modelos padrão vêm no pacote; o nível "error" evita registrar o andamento de cada imagem.
+    return RapidOCR(params={"Global.log_level": "error"})
 
 
 def ocr_disponivel() -> bool:
@@ -97,31 +99,63 @@ def _via_tesseract(imagem) -> list[Palavra]:
     return palavras
 
 
+def _caixa(pontos) -> tuple[float, float, float, float]:
+    xs, ys = [p[0] for p in pontos], [p[1] for p in pontos]
+    return float(min(xs)), float(min(ys)), float(max(xs)), float(max(ys))
+
+
+def _palavra(chars: list[tuple[str, tuple[float, float, float, float]]]) -> Palavra:
+    caixas = [c for _, c in chars]
+    return Palavra("".join(t for t, _ in chars), min(c[0] for c in caixas), min(c[1] for c in caixas),
+                   max(c[2] for c in caixas), max(c[3] for c in caixas), caixas)
+
+
+def _separar_coladas(palavra: Palavra) -> list[Palavra]:
+    """Separa palavras coladas pelo OCR na passagem de minúscula para maiúscula.
+
+    Em digitalizações de baixa resolução, o OCR pode omitir os espaços ("formuladoporJoanaPereira"),
+    o que impediria o reconhecimento do nome. Sequências longas com transições minúscula → maiúscula
+    são divididas nesses pontos; siglas e nomes em caixa alta não são afetados.
+    """
+    texto = palavra.texto
+    if len(texto) < 16 or not palavra.chars or len(palavra.chars) != len(texto):
+        return [palavra]
+    cortes = [i for i in range(1, len(texto)) if texto[i - 1].islower() and texto[i].isupper()]
+    if not cortes:
+        return [palavra]
+    partes, inicio = [], 0
+    for fim in [*cortes, len(texto)]:
+        partes.append(_palavra(list(zip(texto[inicio:fim], palavra.chars[inicio:fim]))))
+        inicio = fim
+    return partes
+
+
 def _via_rapidocr(imagem) -> list[Palavra]:
-    """OCR pelo RapidOCR, com a caixa de cada caractere quando a versão instalada a fornece."""
+    """OCR pelo RapidOCR, com a caixa de cada caractere.
+
+    O RapidOCR devolve, por linha, o texto (com espaços) e as caixas dos caracteres visíveis. As
+    palavras são montadas alinhando as caixas ao texto; se a contagem não coincidir, a largura da
+    linha é repartida proporcionalmente, com um caractere de margem de cada lado.
+    """
     import numpy as np
 
-    resultado, _ = _rapidocr()(np.asarray(imagem.convert("RGB")), return_word_box=True)
-    palavras = []
-    for item in resultado or []:
-        caixa, texto = item[0], item[1]
-        if len(item) >= 5 and len(item[3]) == len(item[4]):
-            # Caixas por caractere: as palavras são montadas com precisão de pixel.
-            atual: list = []
-            for ch, cx in [*zip(item[4], item[3]), (" ", None)]:
-                if ch.strip() and cx is not None:
-                    xs, ys = [p[0] for p in cx], [p[1] for p in cx]
-                    atual.append((ch, (min(xs), min(ys), max(xs), max(ys))))
-                elif atual:
-                    cs = [c for _, c in atual]
-                    palavras.append(Palavra("".join(c for c, _ in atual), min(c[0] for c in cs), min(c[1] for c in cs),
-                                            max(c[2] for c in cs), max(c[3] for c in cs), cs))
+    saida = _rapidocr()(np.asarray(imagem.convert("RGB")), return_word_box=True, return_single_char_box=True)
+    palavras: list[Palavra] = []
+    for texto, caixa_linha, caracteres in zip(saida.txts or (), saida.boxes if saida.boxes is not None else (),
+                                              saida.word_results or ()):
+        caixas = [_caixa(c[2]) for c in caracteres if c[2] is not None and str(c[0]).strip()]
+        if len(caixas) == sum(1 for ch in texto if not ch.isspace()):
+            atual: list[tuple[str, tuple[float, float, float, float]]] = []
+            visiveis = iter(caixas)
+            for ch in [*texto, " "]:
+                if ch.isspace():
+                    if atual:
+                        palavras += _separar_coladas(_palavra(atual))
                     atual = []
+                else:
+                    atual.append((ch, next(visiveis)))
             continue
-        # Versões que devolvem apenas a caixa da linha: a largura é repartida proporcionalmente entre
-        # as palavras, com um caractere de margem de cada lado para compensar a estimativa.
-        xs, ys = [p[0] for p in caixa], [p[1] for p in caixa]
-        x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
+        x0, y0, x1, y1 = _caixa(caixa_linha)
         partes = texto.split()
         total = sum(len(p) for p in partes) + max(0, len(partes) - 1)
         largura_char = (x1 - x0) / max(1, total)

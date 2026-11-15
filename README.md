@@ -139,11 +139,11 @@ Regras por categoria e catálogo de tipos: [docs/TIPOS_DE_DADOS.md](docs/TIPOS_D
 
 ## Resultados
 
-| Conjunto | Métrica | Themis 1.0.0 | Presidio puro (pt) |
+| Conjunto | Métrica | Themis | Presidio puro (pt) |
 |---|---|---|---|
-| esic-ner (975 pedidos, CC BY 4.0) | Entidades pessoais tarjadas | **94,2%** | 53,3% |
+| esic-ner (975 pedidos, CC BY 4.0) | Entidades pessoais tarjadas | **94,5%** | 53,3% |
 | | Nomes / documentos pessoais tarjados | **100% / 100%** | 98,9% / 7,9% |
-| | Pedidos com algum vazamento | **11,3%** | 93,3% |
+| | Pedidos com algum vazamento | **10,5%** | 93,3% |
 | | Triagem "contém dado pessoal?" (F1) | **0,944** | 0,733 |
 | | Tarja fora do gabarito (excesso) | **5,7%** | 30,8% |
 | Sintético (1.000 documentos) | Identificadores tarjados | **99,6%** | 57,7% |

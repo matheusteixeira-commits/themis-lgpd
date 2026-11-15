@@ -23,8 +23,9 @@ _NUM = r"(?:(?:de\s+)?n(?:[º°o]|úm(?:ero)?|um(?:ero)?)?\.?\s*)?"
 _NAO_NORMA = (r"(?<!\b(?:lei|decreto|portaria|resolu[çc][ãa]o|instru[çc][ãa]o\s+normativa|edital|termo(?:\s+de\s+\w+)*|"
               r"of[íi]cio|memorando|nota\s+fiscal|empenho|contrato|conv[êe]nio|preg[ãa]o|licita[çc][ãa]o)"
               r"\s{1,3}(?:n[º°o.]*\s*)?)")
-#: Separador opcional entre a palavra-chave e o valor: "agência: 1234", "a conta é 5678".
-_SEP = r"\s*(?:[:\-–]|\b(?:é|e|era|sendo)\b)?\s*"
+#: Separador opcional entre a palavra-chave e o valor: "agência: 1234", "a conta é 5678", "o processo
+#: é o 123", "registrado sob o nº 123".
+_SEP = r"\s*(?:[:\-–]|\b(?:é|e|era|sendo)\b(?:\s+(?:o|a)\b)?|\bsob\s+o\b)?\s*"
 
 #: Regras de dados bancários, cartões e chaves PIX.
 FINANCEIRO: list[Padrao] = [

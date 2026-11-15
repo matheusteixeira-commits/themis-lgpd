@@ -17,7 +17,7 @@ o resultado de volta no XML. Há quatro tipos de unidade:
 from __future__ import annotations
 
 from bisect import bisect_right
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass
 
 from ..motor import Anonimizador, Entidade, Resultado
@@ -47,6 +47,18 @@ _SEPARADORES = {q("w", "tab"): "\t", q("w", "ptab"): "\t", q("w", "br"): "\n", q
 _TAGS_PARAGRAFO = (q("w", "p"), q("a", "p"))
 #: Elementos cujo texto é tratado por uma unidade específica (fluxo, campo ou valor de gráfico).
 _TRATADOS = _TAGS_TEXTO | {q("w", "instrText"), q("c", "v")}
+_NS_SVG = "http://www.w3.org/2000/svg"
+#: Atributos SVG de geometria, estilo e estrutura, que não contêm texto escrito pelo autor.
+_SVG_ESTRUTURAIS = frozenset({
+    "d", "points", "transform", "viewBox", "style", "fill", "stroke", "class", "id", "x", "y", "x1", "x2", "y1", "y2",
+    "cx", "cy", "r", "rx", "ry", "dx", "dy", "width", "height", "offset", "stop-color", "stop-opacity", "font-family",
+    "font-size", "font-weight", "font-style", "text-anchor", "clip-path", "clip-rule", "fill-rule", "mask", "filter",
+    "gradientTransform", "gradientUnits", "preserveAspectRatio", "version", "stroke-width", "opacity",
+    "fill-opacity", "stroke-opacity", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-dasharray",
+    "patternUnits", "patternTransform", "space", "dominant-baseline", "letter-spacing", "spreadMethod", "fx", "fy",
+    "markerWidth", "markerHeight", "orient", "refX", "refY", "visibility", "display", "overflow", "rotate",
+    "textLength", "lengthAdjust", "baseline-shift", "enable-background", "color", "baseProfile",
+})
 #: Elementos em que espaços nas bordas precisam ser preservados explicitamente.
 _PRESERVAR_ESPACO = frozenset({q("w", "t"), q("w", "delText"), q("w", "instrText"), q("m", "t")})
 
@@ -70,13 +82,16 @@ def tem_conteudo(texto: str | None) -> bool:
     return bool(texto) and (any(c.isalpha() for c in texto) or sum(c.isdigit() for c in texto) >= 8)
 
 
-def analisar(unidades: list[Unidade], anon: Anonimizador, *, continuar: bool = False) -> list[Resultado]:
+def analisar(unidades: list[Unidade], anon: Anonimizador, *, continuar: bool = False,
+             externos: Iterable[tuple[str, str]] = ()) -> list[Resultado]:
     """Analisa as unidades como um único documento e grava os resultados.
 
     Args:
         unidades: Unidades de análise.
         anon: Anonimizador configurado.
         continuar: Mantém a numeração de pseudônimos de uma etapa anterior do mesmo arquivo.
+        externos: Valores ``(tipo, valor)`` tarjados em etapa anterior do mesmo arquivo, também
+            procurados nestas unidades.
 
     Returns:
         Um resultado por unidade, seguido dos resultados de eventuais reanálises.
@@ -84,7 +99,7 @@ def analisar(unidades: list[Unidade], anon: Anonimizador, *, continuar: bool = F
     definidas = [u.entidades for u in unidades]
     resultados = anon.anonimizar_lote([u.texto for u in unidades],
                                       definidas if any(d is not None for d in definidas) else None,
-                                      mesmo_documento=True, continuar=continuar)
+                                      mesmo_documento=True, continuar=continuar, externos=externos)
     for unidade, r in zip(unidades, list(resultados)):
         resultados += unidade.aplicar(r)
     return resultados
@@ -162,6 +177,11 @@ def _atributos_livres(raiz) -> Iterator[tuple[object, str]]:
                 atributos = (q("w", "displayText"), q("w", "value"))
         elif nome.namespace == NS["v"]:
             atributos = ("alt", "string", "href", q("o", "title"))
+        elif nome.namespace == _NS_SVG:
+            # Rótulos de editores (inkscape:label), nome do arquivo de origem (sodipodi:docname),
+            # aria-label e outros; referências internas e imagens embutidas não são texto.
+            atributos = tuple(a for a in el.attrib if etree.QName(a).localname not in _SVG_ESTRUTURAIS
+                              and not str(el.get(a)).startswith(("#", "data:", "url(")))
         for atributo in atributos:
             valor = el.get(atributo)
             if valor and valor.strip():

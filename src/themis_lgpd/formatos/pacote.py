@@ -33,8 +33,13 @@ NS_R = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
 _DATA_FIXA = (1980, 1, 1, 0, 0, 0)
 
 
-def ler_xml(conteudo: bytes):
+def ler_xml(conteudo: bytes, *, dtd_externa: bool = False):
     """Interpreta uma parte XML com o analisador endurecido.
+
+    Args:
+        conteudo: Bytes da parte.
+        dtd_externa: Aceita declaração DOCTYPE que apenas referencia uma DTD externa, sem subconjunto
+            interno (comum em SVG). A DTD não é carregada e entidades não são resolvidas.
 
     Raises:
         ArquivoInvalido: XML malformado ou com declaração de DTD (proibida em OOXML).
@@ -47,8 +52,12 @@ def ler_xml(conteudo: bytes):
         raiz = etree.fromstring(conteudo, analisador)  # noqa: S320 - analisador endurecido acima  # nosec B320
     except etree.XMLSyntaxError as erro:
         raise ArquivoInvalido("O documento contém uma parte XML inválida.") from erro
-    if raiz.getroottree().docinfo.doctype:
-        raise ArquivoInvalido("O documento contém declaração de DTD, que não é permitida em arquivos Office.")
+    info = raiz.getroottree().docinfo
+    if info.doctype:
+        interna = info.internalDTD
+        sem_subconjunto = interna is None or (not list(interna.iterentities()) and not list(interna.elements()))
+        if not (dtd_externa and sem_subconjunto):
+            raise ArquivoInvalido("O documento contém declaração de DTD, que não é permitida em arquivos Office.")
     return raiz
 
 
@@ -172,12 +181,18 @@ class Pacote:
                     pendentes.append(destino)
         return vistos
 
-    def gravar(self, manter: set[str], substituir: dict[str, bytes]) -> bytes:
+    def gravar(self, manter: set[str], substituir: dict[str, bytes], renomear: dict[str, str] | None = None) -> bytes:
         """Grava um ZIP novo apenas com as partes de ``manter``.
 
         Os arquivos de relacionamentos são gravados a partir das árvores em :attr:`relacionamentos`,
         que podem ter sido editadas. ``[Content_Types].xml`` é sempre a primeira entrada.
+
+        Args:
+            manter: Partes que permanecem no pacote.
+            substituir: Conteúdo novo de partes, pelo nome original.
+            renomear: Novo nome de partes, pelo nome original (ver :meth:`renomear_partes`).
         """
+        renomear = renomear or {}
         nomes = [n for n in self.ordem if n in manter]
         nomes.sort(key=lambda n: n != TIPOS_CONTEUDO)
         saida = io.BytesIO()
@@ -189,10 +204,28 @@ class Pacote:
                     conteudo = gravar_xml(self.relacionamentos[nome])
                 else:
                     conteudo = self.partes[nome]
-                info = zipfile.ZipInfo(nome, date_time=_DATA_FIXA)
+                info = zipfile.ZipInfo(renomear.get(nome, nome), date_time=_DATA_FIXA)
                 info.compress_type = zipfile.ZIP_DEFLATED
                 arquivo.writestr(info, conteudo)
         return saida.getvalue()
+
+    def renomear_partes(self, renomear: dict[str, str]) -> None:
+        """Atualiza os relacionamentos para os novos nomes de partes.
+
+        O nome de uma parte de mídia costuma ser o nome do arquivo original no computador do autor
+        (ex.: ``foto_rg_maria.jpg``). Os destinos internos que apontam para partes renomeadas são
+        reescritos, mantendo a forma relativa ou absoluta do destino original.
+        """
+        if not renomear:
+            return
+        for origem, _arvore, rel in self.iterar_relacionamentos():
+            destino = self.destino(origem, rel)
+            if destino in renomear:
+                novo = renomear[destino]
+                if (rel.get("Target") or "").startswith("/"):
+                    rel.set("Target", "/" + novo)
+                else:
+                    rel.set("Target", posixpath.relpath(novo, posixpath.dirname(origem) or "."))
 
     def partes_a_manter(self) -> set[str]:
         """Partes alcançáveis, seus arquivos de relacionamentos e ``[Content_Types].xml``."""
@@ -206,21 +239,27 @@ class Pacote:
             manter.add(TIPOS_CONTEUDO)
         return manter
 
-    def ajustar_tipos(self, manter: set[str], substituicoes: dict[str, str] | None = None) -> bytes:
+    def ajustar_tipos(self, manter: set[str], substituicoes: dict[str, str] | None = None,
+                      renomear: dict[str, str] | None = None) -> bytes:
         """``[Content_Types].xml`` sem as declarações de partes descartadas.
 
         Args:
             manter: Partes que permanecem no pacote.
             substituicoes: Tipos de conteúdo a trocar (ex.: documento com macros → documento comum).
+            renomear: Novo nome de partes, pelo nome original.
         """
         raiz = ler_xml(self.partes[TIPOS_CONTEUDO])
         mantidas = {n.lower() for n in manter}
+        novos_nomes = {antigo.lower(): novo for antigo, novo in (renomear or {}).items()}
         for el in list(raiz):
             if not isinstance(el.tag, str) or el.tag != f"{{{NS_TIPOS}}}Override":
                 continue
             parte = unquote(el.get("PartName") or "").lstrip("/").lower()
             if parte not in mantidas:
                 raiz.remove(el)
-            elif substituicoes and el.get("ContentType") in substituicoes:
+                continue
+            if parte in novos_nomes:
+                el.set("PartName", "/" + novos_nomes[parte])
+            if substituicoes and el.get("ContentType") in substituicoes:
                 el.set("ContentType", substituicoes[el.get("ContentType")])
         return gravar_xml(raiz)

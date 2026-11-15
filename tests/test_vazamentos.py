@@ -16,6 +16,13 @@ CASOS = [
     ("CPF 1Z3.456.789-OO lido por OCR", ["1Z3.456.789-OO"]),
     ("Contato: joao.silva [arroba] gmail [ponto] com", ["joao.silva"]),
     ("Contato: joao.silva @ gmail . com", ["joao.silva"]),
+    ("Meu RG é o 12.345.678-9 e o processo é o 44920/2024.", ["12.345.678-9", "44920/2024"]),
+    ("Nutricionista CRN-3 88421, psicóloga CRP-06 123456, fisioterapeuta CREFITO-3 12345-F.",
+     ["88421", "123456", "12345-F"]),
+    ("Advogado inscrito na oab/sp 123456; médica crm-df 12.345; inscrita na OAB sob o nº 654.321.",
+     ["123456", "12.345", "654.321"]),
+    ("Foram inscritas as CDAs 2023.0012.345 e 2023.0012.346; os CPFs 529.982.247-25, 111.444.777-35 e "
+     "123.456.789-09 constam do processo.", ["2023.0012.346", "111.444.777-35", "123.456.789-09"]),
     ("RG 1.234.567 SSP/DF e meu rg é MG-18.442.903", ["1.234.567", "18.442.903"]),
     ("CNH 01234567890 e PIS 123.45678.90-1", ["01234567890", "45678"]),
     ("título de eleitor 0123 4567 8901 e cartão SUS 898 0012 3456 7890", ["4567 8901", "3456 7890"]),

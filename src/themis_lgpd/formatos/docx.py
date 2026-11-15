@@ -32,15 +32,25 @@ valores tarjados (ver :mod:`themis_lgpd.formatos.verificacao`).
 
 from __future__ import annotations
 
+import posixpath
 import re
 from collections import Counter
 from urllib.parse import unquote
 
 from ..motor import Anonimizador
 from . import ArquivoInvalido, ResultadoArquivo, VazamentoDetectado
+from . import metarquivo as M
 from . import xml_office as X
+from .imagem import analisar_incorporadas, aviso_imagens
+from .midia import limpar_imagens
 from .pacote import NS_R, TIPOS_CONTEUDO, Pacote, externo, gravar_xml, ler_xml, tipo_relacionamento
-from .verificacao import texto_de_pacote, valores_protegidos, valores_tarjados, verificar_ausencia
+from .verificacao import (
+    imagens_com_metadados,
+    texto_de_pacote,
+    valores_protegidos,
+    valores_tarjados,
+    verificar_ausencia,
+)
 
 _DCTERMS = "http://purl.org/dc/terms/"
 
@@ -63,7 +73,17 @@ _MARCAS_REVISAO = (
 #: direta (fonte de dados e consulta), propriedades de marcas inteligentes e de XML personalizado
 #: (repetem o texto marcado, ex.: o nome de uma pessoa) e dados binários de campos.
 _ELEMENTOS_REMOVER = frozenset({X.q("w", "docVars"), X.q("w", "attachedTemplate"), X.q("w", "mailMerge"),
-                                X.q("w", "smartTagPr"), X.q("w", "customXmlPr"), X.q("w", "fldData")})
+                                X.q("w", "smartTagPr"), X.q("w", "customXmlPr"), X.q("w", "fldData"),
+                                X.q("w", "rsids"), X.q("w", "rsid")})
+
+_NS_W14 = "http://schemas.microsoft.com/office/word/2010/wordml"
+_NS_W15 = "http://schemas.microsoft.com/office/word/2012/wordml"
+#: Identificadores gerados pelo Word a cada sessão de edição e para cada parágrafo. Não são visíveis,
+#: mas permitem correlacionar o documento anonimizado com a versão original e com outras versões.
+_ELEMENTOS_IDENTIFICADORES = frozenset({f"{{{_NS_W14}}}docId", f"{{{_NS_W15}}}docId"})
+_ATRIBUTOS_IDENTIFICADORES = frozenset({f"{{{_NS_W14}}}paraId", f"{{{_NS_W14}}}textId"})
+#: Pasta e prefixo dos nomes neutros dados às partes de mídia.
+_PREFIXO_MIDIA = "midia"
 
 #: Relacionamentos removidos do pacote, pelo último segmento do tipo, e a categoria usada nos avisos.
 _RELACIONAMENTOS_REMOVER = {
@@ -89,7 +109,11 @@ _TIPOS_PRINCIPAIS = {
 
 #: Destinos externos aceitos como URL; qualquer outro destino externo é caminho de arquivo.
 _URL = re.compile(r"^(?:https?|mailto|ftp|tel):", re.IGNORECASE)
-IMAGENS = (".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tif", ".tiff", ".emf", ".wmf", ".svg", ".webp")
+#: Extensões de imagens rasterizadas.
+IMAGENS_RASTER = (".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tif", ".tiff", ".webp")
+#: Extensões de imagens vetoriais (metarquivos do Windows e SVG).
+METARQUIVOS = (".emf", ".wmf", ".svg")
+IMAGENS = IMAGENS_RASTER + METARQUIVOS
 
 
 # ---------------------------------------------------------------------------- revisões e comentários
@@ -132,18 +156,63 @@ def _remover_comentarios(raiz) -> int:
 
 
 def _remover_elementos(raiz, ids_removidos: set[str]) -> None:
-    """Remove elementos de privacidade e os que apontam para relacionamentos removidos."""
+    """Remove elementos de privacidade, identificadores de revisão e os que apontam para
+    relacionamentos removidos; dá nome neutro às imagens e formas."""
     from lxml import etree
 
+    imagens = 0
     for el in list(raiz.iter()):
         if not isinstance(el.tag, str):
             continue
-        if el.tag in _ELEMENTOS_REMOVER or etree.QName(el).localname == "dataBinding" or (
+        if el.tag in _ELEMENTOS_REMOVER or el.tag in _ELEMENTOS_IDENTIFICADORES or \
+                etree.QName(el).localname == "dataBinding" or (
                 ids_removidos and any(etree.QName(a).namespace == NS_R and v in ids_removidos
                                       for a, v in el.attrib.items())):
             pai = el.getparent()
             if pai is not None:
                 pai.remove(el)
+            continue
+        for atributo in list(el.attrib):
+            nome = etree.QName(atributo)
+            if (nome.namespace == X.NS["w"] and nome.localname.startswith("rsid")) or \
+                    atributo in _ATRIBUTOS_IDENTIFICADORES:
+                del el.attrib[atributo]
+        # O nome interno de imagens e formas costuma ser o nome do arquivo de origem.
+        if etree.QName(el).localname in ("docPr", "cNvPr") and el.get("name"):
+            imagens += 1
+            el.set("name", f"Imagem {imagens}")
+
+
+def _aplicador_metarquivo(meta: M.Metarquivo):
+    """Mascara no metarquivo os trechos tarjados do seu texto."""
+    def aplicar(r):
+        if r.original == meta.texto:
+            for s in r.substituicoes:
+                meta.mascarar(s["inicio"], s["fim"])
+        elif r.tarjadas:
+            # A codificação do texto foi corrigida e as posições deixaram de corresponder: o texto
+            # inteiro do metarquivo é mascarado.
+            meta.mascarar(0, len(meta.texto))
+        return []
+    return aplicar
+
+
+def _nomes_neutros(partes: set[str]) -> dict[str, str]:
+    """Nomes neutros para as partes de mídia (``word/media/midia1.png``…), mantendo pasta e extensão.
+
+    O nome de uma imagem no pacote costuma ser o nome do arquivo no computador de quem a inseriu.
+    """
+    midias = sorted(p for p in partes if "/media/" in p.lower() or p.lower().endswith(METARQUIVOS + IMAGENS))
+    ocupados = {p.lower() for p in partes}
+    renomear: dict[str, str] = {}
+    for indice, parte in enumerate(midias, start=1):
+        pasta, arquivo = posixpath.split(parte)
+        extensao = posixpath.splitext(arquivo)[1].lower()
+        novo = posixpath.join(pasta, f"{_PREFIXO_MIDIA}{indice}{extensao}")
+        if novo.lower() != parte.lower() and novo.lower() not in ocupados:
+            renomear[parte] = novo
+            ocupados.add(novo.lower())
+    return renomear
 
 
 def _sanear_propriedades(conteudo: bytes) -> bytes:
@@ -157,13 +226,15 @@ def _sanear_propriedades(conteudo: bytes) -> bytes:
 
 
 # ---------------------------------------------------------------------------- ponto de entrada
-def anonimizar_docx(dados: bytes, anon: Anonimizador, nome: str, *, verificar: bool = True) -> ResultadoArquivo:
+def anonimizar_docx(dados: bytes, anon: Anonimizador, nome: str, *, ocr: bool = True,
+                    verificar: bool = True) -> ResultadoArquivo:
     """Anonimiza um documento Word.
 
     Args:
         dados: Conteúdo do arquivo.
         anon: Anonimizador configurado.
         nome: Nome do arquivo de saída.
+        ocr: Analisa por OCR o texto das imagens incorporadas.
         verificar: Relê o pacote gerado e confirma que nenhum valor tarjado continua presente.
 
     Returns:
@@ -171,6 +242,7 @@ def anonimizar_docx(dados: bytes, anon: Anonimizador, nome: str, *, verificar: b
 
     Raises:
         ArquivoInvalido: Pacote corrompido, criptografado, no formato Strict ou com XML inválido.
+        FalhaOCR: Há imagens a analisar e nenhum mecanismo de OCR está disponível.
         VazamentoDetectado: A verificação encontrou valor tarjado no documento gerado.
     """
     try:
@@ -203,9 +275,9 @@ def anonimizar_docx(dados: bytes, anon: Anonimizador, nome: str, *, verificar: b
     revisoes = comentarios = 0
     for parte in pacote.ordem:
         if (parte not in manter or parte in pacote.relacionamentos or parte in (nucleo, TIPOS_CONTEUDO)
-                or not parte.lower().endswith((".xml", ".vml"))):
+                or not parte.lower().endswith((".xml", ".vml", ".svg"))):
             continue
-        raiz = ler_xml(pacote.partes[parte])
+        raiz = ler_xml(pacote.partes[parte], dtd_externa=parte.lower().endswith(".svg"))
         if isinstance(raiz.tag, str) and raiz.tag.startswith("{" + _NS_STRICT):
             raise ArquivoInvalido("Documento no formato OOXML Strict, que não é suportado: salve-o como "
                                   "'Documento do Word (.docx)' e tente novamente.")
@@ -214,6 +286,26 @@ def anonimizar_docx(dados: bytes, anon: Anonimizador, nome: str, *, verificar: b
         _remover_elementos(raiz, removidos_por_parte.get(parte, set()))
         unidades += X.unidades(raiz, anon)
         arvores[parte] = raiz
+
+    metarquivos: dict[str, M.Metarquivo] = {}
+    ilegiveis = 0
+    for parte in sorted(manter):
+        if parte in arvores or not M.tipo_metarquivo(pacote.partes[parte]):
+            continue
+        try:
+            meta = M.ler(pacote.partes[parte])
+        except M.MetarquivoInvalido as erro:
+            raise ArquivoInvalido("O documento contém um metarquivo (EMF/WMF) corrompido.") from erro
+        ilegiveis += meta.ilegivel
+        if meta.trechos:
+            metarquivos[parte] = meta
+            unidades.append(X.Unidade(meta.texto, _aplicador_metarquivo(meta)))
+
+    # Imagens rasterizadas: o texto (OCR) e os QR codes entram no mesmo lote do documento.
+    imagens = analisar_incorporadas(pacote.partes, sorted(p for p in manter if p not in arvores and
+                                                          p not in metarquivos), anon.modo, ocr=ocr)
+    for analise, _formato in imagens.values():
+        unidades += analise.unidades()
 
     locais = 0
     for rel in externos:
@@ -227,11 +319,23 @@ def anonimizar_docx(dados: bytes, anon: Anonimizador, nome: str, *, verificar: b
     resultados = X.analisar(unidades, anon)
 
     substituir = {parte: gravar_xml(raiz) for parte, raiz in arvores.items()}
+    substituir.update({parte: bytes(meta.dados) for parte, meta in metarquivos.items()})
+    tarjadas = 0
+    for parte, (analise, formato) in imagens.items():
+        if analise.tarjada:
+            analise.desenhar()
+            if verificar:
+                analise.verificar(resultados, anon.permitir)
+            substituir[parte] = analise.codificar(formato)
+            tarjadas += 1
+    substituir.update(limpar_imagens(pacote.partes, [p for p in manter if p not in substituir]))
     if nucleo:
         substituir[nucleo] = _sanear_propriedades(pacote.partes[nucleo])
+    renomear = _nomes_neutros(manter)
+    pacote.renomear_partes(renomear)
     if TIPOS_CONTEUDO in pacote.partes:
-        substituir[TIPOS_CONTEUDO] = pacote.ajustar_tipos(manter, _TIPOS_PRINCIPAIS)
-    saida = pacote.gravar(manter, substituir)
+        substituir[TIPOS_CONTEUDO] = pacote.ajustar_tipos(manter, _TIPOS_PRINCIPAIS, renomear)
+    saida = pacote.gravar(manter, substituir, renomear)
 
     avisos: list[str] = []
     if revisoes:
@@ -254,14 +358,19 @@ def anonimizar_docx(dados: bytes, anon: Anonimizador, nome: str, *, verificar: b
                       "usuário ou do servidor).")
     if orfas:
         avisos.append(f"{orfas} parte(s) interna(s) sem referência no documento descartada(s).")
-    imagens = sum(1 for n in manter if n.lower().endswith(IMAGENS))
-    if imagens:
-        avisos.append(f"O documento tem {imagens} imagem(ns) não analisada(s) (assinaturas, fotos ou documentos "
-                      "digitalizados podem conter dados pessoais): revise-as manualmente.")
+    avisos += aviso_imagens(len(imagens), tarjadas, ocr)
+    if metarquivos:
+        avisos.append(f"Texto de {len(metarquivos)} imagem(ns) vetorial(is) (EMF/WMF, como tabelas coladas do "
+                      "Excel) analisado; trechos tarjados foram mascarados na própria imagem.")
+    if ilegiveis:
+        avisos.append(f"{ilegiveis} imagem(ns) vetorial(is) com texto em glifos que não pode ser lido: revise-a(s) "
+                      "manualmente.")
 
     if verificar:
         sobras = verificar_ausencia(texto_de_pacote(saida), valores_tarjados(resultados),
                                     valores_protegidos(resultados, anon.permitir))
         if sobras:
             raise VazamentoDetectado(f"{len(sobras)} trecho(s) tarjado(s) ainda presente(s) no DOCX gerado.")
+        if imagens_com_metadados(saida):
+            raise VazamentoDetectado("Imagem com metadados (EXIF, GPS ou XMP) no DOCX gerado.")
     return ResultadoArquivo(saida, "docx", nome, resultados, avisos)

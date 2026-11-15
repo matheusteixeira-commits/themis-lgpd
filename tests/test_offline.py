@@ -30,3 +30,18 @@ def test_carga_e_anonimizacao_sem_rede(sem_rede):
     )
     assert "maria.souza" not in r.texto and "Maria" not in r.texto
     assert sem_rede == []  # nenhuma tentativa de conexão (ex.: tldextract, download de modelo)
+
+
+def test_ocr_sem_rede(sem_rede):
+    """O RapidOCR usa os modelos incluídos no pacote; nenhum download é tentado."""
+    pytest.importorskip("rapidocr")
+    from PIL import Image, ImageDraw
+
+    from themis_lgpd.formatos import ocr
+
+    ocr._rapidocr.cache_clear()
+    imagem = Image.new("RGB", (600, 80), "white")
+    ImageDraw.Draw(imagem).text((10, 20), "CPF 529.982.247-25", fill="black", font_size=32)
+    texto = " ".join(p.texto for p in ocr._via_rapidocr(imagem))
+    assert "529" in texto
+    assert sem_rede == []

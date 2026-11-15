@@ -58,6 +58,10 @@ LIMIAR_TEXTO_ILEGIVEL = 0.10
 #: não tem caracteres extraíveis, mas é lido pelo OCR na página renderizada.
 LIMIAR_CURVAS = 40
 
+#: Quantidade de retângulos e curvas a partir da qual uma página sem imagens é renderizada para busca
+#: de QR codes desenhados como vetores.
+MINIMO_FORMAS_QR = 50
+
 #: Caixa delimitadora em pontos, com origem no canto superior esquerdo: (x0, topo, x1, base).
 Caixa = tuple[float, float, float, float]
 
@@ -96,6 +100,9 @@ class Pagina:
         rotulos: Texto a escrever dentro de cada tarja (etiqueta ou pseudônimo).
         imagem_area: Fração da área ocupada por imagens.
         imagens_nao_analisadas: Indica imagens que não passaram por OCR.
+        codigos: QR codes localizados, com a caixa em pontos da página.
+        reler_pixels: Alguma tarja foi posicionada a partir dos pixels (OCR ou QR code); a página
+            gerada é relida por OCR e pela busca de QR codes na verificação final.
     """
 
     indice: int
@@ -107,6 +114,8 @@ class Pagina:
     rotulos: list[tuple[Caixa, str]] = field(default_factory=list)
     imagem_area: float = 0.0
     imagens_nao_analisadas: bool = False
+    codigos: list = field(default_factory=list)
+    reler_pixels: bool = False
 
 
 # ---------------------------------------------------------------------------- montagem do texto
@@ -251,6 +260,7 @@ def _extrair(pdf_bytes: bytes, limite_paginas: int, ocr: bool, avisos: list[str]
     import pypdfium2 as pdfium
 
     from . import ocr as mod_ocr
+    from . import qr as mod_qr
 
     paginas: list[Pagina] = []
     try:
@@ -258,6 +268,7 @@ def _extrair(pdf_bytes: bytes, limite_paginas: int, ocr: bool, avisos: list[str]
     except Exception as erro:
         raise ArquivoInvalido("PDF inválido, corrompido ou protegido por senha.") from erro
     ocr_ativo = ocr and mod_ocr.ocr_disponivel()
+    qr_ativo = mod_qr.disponivel()
     sem_ocr: list[int] = []
     sem_texto: list[int] = []
     ilegiveis: list[int] = []
@@ -298,6 +309,7 @@ def _extrair(pdf_bytes: bytes, limite_paginas: int, ocr: bool, avisos: list[str]
                 raise FalhaOCR("O PDF tem páginas digitalizadas, imagens ou texto em contornos, que exigem OCR: instale o "
                                "Tesseract (idioma 'por') ou 'pip install themis-lgpd[ocr]', ou desative o OCR "
                                "para processar sem analisá-las.")
+            img = None
             if precisa_ocr and ocr_ativo:
                 doc_pdfium = doc_pdfium or pdfium.PdfDocument(pdf_bytes)
                 img, escala = _renderizar(doc_pdfium, i, pag)
@@ -306,18 +318,27 @@ def _extrair(pdf_bytes: bytes, limite_paginas: int, ocr: bool, avisos: list[str]
                      [tuple(v / escala for v in c) for c in p.chars] if p.chars else None)
                     for p in mod_ocr.reconhecer(img)
                 ]
+                if not ocr_palavras and n_chars == 0:
+                    sem_texto.append(i + 1)
                 if not texto_ilegivel:
                     # Descarta o que a camada de texto já cobre, para não analisar duas vezes.
                     existentes = [c for s in pag.segmentos for _, c in s.palavras]
                     ocr_palavras = [p for p in ocr_palavras if not any(_intersecta(p[1], e) for e in existentes)]
                 if ocr_palavras:
                     pag.segmentos.append(_montar_segmento(ocr_palavras, "ocr"))
-                elif n_chars < 25:
-                    sem_texto.append(i + 1)
             elif precisa_ocr:
                 sem_ocr.append(i + 1)
             elif page.images:
                 pag.imagens_nao_analisadas = True
+            # QR codes chegam como imagem ou desenhados com centenas de retângulos (GRU, boletos).
+            if qr_ativo and (page.images or len(page.rects) + len(page.curves) >= MINIMO_FORMAS_QR):
+                if img is None:
+                    doc_pdfium = doc_pdfium or pdfium.PdfDocument(pdf_bytes)
+                    img, escala = _renderizar(doc_pdfium, i, pag)
+                for codigo in mod_qr.localizar(img):
+                    x0, y0, x1, y1 = codigo.caixa
+                    pag.codigos.append(mod_qr.CodigoQR((x0 / escala, y0 / escala, x1 / escala, y1 / escala),
+                                                       codigo.conteudo))
             paginas.append(pag)
         if doc_pdfium is not None:
             doc_pdfium.close()
@@ -488,7 +509,156 @@ def _sanear(pdf) -> None:
             for chave in ("/Metadata", "/PieceInfo"):
                 if chave in obj:
                     del obj[chave]
+    _limpar_imagens(pdf)
+    _sanear_conteudo_marcado(pdf)
     pdf.remove_unreferenced_resources()
+
+
+#: Chaves de conteúdo marcado com texto alternativo: substituto do texto (``/ActualText``), descrição
+#: alternativa (``/Alt``) e expansão de abreviatura (``/E``).
+_CHAVES_TEXTO_ALTERNATIVO = ("/ActualText", "/Alt", "/E")
+
+
+def _conteudos(pdf):
+    """Páginas e formulários XObject (alcançáveis a partir das páginas), cada um uma única vez."""
+    import pikepdf
+
+    vistos: set[tuple[int, int]] = set()
+    pendentes = [page.obj for page in pdf.pages]
+    while pendentes:
+        obj = pendentes.pop()
+        if obj.is_indirect:
+            if obj.objgen in vistos:
+                continue
+            vistos.add(obj.objgen)
+        yield obj
+        recursos = obj.get("/Resources")
+        xobjetos = recursos.get("/XObject") if isinstance(recursos, pikepdf.Dictionary) else None
+        if isinstance(xobjetos, pikepdf.Dictionary):
+            pendentes += [x for x in xobjetos.values() if isinstance(x, pikepdf.Stream) and x.get("/Subtype") == "/Form"]
+
+
+def _sanear_conteudo_marcado(pdf) -> None:
+    """Remove textos alternativos de conteúdo marcado e neutraliza nomes de camadas (OCG).
+
+    Os textos alternativos ficam em dicionários de propriedades — embutidos no operador ``BDC`` ou
+    referenciados por nome em ``/Resources/Properties`` — e não aparecem para os extratores de texto,
+    mas são lidos por leitores de tela e pelo "copiar". O nome de uma camada aparece no painel de
+    camadas dos leitores de PDF ("Assinatura de Fulano").
+    """
+    import pikepdf
+
+    camadas = 0
+    for obj in pdf.objects:
+        if isinstance(obj, pikepdf.Dictionary) and obj.get("/Type") in ("/OCG", "/OCMD") and "/Name" in obj:
+            camadas += 1
+            obj.Name = pikepdf.String(f"Camada {camadas}")
+    for alvo in _conteudos(pdf):
+        recursos = alvo.get("/Resources")
+        propriedades = recursos.get("/Properties") if isinstance(recursos, pikepdf.Dictionary) else None
+        if isinstance(propriedades, pikepdf.Dictionary):
+            for dicionario in propriedades.values():
+                if isinstance(dicionario, pikepdf.Dictionary):
+                    for chave in _CHAVES_TEXTO_ALTERNATIVO:
+                        if chave in dicionario:
+                            del dicionario[chave]
+        dados = _bytes_conteudo(alvo)
+        if not any(chave.encode() in dados for chave in _CHAVES_TEXTO_ALTERNATIVO):
+            continue
+        instrucoes = pikepdf.parse_content_stream(alvo)
+        alterou = False
+        for instrucao in instrucoes:
+            if str(instrucao.operator) == "BDC" and len(instrucao.operands) == 2 and \
+                    isinstance(instrucao.operands[1], pikepdf.Dictionary):
+                for chave in _CHAVES_TEXTO_ALTERNATIVO:
+                    if chave in instrucao.operands[1]:
+                        del instrucao.operands[1][chave]
+                        alterou = True
+        if alterou:
+            novo = pikepdf.unparse_content_stream(instrucoes)
+            if isinstance(alvo, pikepdf.Stream):
+                alvo.write(novo)
+            else:
+                alvo.Contents = pdf.make_stream(novo)
+
+
+def _bytes_conteudo(alvo) -> bytes:
+    """Fluxo de conteúdo decodificado de uma página ou formulário XObject."""
+    import pikepdf
+
+    if isinstance(alvo, pikepdf.Stream):
+        return alvo.read_bytes()
+    conteudo = alvo.get("/Contents")
+    if isinstance(conteudo, pikepdf.Array):
+        return b"\n".join(parte.read_bytes() for parte in conteudo if isinstance(parte, pikepdf.Stream))
+    return conteudo.read_bytes() if isinstance(conteudo, pikepdf.Stream) else b""
+
+
+def _fluxos_de_imagem(pdf):
+    """Imagens JPEG e JPEG 2000 do documento.
+
+    Gera ``(objeto, filtro, dados)``, em que ``dados`` é o arquivo de imagem contido no fluxo, já sem
+    eventuais filtros de compressão aplicados por cima (ex.: ``[/FlateDecode /DCTDecode]``).
+    """
+    import pikepdf
+
+    candidatos = []
+    for obj in pdf.objects:
+        if not isinstance(obj, pikepdf.Stream) or obj.get("/Subtype") != "/Image":
+            continue
+        filtros = obj.get("/Filter")
+        nomes = [str(f) for f in filtros] if isinstance(filtros, pikepdf.Array) else ([str(filtros)] if filtros else [])
+        if nomes and nomes[-1] in ("/DCTDecode", "/JPXDecode"):
+            candidatos.append((obj, nomes))
+    for obj, nomes in candidatos:
+        if len(nomes) == 1:
+            dados = obj.read_raw_bytes()
+        else:
+            # O QPDF não decodifica parcialmente uma cadeia de filtros: os anteriores ao da imagem são
+            # aplicados em um fluxo temporário, não vinculado ao documento.
+            temporario = pikepdf.Stream(pdf, obj.read_raw_bytes())
+            temporario.Filter = pikepdf.Array([pikepdf.Name(n) for n in nomes[:-1]])
+            parametros = obj.get("/DecodeParms")
+            if isinstance(parametros, pikepdf.Array):
+                temporario.DecodeParms = pikepdf.Array(list(parametros)[:-1])
+            dados = temporario.read_bytes()
+        yield obj, nomes[-1], dados
+
+
+def _limpar_imagens(pdf) -> None:
+    """Remove metadados (EXIF, GPS, XMP, comentários) de dentro dos fluxos JPEG e JPEG 2000.
+
+    A chave ``/Metadata`` do dicionário da imagem é tratada em :func:`_sanear`; aqui são tratados os
+    metadados gravados no próprio arquivo de imagem, copiados intactos nas páginas sem tarja.
+
+    Raises:
+        ArquivoInvalido: Imagem com estrutura inválida, que não pode ser limpa com segurança.
+    """
+    import pikepdf
+
+    from .midia import ImagemInvalida, limpar_jp2, limpar_jpeg
+
+    for obj, filtro, dados in list(_fluxos_de_imagem(pdf)):
+        try:
+            novo = limpar_jpeg(dados) if filtro == "/DCTDecode" else limpar_jp2(dados)
+        except (ImagemInvalida, IndexError, ValueError) as erro:
+            raise ArquivoInvalido("O PDF contém uma imagem corrompida.") from erro
+        if novo != dados:
+            parametros = obj.get("/DecodeParms")
+            if isinstance(parametros, pikepdf.Array):
+                parametros = parametros[-1] if len(parametros) else None
+            obj.write(novo, filter=pikepdf.Name(filtro), decode_parms=parametros)
+
+
+def _imagens_com_metadados(pdf_bytes: bytes) -> int:
+    """Quantidade de imagens do PDF gerado que ainda têm metadados no próprio arquivo de imagem."""
+    import pikepdf
+
+    from .midia import limpar_jp2, metadados_restantes
+
+    with pikepdf.open(io.BytesIO(pdf_bytes)) as pdf:
+        return sum(1 for _, filtro, dados in _fluxos_de_imagem(pdf)
+                   if (metadados_restantes(dados) if filtro == "/DCTDecode" else limpar_jp2(dados) != dados))
 
 
 # ---------------------------------------------------------------------------- verificação
@@ -553,6 +723,13 @@ def _texto_estrutural(pdf_bytes: bytes) -> str:
         visitar(pdf.trailer)
         for obj in pdf.objects:
             visitar(obj)
+        # Conteúdo bruto das páginas e formulários: cobre texto que os extratores não leem (fora da
+        # área visível, conteúdo marcado) e dicionários embutidos em operadores.
+        for alvo in _conteudos(pdf):
+            try:
+                partes.append(_bytes_conteudo(alvo).decode("latin-1"))
+            except pikepdf.PdfError as erro:
+                raise VazamentoDetectado("Não foi possível verificar o conteúdo de uma página do PDF gerado.") from erro
     return "\n".join(partes)
 
 
@@ -587,7 +764,18 @@ def anonimizar_pdf(dados: bytes, anon: Anonimizador, nome: str, *, limite_pagina
     dados = _preparar(dados, avisos)
     paginas = _extrair(dados, limite_paginas, ocr, avisos)
     segmentos = [(pag, seg) for pag in paginas for seg in pag.segmentos]
-    resultados: list[Resultado] = anon.anonimizar_lote([seg.texto for _, seg in segmentos], mesmo_documento=True)
+    # O conteúdo dos QR codes decodificados é analisado no mesmo lote que o texto das páginas; BR Codes
+    # do PIX e códigos não decodificados são tarjados sem análise (ver themis_lgpd.formatos.qr).
+    codigos = []
+    for pag in paginas:
+        for codigo in pag.codigos:
+            if codigo.pix or codigo.conteudo is None:
+                pag.tarjas.append(codigo.caixa)
+                pag.reler_pixels = True
+            else:
+                codigos.append((pag, codigo))
+    textos = [seg.texto for _, seg in segmentos] + [c.conteudo for _, c in codigos]
+    resultados: list[Resultado] = anon.anonimizar_lote(textos, mesmo_documento=True)
     for (pag, seg), r in zip(segmentos, resultados):
         for s in r.substituicoes:
             caixas = [seg.caixas[k] for k in range(s["inicio"], min(s["fim"], len(seg.caixas))) if seg.caixas[k]]
@@ -597,6 +785,12 @@ def anonimizar_pdf(dados: bytes, anon: Anonimizador, nome: str, *, limite_pagina
                 pag.tarjas.append(caixa)
                 if anon.modo != "tarja" and seg.origem != "texto-vertical":
                     pag.rotulos.append((caixa, s["substituto"]))
+            pag.reler_pixels |= seg.origem == "ocr"
+    for (pag, codigo), r in zip(codigos, resultados[len(segmentos):]):
+        if r.tarjadas:
+            pag.tarjas.append(codigo.caixa)
+            pag.reler_pixels = True
+    qr_tarjados = sum(1 for pag in paginas for c in pag.codigos if c.caixa in pag.tarjas)
 
     try:
         origem = pikepdf.open(io.BytesIO(dados))
@@ -630,7 +824,46 @@ def anonimizar_pdf(dados: bytes, anon: Anonimizador, nome: str, *, limite_pagina
                                     valores_tarjados(resultados), valores_protegidos(resultados, anon.permitir))
         if sobras:
             raise VazamentoDetectado(f"{len(sobras)} trecho(s) tarjado(s) ainda legível(is) no PDF gerado.")
+        if _imagens_com_metadados(pdf_final):
+            raise VazamentoDetectado("Imagem com metadados (EXIF, GPS ou XMP) no PDF gerado.")
+        _reler_pixels(pdf_final, [p for p in paginas if p.reler_pixels], resultados, anon.permitir)
     if rasterizadas:
         avisos.append(f"{rasterizadas} página(s) com tarja foram convertidas em imagem com camada de texto "
                       "pesquisável (garante que o conteúdo tarjado não possa ser recuperado).")
+    if qr_tarjados:
+        avisos.append(f"{qr_tarjados} QR code(s) tarjado(s) (PIX, conteúdo com dado pessoal ou não legível).")
     return ResultadoArquivo(pdf_final, "pdf", nome, resultados, avisos)
+
+
+def _reler_pixels(pdf_bytes: bytes, paginas: list[Pagina], resultados: list[Resultado], permitir) -> None:
+    """Relê por OCR e por busca de QR codes as páginas cujas tarjas foram posicionadas pelos pixels.
+
+    A camada de texto dessas páginas é recriada sem as palavras tarjadas e, por isso, não prova que a
+    tarja cobriu o conteúdo da imagem; só a releitura dos pixels prova.
+
+    Raises:
+        VazamentoDetectado: Valor tarjado ou BR Code do PIX ainda legível na imagem da página.
+    """
+    if not paginas:
+        return
+    import pypdfium2 as pdfium
+
+    from . import ocr as mod_ocr
+    from . import qr as mod_qr
+
+    textos = []
+    doc = pdfium.PdfDocument(pdf_bytes)
+    try:
+        for pag in paginas:
+            img, _ = _renderizar(doc, pag.indice, pag)
+            if any(s.origem == "ocr" for s in pag.segmentos):
+                textos.append(" ".join(p.texto for p in mod_ocr.reconhecer(img)))
+            if pag.codigos and mod_qr.disponivel():
+                codigos = mod_qr.localizar(img)
+                if any(c.pix for c in codigos):
+                    raise VazamentoDetectado("QR code PIX ainda legível no PDF gerado.")
+                textos += [c.conteudo for c in codigos if c.conteudo]
+    finally:
+        doc.close()
+    if verificar_ausencia("\n".join(textos), valores_tarjados(resultados), valores_protegidos(resultados, permitir)):
+        raise VazamentoDetectado("Trecho tarjado ainda legível na imagem de uma página do PDF gerado.")

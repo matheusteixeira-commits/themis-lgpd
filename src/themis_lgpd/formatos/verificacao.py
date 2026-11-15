@@ -130,6 +130,19 @@ def verificar_ausencia(texto_saida: str, valores: Mapping[str, str] | Iterable[s
     return achados
 
 
+def imagens_com_metadados(dados: bytes) -> list[str]:
+    """Partes de um pacote Office (DOCX/XLSX) cujas imagens ainda têm metadados (EXIF, GPS, XMP…)."""
+    from .midia import formato_imagem, metadados_restantes
+
+    achados = []
+    with zipfile.ZipFile(io.BytesIO(dados)) as pacote:
+        for nome in pacote.namelist():
+            conteudo = pacote.read(nome)
+            if formato_imagem(conteudo) and metadados_restantes(conteudo):
+                achados.append(nome)
+    return achados
+
+
 def texto_de_pacote(dados: bytes) -> str:
     """Todo o texto de um pacote Office (DOCX/XLSX).
 
@@ -137,11 +150,17 @@ def texto_de_pacote(dados: bytes) -> str:
     relacionamento — onde ficam, por exemplo, destinos de hiperlinks, textos alternativos de
     imagens e nomes de autores.
     """
+    from . import metarquivo
+
     partes = []
     with zipfile.ZipFile(io.BytesIO(dados)) as pacote:
         for nome in pacote.namelist():
-            if nome.endswith((".xml", ".rels", ".vml")):
-                xml = pacote.read(nome).decode("utf-8", errors="ignore")
+            conteudo = pacote.read(nome)
+            if nome.endswith((".xml", ".rels", ".vml", ".svg")):
+                xml = conteudo.decode("utf-8", errors="ignore")
                 partes.append(html.unescape(_TAG_XML.sub(" ", xml)))
                 partes.extend(html.unescape(v) for v in _ATRIBUTO_XML.findall(xml))
+            elif metarquivo.tipo_metarquivo(conteudo):
+                # O texto das imagens vetoriais (EMF/WMF) é legível por qualquer visualizador.
+                partes.append(metarquivo.ler(conteudo).texto)
     return "\n".join(partes)

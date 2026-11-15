@@ -3,6 +3,41 @@
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o projeto adota
 [versionamento semântico](https://semver.org/lang/pt-BR/).
 
+## Não publicado
+
+### Segurança — vazamentos fechados
+
+- Metadados de imagens incorporadas (EXIF com GPS e autor, XMP, comentários, miniaturas e vídeo
+  anexado ao fim de fotos de celular) removidos sem recompressão em DOCX, XLSX e nas imagens JPEG e
+  JPEG 2000 de páginas de PDF sem tarja; a verificação final falha se algum metadado permanecer.
+- QR codes localizados e decodificados em imagens, em imagens incorporadas e em páginas de PDF
+  (inclusive desenhados como vetores, como em GRU e boletos): BR Code do PIX sempre tarjado; demais
+  QR codes tarjados quando o conteúdo tem dado pessoal; QR codes não decodificáveis tarjados.
+- Imagens rasterizadas dentro de DOCX e XLSX analisadas por OCR e tarjadas nos pixels, no mesmo lote
+  do documento (um nome tarjado no texto é tarjado também na imagem).
+- Texto de imagens vetoriais EMF e WMF (tabelas coladas do Excel) analisado e mascarado no próprio
+  arquivo, inclusive registros EMF+; texto e atributos de SVG analisados.
+- PDF: textos alternativos de conteúdo marcado (`/ActualText`, `/Alt`, `/E`) removidos e nomes de
+  camadas neutralizados em páginas sem tarja; a verificação passa a ler o conteúdo bruto de todas as
+  páginas e a reler por OCR e QR code as páginas cujas tarjas dependem dos pixels.
+- DOCX: nomes internos de arquivos de mídia neutralizados; identificadores de sessão de edição
+  (`rsid`, `paraId`, `docId`) removidos.
+- HTML, XML, RTF e mensagens de e-mail deixam de ser tratados como texto simples (o conteúdo
+  codificado escapava à análise) e são recusados com orientação; o mesmo para TIFF, GIF, BMP e WebP.
+- Detecção: "meu RG é o …", número do registro em conselhos com região ("CRN-3 88421"), registros
+  profissionais em minúsculas, "sob o nº", e itens seguintes de enumerações ("as CDAs X e Y", "os CPFs
+  X, Y e Z").
+
+### Alterado
+
+- OCR pelo pacote `rapidocr` (modelo multilíngue PP-OCRv6, com acentuação do português, incluído no
+  pacote e sem acesso à rede) no lugar de `rapidocr-onnxruntime`, que não tem versão para Python 3.13.
+  Palavras coladas pelo OCR são separadas antes da análise.
+- Imagens: orientação EXIF aplicada antes do OCR e PNG gravado sem perfil de cor.
+- `Anonimizador.analisar_lote` e `anonimizar_lote` aceitam valores tarjados em etapa anterior do mesmo
+  arquivo (`externos`), entidades definidas para parte dos textos (`definidas`) e continuidade da
+  numeração de pseudônimos (`continuar`).
+
 ## 1.0.0 — 2026-11-15
 
 Primeira versão pública, reescrita a partir da solução apresentada no 1º Hackathon em Controle Social

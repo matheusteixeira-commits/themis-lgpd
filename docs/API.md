@@ -30,8 +30,11 @@ cabeçalho `X-API-Key` com uma das chaves; a comparação é feita em tempo cons
 API não exige chave — configuração adequada apenas para uso local.
 
 ```bash
-export THEMIS_CHAVES_API="chave-longa-e-aleatoria-1,chave-longa-e-aleatoria-2"
-curl -H "X-API-Key: chave-longa-e-aleatoria-1" ...
+# No servidor: chaves longas e aleatórias, separadas por vírgula.
+export THEMIS_CHAVES_API="$(openssl rand -hex 32),$(openssl rand -hex 32)"
+
+# No cliente: a chave fica em variável de ambiente, nunca no comando nem no histórico do shell.
+curl -H "X-API-Key: ${THEMIS_CHAVE}" ...
 ```
 
 ## Rotas

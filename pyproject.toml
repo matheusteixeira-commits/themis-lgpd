@@ -42,8 +42,9 @@ arquivos = [
     "pillow>=13.0.0",
     "python-docx>=1.1",
     "openpyxl>=3.1.5",
+    "opencv-python-headless>=4.10",
 ]
-ocr = ["rapidocr-onnxruntime>=1.3.24"]
+ocr = ["rapidocr>=3.10", "onnxruntime>=1.20"]
 api = ["fastapi>=0.163", "starlette>=1.3.1", "uvicorn[standard]>=0.32", "python-multipart>=0.0.33"]
 ui = ["streamlit>=1.54", "pandas>=2.1"]
 ml = ["presidio-analyzer[gliner]>=2.2.366,<2.3"]
@@ -57,6 +58,7 @@ dev = [
     "faker>=30",
     "pip-audit>=2.7",
     "bandit>=1.7.10",
+    "segno>=1.6",
 ]
 
 [project.scripts]

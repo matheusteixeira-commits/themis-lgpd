@@ -45,8 +45,9 @@ e conteúdo que não é texto (rostos, assinaturas manuscritas, imagens dentro d
 | Fontes sem mapeamento Unicode | Quando mais de 10% dos caracteres da página não podem ser decodificados (`(cid:N)`, caractere de substituição, área de uso privado), a página passa por OCR. |
 | Páginas digitalizadas e texto em contornos | Páginas com imagens ocupando mais de 15% da área, com imagens e menos de 25 caracteres de texto, ou sem camada de texto e com 40 curvas vetoriais ou mais (texto convertido em contornos), passam por OCR. Se o OCR for necessário e nenhum mecanismo estiver instalado, ou se o OCR falhar, o processamento é interrompido com `FalhaOCR`: tratar a falha como "página sem texto" entregaria o conteúdo sem tarja. Somente com o OCR desativado explicitamente (`--sem-ocr`, `ocr=False`) o PDF é gerado sem analisar essas páginas, que são listadas em aviso. Páginas em que o OCR não reconhece texto (manuscritos, baixa resolução) também são listadas. |
 | Tarja | Páginas com tarja são renderizadas a 200 dpi; as tarjas são aplicadas nos pixels e uma camada de texto invisível é recriada somente com as palavras não tarjadas, preservando busca e acessibilidade. Texto girado não é recriado na camada invisível. |
-| Saneamento | O arquivo é reescrito por inteiro, sem atualizações incrementais. São removidos: dicionário de informações, metadados XMP (inclusive os de imagens e outros objetos), nomes e anexos, ações de abertura, formulários, marcadores, estrutura de tags, dados de validação de assinaturas (`/DSS`), camadas opcionais, anotações remanescentes, miniaturas e dados privados de aplicativos. |
-| Verificação | O arquivo gerado é relido por dois extratores independentes (pdfplumber e PDFium); as cadeias de caracteres de todos os objetos e os fluxos de metadados e anexos são inspecionados. Um fluxo de metadados ilegível também interrompe a operação. |
+| QR codes | Páginas com imagens ou com muitos retângulos e curvas (QR codes desenhados como vetores, comuns em GRU e boletos) são renderizadas e examinadas; o tratamento segue a política descrita em [Imagens incorporadas, QR codes e metarquivos](#imagens-incorporadas-qr-codes-e-metarquivos). |
+| Saneamento | O arquivo é reescrito por inteiro, sem atualizações incrementais. São removidos: dicionário de informações, metadados XMP (inclusive os de imagens e outros objetos), metadados gravados dentro das imagens JPEG e JPEG 2000 (EXIF, GPS, XMP, comentários), nomes e anexos, ações de abertura, formulários, marcadores, estrutura de tags, textos alternativos de conteúdo marcado (`/ActualText`, `/Alt`, `/E`), dados de validação de assinaturas (`/DSS`), camadas opcionais (com nomes de camada neutralizados), anotações remanescentes, miniaturas e dados privados de aplicativos. |
+| Verificação | O arquivo gerado é relido por dois extratores independentes (pdfplumber e PDFium); as cadeias de caracteres de todos os objetos, os fluxos de metadados e anexos e o conteúdo bruto de todas as páginas e formulários são inspecionados; as imagens são conferidas quanto a metadados. Páginas cujas tarjas foram posicionadas pelos pixels (OCR ou QR code) são renderizadas novamente e relidas por OCR e pela busca de QR codes. Um fluxo ilegível também interrompe a operação. |
 
 Avisos emitidos: anexos removidos, formulários incorporados, páginas convertidas em imagem, páginas
 analisadas por OCR por causa das fontes, páginas não analisadas por OCR desativado, páginas em que o
@@ -70,7 +71,9 @@ O pacote é tratado no nível do XML, parte por parte.
 - atributos de texto livre: texto alternativo, título e nome de imagens e formas, dicas de hiperlinks,
   rótulos e itens de controles de conteúdo e de campos de formulário, texto de WordArt;
 - destinos de hiperlinks externos (o destino vira `#` quando contém dado tarjado);
-- qualquer outro texto presente em qualquer elemento de qualquer parte XML.
+- qualquer outro texto presente em qualquer elemento de qualquer parte XML;
+- imagens rasterizadas, imagens vetoriais EMF/WMF e SVG (ver
+  [Imagens incorporadas, QR codes e metarquivos](#imagens-incorporadas-qr-codes-e-metarquivos)).
 
 **Removido:**
 
@@ -85,7 +88,11 @@ O pacote é tratado no nível do XML, parte por parte.
 - objetos incorporados (planilhas de gráficos, objetos OLE, controles ActiveX), blocos de conteúdo
   importado (`altChunk`), glossário, macros e configurações de impressora;
 - referências a arquivos locais (caminhos que costumam conter o nome do usuário ou do servidor);
-- partes do pacote não referenciadas por nenhum relacionamento.
+- partes do pacote não referenciadas por nenhum relacionamento;
+- identificadores de sessão de edição (`rsid`, `paraId`, `docId`), que permitiriam correlacionar o
+  documento anonimizado com a versão original;
+- nomes originais dos arquivos de mídia (renomeados para `midia1.png`, `midia2.emf`…) e nomes internos
+  de imagens e formas.
 
 **Recusado:** pacotes com entradas duplicadas ou criptografadas, XML com declaração de DTD, documentos
 no formato OOXML Strict e arquivos acima dos limites de tamanho descompactado (300 MB) ou de número de
@@ -108,7 +115,8 @@ Documentos `.docm` e `.dotx` são gravados como `.docx` comum.
 - regras de formatação condicional (fórmulas e texto);
 - critérios de filtros automáticos, inclusive de tabelas;
 - nomes definidos;
-- texto de gráficos e desenhos.
+- texto de gráficos e desenhos;
+- imagens (OCR e QR codes), com os valores tarjados nas células propagados para elas.
 
 **Removido:** comentários, hiperlinks, tabelas dinâmicas (o cache guarda cópia dos dados originais),
 vínculos com outras pastas de trabalho, macros, propriedades do documento e caches de dados dos
@@ -128,11 +136,47 @@ O texto é decodificado como UTF-8 (com ou sem BOM) ou, na falha, como Windows-1
 ### Imagens (PNG e JPEG)
 
 O texto é reconhecido por OCR local e as regiões tarjadas são cobertas nos pixels, com margem de
-4 pixels. Imagens só são processadas com o OCR ativado; sem mecanismo de OCR instalado, ou com falha
-na execução do OCR, o processamento é interrompido com `FalhaOCR`. A imagem é gravada como PNG novo: nenhum metadado do original (EXIF, GPS, perfil de cor,
-miniatura) é copiado. Após a tarja, a imagem gerada passa por novo OCR e é comparada com os valores
-tarjados. O limite de descompressão do Pillow é fixado em 60 milhões de pixels, como proteção contra
+4 pixels; a orientação registrada no EXIF é aplicada antes do OCR. Imagens só são processadas com o
+OCR ativado; sem mecanismo de OCR instalado, ou com falha na execução do OCR, o processamento é
+interrompido com `FalhaOCR`. A imagem é gravada como PNG novo: nenhum metadado do original (EXIF, GPS,
+perfil de cor, miniatura) é copiado. Após a tarja, a imagem gerada passa por novo OCR e nova busca de
+QR codes. O limite de descompressão do Pillow é fixado em 60 milhões de pixels, como proteção contra
 imagens construídas para esgotar a memória.
+
+### Imagens incorporadas, QR codes e metarquivos
+
+**Metadados de imagens.** Fotos coladas em documentos carregam metadados invisíveis na revisão:
+coordenadas GPS, autor, modelo do aparelho, miniatura da imagem original e, em fotos de celular, vídeo
+anexado ao fim do arquivo. Em DOCX, XLSX e nas páginas de PDF, esses dados são removidos sem
+recompressão (`formatos/midia.py`): JPEG mantém só os segmentos de decodificação (o perfil de cor ICC
+e o segmento Adobe são preservados); PNG, GIF, WebP e TIFF perdem blocos de texto, EXIF e XMP; JPEG
+2000 mantém só cabeçalho e fluxo codificado. A verificação final falha se alguma imagem do arquivo
+gerado ainda tiver metadados.
+
+**Texto de imagens rasterizadas em DOCX e XLSX.** Imagens com o menor lado a partir de 48 pixels
+passam por OCR e pela busca de QR codes; o texto entra no mesmo lote de análise do documento, de modo
+que um nome tarjado no corpo é tarjado também na imagem. As regiões são tarjadas nos pixels e a imagem
+é regravada no formato original, sem metadados, e relida por OCR. Sem OCR instalado, o processamento é
+interrompido com `FalhaOCR`, exceto com o OCR desativado explicitamente.
+
+**QR codes** (`formatos/qr.py`). O BR Code do PIX (nome do recebedor e chave, que pode ser CPF, e-mail
+ou telefone) é sempre tarjado; o conteúdo dos demais QR codes é analisado como texto do documento e o
+código é tarjado se contiver dado a tarjar; QR codes localizados, mas não decodificáveis, são tarjados.
+
+**Metarquivos EMF e WMF** (`formatos/metarquivo.py`). Tabelas e diagramas colados como imagem no Word
+guardam o texto legível dentro do arquivo. O texto dos registros GDI e EMF+ é extraído, analisado com
+o documento e mascarado no próprio arquivo (`█` em UTF-16, `X` em texto de 8 bits), sem alterar a
+estrutura. Texto gravado apenas como índices de glifos não pode ser lido e é informado em aviso.
+
+**SVG.** Texto, título, descrição e atributos de texto livre (rótulos de editores, nome do arquivo de
+origem) são analisados como as demais partes XML.
+
+### Formatos recusados
+
+HTML, XML, RTF, mensagens de e-mail, mensagens do Outlook (`.msg`), TIFF, GIF, BMP e WebP avulsos são
+recusados com orientação de conversão. Nesses formatos o conteúdo pode estar codificado (entidades
+como `&#46;`, escapes como `\'e3`, corpo em base64) e não pode ser tratado como texto simples sem
+deixar dados fora da análise.
 
 ## Verificação final
 
@@ -240,8 +284,8 @@ reidentificação. Por isso o perfil `lai` sinaliza quase-identificadores para r
   nomes de medicamentos podem não ser reconhecidos.
 - **Localidades.** O reconhecimento de localidades isoladas cobre as regiões administrativas do
   Distrito Federal; cidades de outras unidades da federação não são sinalizadas como localidade.
-- **Imagens em documentos Office.** Imagens dentro de DOCX e XLSX não são analisadas; o usuário é
-  avisado da quantidade.
+- **Imagens em documentos Office.** Imagens com o menor lado abaixo de 48 pixels não passam por OCR;
+  texto em imagens vetoriais gravado só como índices de glifos não pode ser lido (o usuário é avisado).
 - **Conteúdo visual.** Manuscritos, assinaturas, rostos, carimbos e texto em imagens pequenas não são
   detectados. A qualidade do OCR depende da digitalização.
 - **Texto em contornos.** Páginas de PDF sem camada de texto e com 40 curvas vetoriais ou mais
