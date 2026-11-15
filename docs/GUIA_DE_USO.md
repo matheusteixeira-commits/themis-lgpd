@@ -101,6 +101,7 @@ themis anonimizar ENTRADA [ENTRADA ...] [opções]
 | `-r`, `--relatorio` | Gera relatório consolidado do lote, que identifica o arquivo de cada item: `.json`, `.csv`, `.xlsx`, ou `.txt`/`.md` para a nota de tarjamento |
 | `--coluna-integral CABEÇALHO` | Em planilhas, tarja a coluna inteira com esse cabeçalho (repetível) |
 | `--sem-ocr` | Não usa OCR. Em PDFs, as páginas que o exigiriam são listadas em aviso como não analisadas; imagens continuam exigindo OCR e são recusadas |
+| `--pdfa` | Gera os PDFs em PDF/A-2b, para arquivamento: todas as páginas convertidas em imagem com camada de texto pesquisável, perfil de cor sRGB, fontes incorporadas e metadados só com a identificação PDF/A |
 | `--cofre ARQ\|PASTA` | Para arquivos `.txt`, grava um cofre cifrado que permite reverter a substituição: um arquivo, para uma entrada, ou uma pasta com um `.cofre` por documento (senha em `THEMIS_SENHA_COFRE` ou solicitada no terminal; mínimo de 12 caracteres) |
 | `--limite-mb N` | Tamanho máximo de arquivo, em MB (padrão: 50) |
 | `--config ARQ` | Configuração do órgão (`themis.toml`, ver [CONFIGURACAO.md](CONFIGURACAO.md#configuração-do-órgão-themistoml)); padrão: variável `THEMIS_CONFIG`, se definida. As opções da linha de comando prevalecem sobre o arquivo, e as listas são somadas |

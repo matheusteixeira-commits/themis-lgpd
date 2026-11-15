@@ -309,7 +309,7 @@ class _PedidoArquivo:
 
 async def _pedido_arquivo(arquivo: UploadFile, perfil: str | None, modo: str | None, permitir: list[str],
                           bloquear: list[str], preservar_agentes_publicos: bool | None, coluna_integral: list[str],
-                          ocr: bool, resposta: str) -> _PedidoArquivo:
+                          ocr: bool, resposta: str, pdfa: bool = False) -> _PedidoArquivo:
     """Valida as opções de um envio de arquivo e lê o arquivo, respeitando o limite de tamanho."""
     try:
         op = Opcoes(perfil=perfil, modo=modo, permitir=permitir, bloquear=bloquear,
@@ -325,7 +325,7 @@ async def _pedido_arquivo(arquivo: UploadFile, perfil: str | None, modo: str | N
     if len(dados) > CFG.max_mb * 1024 * 1024:
         raise HTTPException(status_code=413, detail=f"Arquivo maior que {CFG.max_mb} MB.")
     opcoes_arquivo = {"limite_bytes": CFG.max_mb * 1024 * 1024, "limite_paginas": CFG.max_paginas,
-                      "ocr": ocr and ORGAO.ocr, "colunas_integrais": coluna_integral or None}
+                      "ocr": ocr and ORGAO.ocr, "colunas_integrais": coluna_integral or None, "pdfa": pdfa}
     return _PedidoArquivo(dados, arquivo.filename or "documento", op, opcoes_arquivo, resposta)
 
 
@@ -393,7 +393,8 @@ async def analisar_texto(pedido: PedidoTexto):
 
 _CAMPOS_ARQUIVO = (
     " Campos do formulário (todos opcionais, exceto `arquivo`): `perfil`, `modo`, `permitir` e `bloquear` "
-    "(repetíveis), `preservar_agentes_publicos`, `coluna_integral` (repetível; planilhas), `ocr` e `resposta` "
+    "(repetíveis), `preservar_agentes_publicos`, `coluna_integral` (repetível; planilhas), `ocr`, `pdfa` (PDF/A-2b "
+    "para PDFs) e `resposta` "
     "(`arquivo`, padrão, ou `json`, que devolve o arquivo em base64 com o relatório de tarjamento)."
 )
 
@@ -411,11 +412,12 @@ async def anonimizar_arquivo_rota(
     preservar_agentes_publicos: bool | None = Form(None),
     coluna_integral: list[str] = Form([]),
     ocr: bool = Form(True),
+    pdfa: bool = Form(False),
     resposta: str = Form("arquivo"),
 ):
     """Anonimiza um arquivo e devolve o arquivo gerado (ou, com ``resposta=json``, também o relatório)."""
     pedido = await _pedido_arquivo(arquivo, perfil, modo, permitir, bloquear, preservar_agentes_publicos,
-                                   coluna_integral, ocr, resposta)
+                                   coluna_integral, ocr, resposta, pdfa)
     try:
         res = await _executar(trabalho.anonimizar_arquivo, pedido.opcoes.sobrepor(), pedido.dados, pedido.nome,
                               pedido.arquivo)
@@ -496,6 +498,7 @@ async def criar_tarefa(
     preservar_agentes_publicos: bool | None = Form(None),
     coluna_integral: list[str] = Form([]),
     ocr: bool = Form(True),
+    pdfa: bool = Form(False),
     resposta: str = Form("arquivo"),
 ):
     """Agenda a anonimização de um arquivo."""
@@ -504,7 +507,7 @@ async def criar_tarefa(
         raise HTTPException(status_code=503, detail="Limite de tarefas em andamento atingido. Tente mais tarde.",
                             headers={"Retry-After": "60"})
     pedido = await _pedido_arquivo(arquivo, perfil, modo, permitir, bloquear, preservar_agentes_publicos,
-                                   coluna_integral, ocr, resposta)
+                                   coluna_integral, ocr, resposta, pdfa)
     t = _Tarefa(id=secrets.token_urlsafe(24), dono=_dono(request), resposta=pedido.resposta)
     _TAREFAS[t.id] = t
     execucao = asyncio.create_task(_rodar(t, pedido))

@@ -174,6 +174,7 @@ Requisição `multipart/form-data`:
 | `preservar_agentes_publicos` | booleano | do órgão | Mantém nomes acompanhados de cargo público |
 | `coluna_integral` | texto (repetível) | — | Em planilhas, coluna (pelo cabeçalho) tarjada por inteiro |
 | `ocr` | booleano | `true` | Permite OCR em páginas digitalizadas e imagens |
+| `pdfa` | booleano | `false` | Em PDFs, gera PDF/A-2b para arquivamento |
 | `resposta` | texto | `arquivo` | `arquivo` devolve o arquivo gerado; `json` devolve o arquivo em base64 com o relatório de tarjamento (resumo, itens sem valores originais) e a nota de tarjamento |
 
 ```bash

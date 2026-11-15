@@ -483,31 +483,38 @@ def _rasterizar_paginas(doc_pdfium, paginas: list[Pagina]) -> dict[int, bytes]:
     return geradas
 
 
+#: Texto alternativo de uma tarja sem rótulo (modo ``tarja`` e QR codes).
+ROTULO_TARJA = "[TARJADO]"
+
+
+def _palavras_visiveis(pag: Pagina, origens=("texto", "ocr")) -> list[tuple[str, Caixa]]:
+    """Palavras que permanecem na página (fora das tarjas), das origens indicadas.
+
+    O texto girado (``texto-vertical``) não é recriado na camada invisível.
+    """
+    return [(palavra, caixa) for seg in pag.segmentos if seg.origem in origens for palavra, caixa in seg.palavras
+            if not any(_intersecta(caixa, t) for t in pag.tarjas)]
+
+
+def _rotulos_das_tarjas(pag: Pagina) -> list[tuple[Caixa, str]]:
+    """Cada tarja com o seu rótulo ("[CPF]", "Pessoa 1"), lido por leitores de tela no lugar do conteúdo."""
+    rotulos = {tuple(caixa): rotulo for caixa, rotulo in pag.rotulos}
+    return [(caixa, rotulos.get(tuple(caixa), ROTULO_TARJA)) for caixa in pag.tarjas]
+
+
 def _pagina_rasterizada(img, pag: Pagina) -> bytes:
-    """Gera um PDF de uma página: a imagem tarjada e a camada de texto invisível das palavras restantes."""
+    """Gera um PDF de uma página: a imagem tarjada e a camada de texto invisível, com fonte Unicode
+    incorporada, das palavras restantes e dos rótulos das tarjas (ver :mod:`themis_lgpd.formatos.pdfa`)."""
     from reportlab.lib.utils import ImageReader
-    from reportlab.pdfbase.pdfmetrics import stringWidth
     from reportlab.pdfgen import canvas
 
+    from .pdfa import escrever_texto, registrar_fonte
+
     buf = io.BytesIO()
-    c = canvas.Canvas(buf, pagesize=(pag.largura, pag.altura), invariant=True, pageCompression=1)
+    c = canvas.Canvas(buf, pagesize=(pag.largura, pag.altura), invariant=True, pageCompression=1,
+                      initialFontName=registrar_fonte(), initialFontSize=10)
     c.drawImage(ImageReader(_imagem_compacta(img)), 0, 0, width=pag.largura, height=pag.altura)
-    texto = c.beginText()
-    texto.setTextRenderMode(3)  # texto invisível: serve à busca, à seleção e a leitores de tela
-    for seg in pag.segmentos:
-        if seg.origem == "texto-vertical":
-            continue  # texto girado não é recriado na camada invisível
-        for palavra, caixa in seg.palavras:
-            if any(_intersecta(caixa, t) for t in pag.tarjas):
-                continue
-            seguro = palavra.encode("cp1252", "replace").decode("cp1252")
-            tam = max(1.0, (caixa[3] - caixa[1]) * 0.85)
-            largura = stringWidth(seguro, "Helvetica", tam) or 1.0
-            texto.setFont("Helvetica", tam)
-            texto.setHorizScale(max(10.0, min(400.0, 100.0 * (caixa[2] - caixa[0]) / largura)))
-            texto.setTextOrigin(caixa[0], pag.altura - caixa[3] + (caixa[3] - caixa[1]) * 0.2)
-            texto.textOut(seguro)
-    c.drawText(texto)
+    escrever_texto(c, pag.altura, _palavras_visiveis(pag), _rotulos_das_tarjas(pag))
     c.showPage()
     c.save()
     return buf.getvalue()
@@ -570,7 +577,7 @@ def _preparar(dados: bytes, avisos: list[str]) -> bytes:
     return buf.getvalue()
 
 
-def _sanear(pdf) -> None:
+def _sanear(pdf, geradas: frozenset[int] = frozenset()) -> None:
     """Remove do documento tudo o que não é conteúdo visível das páginas.
 
     Além do catálogo e das páginas, metadados XMP e dados privados de aplicativos são removidos de
@@ -595,7 +602,7 @@ def _sanear(pdf) -> None:
                 if chave in obj:
                     del obj[chave]
     _limpar_imagens(pdf)
-    _sanear_conteudo_marcado(pdf)
+    _sanear_conteudo_marcado(pdf, geradas)
     pdf.remove_unreferenced_resources()
 
 
@@ -604,12 +611,16 @@ def _sanear(pdf) -> None:
 _CHAVES_TEXTO_ALTERNATIVO = ("/ActualText", "/Alt", "/E")
 
 
-def _conteudos(pdf):
-    """Páginas e formulários XObject (alcançáveis a partir das páginas), cada um uma única vez."""
+def _conteudos(pdf, ignorar: frozenset[int] = frozenset()):
+    """Páginas e formulários XObject (alcançáveis a partir das páginas), cada um uma única vez.
+
+    Args:
+        ignorar: Índices de páginas a não percorrer.
+    """
     import pikepdf
 
     vistos: set[tuple[int, int]] = set()
-    pendentes = [page.obj for page in pdf.pages]
+    pendentes = [page.obj for i, page in enumerate(pdf.pages) if i not in ignorar]
     while pendentes:
         obj = pendentes.pop()
         if obj.is_indirect:
@@ -623,13 +634,16 @@ def _conteudos(pdf):
             pendentes += [x for x in xobjetos.values() if isinstance(x, pikepdf.Stream) and x.get("/Subtype") == "/Form"]
 
 
-def _sanear_conteudo_marcado(pdf) -> None:
+def _sanear_conteudo_marcado(pdf, geradas: frozenset[int] = frozenset()) -> None:
     """Remove textos alternativos de conteúdo marcado e neutraliza nomes de camadas (OCG).
 
     Os textos alternativos ficam em dicionários de propriedades — embutidos no operador ``BDC`` ou
     referenciados por nome em ``/Resources/Properties`` — e não aparecem para os extratores de texto,
     mas são lidos por leitores de tela e pelo "copiar". O nome de uma camada aparece no painel de
     camadas dos leitores de PDF ("Assinatura de Fulano").
+
+    As páginas ``geradas`` (convertidas em imagem pelo próprio Themis) são preservadas: o único texto
+    alternativo delas é o rótulo de cada tarja ("[CPF]"), escrito para leitores de tela.
     """
     import pikepdf
 
@@ -638,7 +652,7 @@ def _sanear_conteudo_marcado(pdf) -> None:
         if isinstance(obj, pikepdf.Dictionary) and obj.get("/Type") in ("/OCG", "/OCMD") and "/Name" in obj:
             camadas += 1
             obj.Name = pikepdf.String(f"Camada {camadas}")
-    for alvo in _conteudos(pdf):
+    for alvo in _conteudos(pdf, geradas):
         recursos = alvo.get("/Resources")
         propriedades = recursos.get("/Properties") if isinstance(recursos, pikepdf.Dictionary) else None
         if isinstance(propriedades, pikepdf.Dictionary):
@@ -819,8 +833,102 @@ def _texto_estrutural(pdf_bytes: bytes) -> str:
 
 
 # ---------------------------------------------------------------------------- ponto de entrada
+# ---------------------------------------------------------------------------- sumário e links
+@dataclass
+class _Marcador:
+    """Item do sumário (marcador) do PDF original: título, página de destino e subitens."""
+
+    titulo: str
+    pagina: int | None
+    filhos: list[_Marcador] = field(default_factory=list)
+
+    def todos(self) -> list[_Marcador]:
+        return [self, *[m for f in self.filhos for m in f.todos()]]
+
+
+def _pagina_do_destino(pdf, item) -> int | None:
+    """Índice da página de destino de um marcador (destino direto, ação GoTo ou destino nomeado)."""
+    import pikepdf
+
+    destino = item.destination
+    if destino is None and item.action is not None and item.action.get("/S") == "/GoTo":
+        destino = item.action.get("/D")
+    if isinstance(destino, pikepdf.String | pikepdf.Name):
+        nome = str(destino).lstrip("/")
+        try:
+            if "/Names" in pdf.Root and "/Dests" in pdf.Root.Names:
+                destino = pikepdf.NameTree(pdf.Root.Names.Dests).get(nome)
+            elif "/Dests" in pdf.Root:
+                destino = pdf.Root.Dests.get("/" + nome)
+        except Exception:  # noqa: BLE001 - destino nomeado malformado: o marcador fica sem página
+            return None
+        if isinstance(destino, pikepdf.Dictionary):
+            destino = destino.get("/D")
+    if isinstance(destino, pikepdf.Array) and len(destino) and isinstance(destino[0], pikepdf.Dictionary):
+        try:
+            return pdf.pages.index(pikepdf.Page(destino[0]))
+        except ValueError:
+            return None
+    return None
+
+
+def _ler_sumario(pdf) -> list[_Marcador]:
+    """Sumário do PDF original (vazio se não houver ou estiver malformado)."""
+    def ler(item) -> _Marcador:
+        return _Marcador(str(item.title or ""), _pagina_do_destino(pdf, item), [ler(f) for f in item.children])
+
+    try:
+        with pdf.open_outline() as sumario:
+            return [ler(item) for item in sumario.root]
+    except Exception:  # noqa: BLE001 - sumário malformado: o documento segue sem ele
+        return []
+
+
+def _gravar_sumario(pdf, marcadores: list[_Marcador], titulos: dict[int, str]) -> None:
+    """Recria o sumário no PDF gerado, com os títulos já anonimizados."""
+    from pikepdf import OutlineItem
+
+    def criar(m: _Marcador) -> OutlineItem:
+        item = OutlineItem(titulos[id(m)], m.pagina if m.pagina is not None else None)
+        item.children.extend(criar(f) for f in m.filhos)
+        return item
+
+    with pdf.open_outline() as sumario:
+        sumario.root.extend(criar(m) for m in marcadores)
+
+
+def _ler_links(pdf) -> list[tuple[int, list[float], str]]:
+    """Links para endereços da web (``http``/``https``) das páginas: ``(página, retângulo, endereço)``."""
+    links = []
+    for i, pagina in enumerate(pdf.pages):
+        for anotacao in pagina.obj.get("/Annots", []):
+            acao = anotacao.get("/A")
+            if anotacao.get("/Subtype") != "/Link" or acao is None or acao.get("/S") != "/URI":
+                continue
+            endereco = str(acao.get("/URI", ""))
+            if endereco.lower().startswith(("http://", "https://")) and "/Rect" in anotacao:
+                links.append((i, [float(v) for v in anotacao.Rect], endereco))
+    return links
+
+
+def _gravar_links(pdf, links: list[tuple[int, list[float], str]]) -> None:
+    """Recria os links aprovados, sem nenhum outro atributo da anotação original."""
+    import pikepdf
+
+    for indice, rect, endereco in links:
+        link = pikepdf.Dictionary(
+            Type=pikepdf.Name.Annot, Subtype=pikepdf.Name.Link, Rect=pikepdf.Array(rect), F=4,
+            Border=pikepdf.Array([0, 0, 0]),
+            A=pikepdf.Dictionary(S=pikepdf.Name.URI, URI=pikepdf.String(endereco)),
+        )
+        pagina = pdf.pages[indice].obj
+        anotacoes = pagina.get("/Annots") or pikepdf.Array()
+        anotacoes.append(pdf.make_indirect(link))
+        pagina["/Annots"] = anotacoes
+
+
 def anonimizar_pdf(dados: bytes, anon: Anonimizador, nome: str, *, limite_paginas: int = 500, ocr: bool = True,
-                   verificar: bool = True) -> ResultadoArquivo:
+                   verificar: bool = True, pdfa: bool = False) -> ResultadoArquivo:
     """Anonimiza um PDF.
 
     Args:
@@ -830,6 +938,14 @@ def anonimizar_pdf(dados: bytes, anon: Anonimizador, nome: str, *, limite_pagina
         limite_paginas: Número máximo de páginas aceito.
         ocr: Permite OCR em páginas digitalizadas e imagens.
         verificar: Executa a verificação independente do arquivo gerado.
+        pdfa: Gera PDF/A-2b (arquivamento): todas as páginas são convertidas em imagem com camada de
+            texto, com perfil de cor sRGB e metadados de identificação (ver
+            :mod:`themis_lgpd.formatos.pdfa`).
+
+    O documento gerado declara o idioma (``pt-BR``); as páginas digitalizadas sem tarja recebem a
+    camada de texto do OCR; os marcadores (sumário) e os links para a web são mantidos quando o
+    título ou o endereço passa pela análise — títulos são anonimizados; links com dado pessoal são
+    removidos.
 
     Returns:
         O PDF anonimizado, os resultados por segmento de texto e os avisos ao usuário.
@@ -845,10 +961,18 @@ def anonimizar_pdf(dados: bytes, anon: Anonimizador, nome: str, *, limite_pagina
     except ImportError as erro:  # pragma: no cover - dependência opcional
         raise ArquivoInvalido("Suporte a PDF requer: pip install 'themis-lgpd[arquivos]'") from erro
 
+    from .pdfa import aplicar_idioma, aplicar_pdfa, camada_de_texto
+
     avisos: list[str] = []
     dados = _preparar(dados, avisos)
     paginas = _extrair(dados, limite_paginas, ocr, avisos)
     segmentos = [(pag, seg) for pag in paginas for seg in pag.segmentos]
+    try:
+        with pikepdf.open(io.BytesIO(dados)) as original:
+            marcadores, links = _ler_sumario(original), _ler_links(original)
+    except Exception:  # noqa: BLE001 - o PDF é aberto de novo adiante, com a mensagem de erro adequada
+        marcadores, links = [], []
+    todos_marcadores = [m for raiz in marcadores for m in raiz.todos()]
     # O conteúdo dos QR codes decodificados é analisado no mesmo lote que o texto das páginas; BR Codes
     # do PIX e códigos não decodificados são tarjados sem análise (ver themis_lgpd.formatos.qr).
     codigos = []
@@ -859,8 +983,15 @@ def anonimizar_pdf(dados: bytes, anon: Anonimizador, nome: str, *, limite_pagina
                 pag.reler_pixels = True
             else:
                 codigos.append((pag, codigo))
-    textos = [seg.texto for _, seg in segmentos] + [c.conteudo for _, c in codigos]
+    # Títulos dos marcadores e endereços dos links entram no mesmo lote: um nome tarjado no texto é
+    # tarjado também no título; um link com dado pessoal é descartado.
+    textos = ([seg.texto for _, seg in segmentos] + [c.conteudo for _, c in codigos]
+              + [m.titulo for m in todos_marcadores] + [endereco for _, _, endereco in links])
     resultados: list[Resultado] = anon.anonimizar_lote(textos, mesmo_documento=True)
+    n_paginas = len(segmentos) + len(codigos)
+    titulos = {id(m): r.texto for m, r in zip(todos_marcadores, resultados[n_paginas:])}
+    links_aprovados = [link for link, r in zip(links, resultados[n_paginas + len(todos_marcadores):])
+                       if not r.tarjadas]
     for (pag, seg), r in zip(segmentos, resultados):
         for s in r.substituicoes:
             caixas = [seg.caixas[k] for k in range(s["inicio"], min(s["fim"], len(seg.caixas))) if seg.caixas[k]]
@@ -885,24 +1016,43 @@ def anonimizar_pdf(dados: bytes, anon: Anonimizador, nome: str, *, limite_pagina
         raise ArquivoInvalido("PDF inválido ou corrompido.") from erro
     saida = pikepdf.new()
     doc_pdfium = pdfium.PdfDocument(dados)
-    rasterizadas = 0
+    rasterizadas = pesquisaveis = 0
+    camadas = []  # PDFs das camadas de texto, abertos até a gravação do documento
     with origem:
-        geradas = _rasterizar_paginas(doc_pdfium, [p for p in paginas if p.tarjas])
+        geradas = _rasterizar_paginas(doc_pdfium, [p for p in paginas if p.tarjas or pdfa])
         for pag in paginas:
-            if pag.tarjas:
+            if pag.tarjas or pdfa:
                 nova = pikepdf.open(io.BytesIO(geradas[pag.indice]))
+                camadas.append(nova)
                 _jpeg_sem_ascii85(nova.pages[0])
                 saida.pages.append(nova.pages[0])
                 if pag.rotacao:
                     saida.pages[-1].obj["/Rotate"] = pag.rotacao
                 rasterizadas += 1
-            else:
-                saida.pages.append(origem.pages[pag.indice])
+                continue
+            saida.pages.append(origem.pages[pag.indice])
+            palavras_ocr = _palavras_visiveis(pag, origens=("ocr",))
+            if palavras_ocr:
+                # Página digitalizada sem tarja: a imagem original é mantida e recebe por cima a camada
+                # de texto invisível do OCR já realizado, que a torna pesquisável.
+                camada = pikepdf.open(io.BytesIO(camada_de_texto(pag.largura, pag.altura, palavras_ocr)))
+                camadas.append(camada)
+                pagina = saida.pages[-1]
+                pagina.add_overlay(camada.pages[0], pikepdf.Rectangle(*[float(v) for v in pagina.cropbox]))
+                pesquisaveis += 1
         doc_pdfium.close()
-        _sanear(saida)
+        _sanear(saida, frozenset(p.indice for p in paginas if p.tarjas or pdfa))
+        aplicar_idioma(saida)
+        if marcadores:
+            _gravar_sumario(saida, marcadores, titulos)
+        _gravar_links(saida, links_aprovados)
+        if pdfa:
+            aplicar_pdfa(saida)
         buf = io.BytesIO()
         saida.save(buf, compress_streams=True, object_stream_mode=pikepdf.ObjectStreamMode.generate,
-                   fix_metadata_version=False, deterministic_id=True)
+                   fix_metadata_version=False, deterministic_id=True, force_version="1.7" if pdfa else None)
+        for camada in camadas:
+            camada.close()
     pdf_final = buf.getvalue()
     if verificar:
         sobras = verificar_ausencia(_texto_extraido(pdf_final) + "\n" + _texto_estrutural(pdf_final),
@@ -912,9 +1062,17 @@ def anonimizar_pdf(dados: bytes, anon: Anonimizador, nome: str, *, limite_pagina
         if _imagens_com_metadados(pdf_final):
             raise VazamentoDetectado("Imagem com metadados (EXIF, GPS ou XMP) no PDF gerado.")
         _reler_pixels(pdf_final, [p for p in paginas if p.reler_pixels], resultados, anon.permitir)
-    if rasterizadas:
+    if pdfa:
+        avisos.append(f"PDF/A-2b: as {rasterizadas} página(s) foram convertidas em imagem com camada de texto "
+                      "pesquisável, perfil de cor sRGB e fontes incorporadas.")
+    elif rasterizadas:
         avisos.append(f"{rasterizadas} página(s) com tarja foram convertidas em imagem com camada de texto "
                       "pesquisável (garante que o conteúdo tarjado não possa ser recuperado).")
+    if pesquisaveis:
+        avisos.append(f"{pesquisaveis} página(s) digitalizada(s) sem tarja receberam a camada de texto do OCR e "
+                      "passaram a ser pesquisáveis.")
+    if len(links) > len(links_aprovados):
+        avisos.append(f"{len(links) - len(links_aprovados)} link(s) com dado pessoal no endereço removido(s).")
     if qr_tarjados:
         avisos.append(f"{qr_tarjados} QR code(s) tarjado(s) (PIX, conteúdo com dado pessoal ou não legível).")
     return ResultadoArquivo(pdf_final, "pdf", nome, resultados, avisos)

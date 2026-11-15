@@ -149,7 +149,7 @@ def cmd_anonimizar(args) -> int:
         sobrepor=_sobrepor(args), config=_caminho_config(args), ocr=cfg.ocr and not args.sem_ocr,
         limite_bytes=args.limite_mb * 1024 * 1024, colunas_integrais=args.coluna_integral,
         saida=None if saida_arquivo else args.saida, arquivo_saida=args.saida if saida_arquivo else None,
-        cofre=args.cofre, senha_cofre=senha,
+        cofre=args.cofre, senha_cofre=senha, pdfa=args.pdfa,
     )
     if args.retomar:
         tarefas = _pendentes(tarefas, lote.concluidos(lote.ler_manifesto(args.manifesto), opcoes.identificador()))
@@ -379,6 +379,9 @@ def main(argv: list[str] | None = None) -> int:
     a.add_argument("--coluna-integral", action="append", metavar="CABEÇALHO",
                    help="em planilhas, tarjar a coluna inteira (repetível)")
     a.add_argument("--sem-ocr", action="store_true", help="não usar OCR em páginas digitalizadas")
+    a.add_argument("--pdfa", action="store_true",
+                   help="PDFs em PDF/A-2b (arquivamento): páginas em imagem com camada de texto, sRGB e fontes "
+                        "incorporadas")
     a.add_argument("--cofre", metavar="ARQ|PASTA",
                    help="(texto) cofre cifrado para reverter a pseudonimização: um arquivo para uma entrada ou "
                         "uma pasta com um .cofre por documento; senha via THEMIS_SENHA_COFRE")

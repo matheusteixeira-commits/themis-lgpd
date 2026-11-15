@@ -201,6 +201,7 @@ def anonimizar_arquivo(
     colunas: list[str] | None = None,
     colunas_integrais: list[str] | None = None,
     verificar: bool = True,
+    pdfa: bool = False,
 ) -> ResultadoArquivo:
     """Anonimiza um arquivo e devolve um novo arquivo no mesmo formato.
 
@@ -215,6 +216,8 @@ def anonimizar_arquivo(
         colunas_integrais: Em planilhas, colunas a tarjar por inteiro.
         verificar: Relê o arquivo gerado e falha se algum valor tarjado continuar legível. Só deve
             ser desligado em testes de desempenho.
+        pdfa: Em PDFs, gera PDF/A-2b para arquivamento (ver :mod:`themis_lgpd.formatos.pdfa`); sem
+            efeito nos demais formatos.
 
     Returns:
         O arquivo gerado, os resultados da análise e os avisos ao usuário.
@@ -246,6 +249,7 @@ def anonimizar_arquivo(
         return anonimizar_docx(dados, anon, saida, ocr=ocr, verificar=verificar)
     if formato == "pdf":
         from .pdf import anonimizar_pdf
-        return anonimizar_pdf(dados, anon, saida, limite_paginas=limite_paginas, ocr=ocr, verificar=verificar)
+        return anonimizar_pdf(dados, anon, saida, limite_paginas=limite_paginas, ocr=ocr, verificar=verificar,
+                              pdfa=pdfa)
     from .imagem import anonimizar_imagem
     return anonimizar_imagem(dados, anon, saida, ocr=ocr, verificar=verificar)

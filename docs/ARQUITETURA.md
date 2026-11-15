@@ -282,6 +282,7 @@ src/themis_lgpd/
 ├── formatos/
 │   ├── __init__.py      Detecção de formato, limites, anonimizar_arquivo, exceções
 │   ├── pdf.py           PDF
+│   ├── pdfa.py          Camada de texto Unicode, idioma e PDF/A-2b do PDF gerado
 │   ├── docx.py          Política de remoção e análise do Word
 │   ├── planilha.py      XLSX e CSV
 │   ├── imagem.py        PNG e JPEG

@@ -41,7 +41,9 @@ arquivos; e verificação independente de cada arquivo gerado.
   verificação final não são entregues.
 - **Propagação:** um dado identificado em qualquer ponto do documento é tarjado em todas as
   ocorrências.
-- **Arquivos:** PDF (com tarja real), DOCX, XLSX, CSV, TXT, PNG e JPEG, com OCR local.
+- **Arquivos:** PDF (com tarja real), DOCX, XLSX, CSV, TXT, PNG e JPEG, com OCR local; PDF gerado
+  pesquisável e acessível (rótulos das tarjas para leitores de tela, idioma declarado) e, opcionalmente,
+  em PDF/A-2b para arquivamento, validado pelo veraPDF.
 - **Revisão humana** na interface web; relatório e nota de tarjamento com base legal.
 - **Quatro interfaces:** interface web, linha de comando, biblioteca Python e API HTTP (com tarefas
   assíncronas para documentos longos e especificação OpenAPI versionada).

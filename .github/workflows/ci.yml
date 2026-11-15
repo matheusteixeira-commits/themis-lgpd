@@ -52,6 +52,16 @@ jobs:
         run: |
           python benchmark/nacional.py --n 540 --conjunto desenvolvimento --minimo 0.99 --preservacao-minima 0.99
           python benchmark/nacional.py --n 540 --conjunto validacao --minimo 0.99 --preservacao-minima 0.99
+      - name: PDF/A-2b validado pelo veraPDF
+        if: matrix.python == '3.12'
+        run: |
+          python scripts/validar_pdfa.py /tmp/pdfa
+          arquivos=$(cd /tmp/pdfa && ls *.pdf | sed 's|^|/data/|')
+          docker run --rm -v /tmp/pdfa:/data:ro \
+            verapdf/cli:v1.30.4@sha256:f085855d442ad415e79fabbabcdd1803c2db4ee097cd5b94506c95ecdcfa1728 \
+            --flavour 2b --format text $arquivos | tee /tmp/verapdf.txt
+          if grep -q "^FAIL" /tmp/verapdf.txt; then exit 1; fi
+          test "$(grep -c '^PASS' /tmp/verapdf.txt)" = "$(ls /tmp/pdfa/*.pdf | wc -l)"
 
   sistemas:
     name: Testes (${{ matrix.os }})

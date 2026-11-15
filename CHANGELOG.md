@@ -111,6 +111,19 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
   `Iniciar Themis.bat` (interface) e `themis.bat` (linha de comando); montado e verificado no CI sem Python no
   `PATH`, anonimizando os exemplos fictícios de `exemplos/`.
 
+### Adicionado — PDF acessível, pesquisável e de arquivamento
+
+- Camada de texto das páginas tarjadas com fonte Unicode incorporada (antes, caracteres fora do
+  Windows-1252, como "≥", viravam "?") e o rótulo de cada tarja ("[CPF]") como texto alternativo
+  (`/ActualText`), lido por leitores de tela no lugar do conteúdo removido.
+- Páginas digitalizadas sem tarja recebem a camada de texto do OCR já realizado, sobreposta à imagem
+  original: o documento inteiro fica pesquisável.
+- Idioma declarado (`/Lang pt-BR`); marcadores (sumário) recriados com os títulos anonimizados e links
+  para a web mantidos quando o endereço não contém dado pessoal (antes, ambos eram removidos).
+- `--pdfa` (CLI), `pdfa` (API e biblioteca): PDF/A-2b, com todas as páginas em imagem e camada de
+  texto, perfil sRGB, metadados apenas com a identificação PDF/A e versão 1.7; validado no CI pelo
+  veraPDF com PDFs de fontes não incorporadas, página digitalizada, cor CMYK e o exemplo fictício.
+
 ### Desempenho
 
 - Análise de textos longos quase linear: 100 mil caracteres em 4,7 s (1.0.0: 11,3 s). O reforço de
