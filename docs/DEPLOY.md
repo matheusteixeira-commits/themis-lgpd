@@ -94,29 +94,21 @@ docker inspect --format '{{.HostConfig.ReadonlyRootfs}}' "$(docker compose ps -q
 
 ## API
 
-Para expor também a API HTTP, acrescente um serviço à composição e uma rota no Caddyfile.
+A composição inclui um serviço de API opcional, ativado pelo perfil `api`:
 
-```yaml
-  api:
-    image: themis-lgpd:1.0.0
-    restart: unless-stopped
-    command: ["api", "--endereco", "0.0.0.0", "--porta", "8000"]
-    environment:
-      THEMIS_DEMO: "true"
-      THEMIS_CHAVES_API: "${THEMIS_CHAVES_API:?defina THEMIS_CHAVES_API no .env}"
-      THEMIS_CONFIAR_PROXY: "true"
-    expose: ["8000"]
-    read_only: true
-    tmpfs: ["/tmp:size=512m,mode=1777"]
-    cap_drop: [ALL]
-    security_opt: ["no-new-privileges:true"]
-    healthcheck:   # a verificação padrão da imagem consulta a interface na porta 8501
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/saude', timeout=4)"]
-      interval: 30s
-      timeout: 5s
-      start_period: 60s
-    networks: [interna]
+```bash
+# no .env: THEMIS_CHAVES_API com uma ou mais chaves longas e aleatórias
+docker compose --profile api up -d
 ```
+
+O serviço fica acessível na rede interna da composição e no próprio servidor (`127.0.0.1:8000`), para
+integração com sistemas do órgão instalados na mesma máquina, com as mesmas restrições do serviço da
+interface (sistema de arquivos somente leitura, sem capabilities, limites de memória e processos). A
+verificação de saúde da imagem (`themis saude`) consulta a API e a interface. Para análises em
+paralelo, defina `THEMIS_PROCESSOS` (cerca de 1 GB de memória por processo; ajuste `mem_limit`).
+
+Para publicar a API pelo proxy, acrescente ao Caddyfile, antes do `reverse_proxy themis:8501` (que
+passa a ficar dentro de um bloco `handle`):
 
 ```
 	handle_path /api/* {
@@ -124,8 +116,7 @@ Para expor também a API HTTP, acrescente um serviço à composição e uma rota
 	}
 ```
 
-No Caddyfile, o bloco `handle_path` deve ficar antes do `reverse_proxy themis:8501`, que passa a ficar
-dentro de um bloco `handle`. Com `THEMIS_CONFIAR_PROXY=true`, o limite de requisições da API usa o IP
+e defina `THEMIS_CONFIAR_PROXY=true` no serviço `api`, para que o limite de requisições use o IP
 informado pelo Caddy em `X-Forwarded-For`. Ver [API.md](API.md).
 
 ## Uso interno sem demonstração

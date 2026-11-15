@@ -270,7 +270,14 @@ domínios externos e sem log de acesso. Ver [DEPLOY.md](DEPLOY.md).
 - Ações do GitHub fixadas por hash de commit.
 - Imagem Docker com base fixada por digest, modelo spaCy verificado por hash SHA-256 e varredura pelo
   Trivy.
-- Varredura de segredos no histórico (gitleaks) e análise estática (bandit, ruff).
+- Varredura de segredos no histórico (gitleaks) e análise estática (bandit, ruff e CodeQL, com o
+  conjunto `security-extended`); práticas do projeto avaliadas semanalmente pelo OpenSSF Scorecard.
+- Testes em Linux (Python 3.11 a 3.13), Windows e macOS, e com exatamente as versões de
+  `requirements/producao.txt`.
+- Publicação (`.github/workflows/release.yml`): SBOM CycloneDX do pacote e SPDX da imagem; PyPI por
+  publicação confiável, sem token armazenado; imagem no GHCR assinada com cosign sem chave; atestados
+  de proveniência SLSA do pacote e da imagem. Em pull requests que alteram o empacotamento, tudo é
+  executado como ensaio, sem publicar. Verificação em [INSTALACAO.md](INSTALACAO.md#imagem-publicada-e-verificação-de-autenticidade).
 - Nenhuma dependência do núcleo tem licença incompatível com a MIT (por exemplo, PyMuPDF, de licença
   AGPL, não é usado).
 

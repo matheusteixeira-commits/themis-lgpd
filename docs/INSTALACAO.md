@@ -10,6 +10,23 @@
 | Sistema | Linux, Windows ou macOS |
 | OCR (opcional) | Tesseract com o idioma `por`, ou RapidOCR (instalado pelo extra `ocr`) |
 
+## Pacote portátil para Windows
+
+Para computadores sem Python e sem permissão de administrador — a situação comum em órgãos
+públicos —, há um pacote portátil: uma pasta com o Python incorporável oficial, as dependências, o
+modelo de linguagem e o Themis, que funciona a partir de qualquer local (disco, pen drive, pasta de
+rede) e não altera nada no Windows.
+
+1. Baixe `themis-lgpd-<versão>-windows-x64.zip` (artefato do workflow "Pacote portátil para Windows"
+   ou anexo da versão publicada) e extraia-o.
+2. Dê dois cliques em `Iniciar Themis.bat`: o navegador abre a interface em `http://127.0.0.1:8501`.
+3. Para a linha de comando, use `themis.bat` na mesma pasta (`themis.bat anonimizar documento.pdf`).
+
+O OCR usa o RapidOCR incluído; nenhum outro programa precisa ser instalado. O pacote é montado por
+`scripts/empacotar_windows.py`, que confere o Python incorporável pelo resumo publicado pelo
+python.org, e verificado a cada alteração no CI por `scripts/verificar_pacote_windows.py`, que o
+executa sem nenhum Python no `PATH` e anonimiza os exemplos fictícios de `exemplos/`.
+
 ## Instalação com pip
 
 ```bash
@@ -105,6 +122,24 @@ arquivos somente leitura (`--read-only --tmpfs /tmp`). Para a pasta montada rece
 gerados, ela deve permitir escrita ao UID 10001.
 
 Para a demonstração pública com HTTPS, consulte [DEPLOY.md](DEPLOY.md).
+
+A imagem usa o Tesseract para OCR e não inclui o RapidOCR. A verificação de saúde (`themis saude`)
+vale tanto para a interface quanto para a API.
+
+### Imagem publicada e verificação de autenticidade
+
+As versões publicadas ficam no GitHub Container Registry, assinadas com cosign (sem chave, pela
+identidade do workflow de publicação) e com atestado de proveniência SLSA. Antes de usar a imagem em
+produção, confira as duas coisas:
+
+```bash
+IMAGEM=ghcr.io/matheusteixeira-commits/themis-lgpd:1.1.0
+cosign verify "$IMAGEM"   --certificate-identity-regexp '^https://github.com/matheusteixeira-commits/themis-lgpd/\.github/workflows/release\.yml@refs/tags/v'   --certificate-oidc-issuer https://token.actions.githubusercontent.com
+gh attestation verify "oci://$IMAGEM" --repo matheusteixeira-commits/themis-lgpd
+```
+
+Os pacotes do PyPI têm atestado equivalente (`gh attestation verify themis_lgpd-1.1.0-py3-none-any.whl
+--repo matheusteixeira-commits/themis-lgpd`), e cada versão traz o SBOM (CycloneDX) das dependências.
 
 ## Instalação para desenvolvimento
 

@@ -1,6 +1,6 @@
 """Interface de linha de comando (``themis``).
 
-Subcomandos: ``anonimizar``, ``analisar``, ``perfis``, ``interface``, ``api`` e ``reverter``. Todo o
+Subcomandos: ``anonimizar``, ``analisar``, ``perfis``, ``interface``, ``api``, ``reverter`` e ``saude``. Todo o
 processamento é local; nenhum dado é enviado para fora da máquina.
 
 Mensagens de progresso e avisos são escritos na saída de erro; a saída padrão é reservada ao
@@ -309,6 +309,33 @@ def cmd_api(args) -> int:
     return 0
 
 
+#: Endereços verificados por ``themis saude``: a API e a interface, nas portas padrão.
+URLS_SAUDE = ("http://127.0.0.1:8000/saude", "http://127.0.0.1:8501/_stcore/health")
+
+
+def cmd_saude(args) -> int:
+    """Verifica se a API ou a interface local responde (uso: HEALTHCHECK de contêiner).
+
+    Returns:
+        ``0`` se algum dos endereços responder com HTTP 200; ``1`` caso contrário.
+    """
+    import urllib.error
+    import urllib.request
+
+    for url in args.url or URLS_SAUDE:
+        if not url.startswith(("http://127.0.0.1", "http://localhost", "http://[::1]")):
+            print(f"✗ {url}: a verificação só consulta endereços locais.", file=sys.stderr)
+            return 1
+        try:
+            with urllib.request.urlopen(url, timeout=args.tempo) as resposta:  # noqa: S310  # nosec B310
+                if resposta.status == 200:
+                    return 0
+        except (urllib.error.URLError, OSError):
+            continue
+    print("✗ nenhum serviço do Themis respondeu.", file=sys.stderr)
+    return 1
+
+
 def _opcoes_motor(p: argparse.ArgumentParser) -> None:
     """Opções comuns aos subcomandos que analisam texto."""
     p.add_argument("--config", metavar="ARQ",
@@ -385,6 +412,11 @@ def main(argv: list[str] | None = None) -> int:
     d.add_argument("texto")
     d.add_argument("cofre")
     d.set_defaults(func=cmd_reverter)
+
+    s = sub.add_parser("saude", help="verifica se a API ou a interface local responde (HEALTHCHECK de contêiner)")
+    s.add_argument("--url", action="append", help=f"endereço local a verificar (padrão: {', '.join(URLS_SAUDE)})")
+    s.add_argument("--tempo", type=float, default=4.0, help="tempo máximo de cada tentativa, em segundos")
+    s.set_defaults(func=cmd_saude)
 
     args = ap.parse_args(argv)
     return args.func(args)

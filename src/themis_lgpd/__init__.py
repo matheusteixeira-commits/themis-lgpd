@@ -10,11 +10,10 @@ Uso básico::
 Arquivos (PDF, DOCX, XLSX, CSV, TXT e imagens) são tratados por :mod:`themis_lgpd.formatos`.
 """
 
+from ._versao import __version__
 from .motor import Anonimizador, Entidade, Resultado, anonimizar
 from .operadores import MODOS
 from .perfis import PERFIS, Perfil, obter_perfil
-
-__version__ = "1.0.0"
 
 __all__ = ["Anonimizador", "Entidade", "Resultado", "anonimizar", "MODOS", "PERFIS", "Perfil", "obter_perfil",
            "__version__"]

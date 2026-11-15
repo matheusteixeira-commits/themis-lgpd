@@ -91,6 +91,26 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - `benchmark/desempenho.py`: tempo de análise de textos longos e de anonimização de PDFs, e tamanho
   dos PDFs gerados.
 
+### Adicionado — distribuição e confiança
+
+- Versão em fonte única (`src/themis_lgpd/_versao.py`, lida pelo `pyproject.toml`); metadados
+  completos (endereços de documentação e histórico, sistemas operacionais) e README com links
+  absolutos, para exibição correta no PyPI; `twine check --strict` no CI.
+- Workflow de publicação por tag (`release.yml`): roda e sdist com SBOM CycloneDX e atestado de
+  proveniência SLSA, PyPI por publicação confiável, imagem no GHCR com SBOM SPDX, assinatura cosign
+  sem chave e atestado de proveniência; ensaio completo, sem publicar, em pull requests.
+  Roteiro em `docs/PUBLICACAO.md`.
+- CodeQL (`security-extended`) e OpenSSF Scorecard; testes também em Windows e macOS e com
+  exatamente as versões de `requirements/producao.txt`.
+- `themis saude`: verificação de saúde da API e da interface, usada pelo HEALTHCHECK da imagem (antes,
+  fixo na porta da interface); serviço de API na composição Docker (perfil `api`); imagem sem o
+  RapidOCR (OCR pelo Tesseract). O CI sobe o contêiner no modo API, espera o estado `healthy` e
+  anonimiza um texto por ele.
+- Pacote portátil para Windows (`scripts/empacotar_windows.py`): Python incorporável oficial,
+  dependências, modelo e Themis numa pasta que funciona sem instalação e sem administrador, com
+  `Iniciar Themis.bat` (interface) e `themis.bat` (linha de comando); montado e verificado no CI sem Python no
+  `PATH`, anonimizando os exemplos fictícios de `exemplos/`.
+
 ### Desempenho
 
 - Análise de textos longos quase linear: 100 mil caracteres em 4,7 s (1.0.0: 11,3 s). O reforço de

@@ -1,0 +1,49 @@
+name: Pacote portátil para Windows
+
+# Monta o pacote (Python incorporável + dependências + modelo + Themis) e o verifica num ambiente sem
+# Python no PATH, anonimizando os exemplos fictícios. Em tag, o .zip fica anexado aos artefatos.
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    paths:
+      - ".github/workflows/portatil.yml"
+      - "scripts/empacotar_windows.py"
+      - "scripts/verificar_pacote_windows.py"
+      - "requirements/producao.txt"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portatil-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    name: Montar e verificar (Windows x64)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Montar o pacote
+        run: python scripts/empacotar_windows.py --saida dist
+      - name: Extrair em outra pasta e verificar sem Python no PATH
+        shell: pwsh
+        run: |
+          $zip = Get-ChildItem dist\themis-lgpd-*-windows-x64.zip | Select-Object -First 1
+          Expand-Archive $zip.FullName -DestinationPath "$env:RUNNER_TEMP\portatil"
+          $pasta = Get-ChildItem "$env:RUNNER_TEMP\portatil" -Directory | Select-Object -First 1
+          python scripts/verificar_pacote_windows.py $pasta.FullName
+          "Pacote: $($zip.Name), $([math]::Round($zip.Length / 1MB)) MB" | Tee-Object -Append $env:GITHUB_STEP_SUMMARY
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        with:
+          name: themis-lgpd-windows-x64
+          path: dist/themis-lgpd-*-windows-x64.zip
+          retention-days: 30
+          compression-level: 0

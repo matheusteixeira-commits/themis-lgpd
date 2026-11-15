@@ -5,7 +5,7 @@ Anonimização de documentos públicos brasileiros, construída sobre o
 local.
 
 [![CI](https://github.com/matheusteixeira-commits/themis-lgpd/actions/workflows/ci.yml/badge.svg)](https://github.com/matheusteixeira-commits/themis-lgpd/actions/workflows/ci.yml)
-[![Licença MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue.svg)](LICENSE)
+[![Licença MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue.svg)](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/LICENSE)
 ![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)
 
 O Themis LGPD identifica e remove dados pessoais de textos, PDFs, documentos Word, planilhas e
@@ -58,9 +58,11 @@ pip install "themis-lgpd[completo]"
 python -m spacy download pt_core_news_lg
 ```
 
-Requer Python 3.11 ou mais recente. Para PDFs digitalizados e imagens, instale também o Tesseract
-com o idioma português ou use o RapidOCR incluído no extra `completo`. Detalhes em
-[docs/INSTALACAO.md](docs/INSTALACAO.md).
+Requer Python 3.11 ou mais recente. Sem Python e sem permissão de administrador, use o
+[pacote portátil para Windows](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/docs/INSTALACAO.md#pacote-portátil-para-windows).
+Para PDFs digitalizados e imagens, instale também o Tesseract com o idioma português ou use o
+RapidOCR incluído no extra `completo`. Detalhes em
+[docs/INSTALACAO.md](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/docs/INSTALACAO.md).
 
 **Interface web**, com revisão humana:
 
@@ -110,7 +112,7 @@ docker build -t themis-lgpd .
 docker run --rm -p 127.0.0.1:8501:8501 themis-lgpd
 ```
 
-Referência completa: [docs/GUIA_DE_USO.md](docs/GUIA_DE_USO.md) e [docs/API.md](docs/API.md).
+Referência completa: [docs/GUIA_DE_USO.md](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/docs/GUIA_DE_USO.md) e [docs/API.md](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/docs/API.md).
 
 ## Formatos
 
@@ -123,7 +125,7 @@ Referência completa: [docs/GUIA_DE_USO.md](docs/GUIA_DE_USO.md) e [docs/API.md]
 | PNG, JPEG | Texto reconhecido por OCR | Metadados (EXIF, GPS); a saída é um PNG novo |
 
 Todo arquivo gerado é relido por um caminho independente; se algum valor tarjado continuar legível,
-nenhum arquivo é entregue. Detalhes em [docs/SEGURANCA_E_PRIVACIDADE.md](docs/SEGURANCA_E_PRIVACIDADE.md).
+nenhum arquivo é entregue. Detalhes em [docs/SEGURANCA_E_PRIVACIDADE.md](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/docs/SEGURANCA_E_PRIVACIDADE.md).
 
 ## Perfis e modos de saída
 
@@ -144,7 +146,7 @@ nenhum arquivo é entregue. Detalhes em [docs/SEGURANCA_E_PRIVACIDADE.md](docs/S
 | `pseudonimo` | `Pessoa 1`, `[CPF 2]` | Pseudonimização |
 | `hmac` | `[CPF:3fa91c02be]` | Pseudonimização |
 
-Regras por categoria e catálogo de tipos: [docs/TIPOS_DE_DADOS.md](docs/TIPOS_DE_DADOS.md).
+Regras por categoria e catálogo de tipos: [docs/TIPOS_DE_DADOS.md](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/docs/TIPOS_DE_DADOS.md).
 
 ## Resultados
 
@@ -168,7 +170,7 @@ sintético, todos os vazamentos ocorrem na variante com ruído de OCR simulado. 
 gerado pelos autores, mede endereços e identificadores das 27 UFs e, em textos de interesse público,
 a ausência de tarja indevida; a versão 1.0.0 tarjava 64,5% desses dados. Tempo médio: cerca de
 20 ms por pedido em CPU comum. Metodologia e resultados por tipo:
-[docs/BENCHMARKS.md](docs/BENCHMARKS.md).
+[docs/BENCHMARKS.md](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/docs/BENCHMARKS.md).
 
 ## Privacidade
 
@@ -179,7 +181,7 @@ a ausência de tarja indevida; a versão 1.0.0 tarjava 64,5% desses dados. Tempo
 - `pseudonimo`, `hmac` e o cofre de reversão são pseudonimização na terminologia da ANPD: o dado
   continua sendo pessoal.
 
-Para relatar uma vulnerabilidade, consulte [SECURITY.md](SECURITY.md).
+Para relatar uma vulnerabilidade, consulte [SECURITY.md](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/SECURITY.md).
 
 ## Limitações
 
@@ -199,18 +201,19 @@ Para relatar uma vulnerabilidade, consulte [SECURITY.md](SECURITY.md).
 
 | Documento | Conteúdo |
 |---|---|
-| [Instalação](docs/INSTALACAO.md) | Requisitos, extras, modelo de linguagem, OCR, Docker, operação sem internet |
-| [Guia de uso](docs/GUIA_DE_USO.md) | Interface web, linha de comando, biblioteca Python, boas práticas de revisão |
-| [API HTTP](docs/API.md) | Rotas, autenticação, limites, erros |
-| [Configuração](docs/CONFIGURACAO.md) | Variáveis de ambiente |
-| [Como funciona](docs/COMO_FUNCIONA.md) | Visão geral do processo de decisão |
-| [Arquitetura](docs/ARQUITETURA.md) | Fluxo de processamento, módulos, extensibilidade |
-| [Segurança e privacidade](docs/SEGURANCA_E_PRIVACIDADE.md) | Modelo de ameaças, proteções por formato, riscos residuais |
-| [Tipos de dados e perfis](docs/TIPOS_DE_DADOS.md) | Catálogo de tipos, base legal, regras por perfil |
-| [Benchmarks](docs/BENCHMARKS.md) | Metodologia, resultados, reprodução |
-| [Demonstração pública](docs/DEPLOY.md) | Implantação em servidor próprio com HTTPS |
-| [Decisões de arquitetura](docs/adr/README.md) | Registros de decisão |
-| [Histórico de versões](CHANGELOG.md) | Alterações por versão |
+| [Instalação](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/docs/INSTALACAO.md) | Requisitos, extras, modelo de linguagem, OCR, Docker, operação sem internet |
+| [Guia de uso](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/docs/GUIA_DE_USO.md) | Interface web, linha de comando, biblioteca Python, boas práticas de revisão |
+| [API HTTP](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/docs/API.md) | Rotas, autenticação, limites, erros |
+| [Configuração](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/docs/CONFIGURACAO.md) | Variáveis de ambiente |
+| [Como funciona](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/docs/COMO_FUNCIONA.md) | Visão geral do processo de decisão |
+| [Arquitetura](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/docs/ARQUITETURA.md) | Fluxo de processamento, módulos, extensibilidade |
+| [Segurança e privacidade](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/docs/SEGURANCA_E_PRIVACIDADE.md) | Modelo de ameaças, proteções por formato, riscos residuais |
+| [Tipos de dados e perfis](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/docs/TIPOS_DE_DADOS.md) | Catálogo de tipos, base legal, regras por perfil |
+| [Benchmarks](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/docs/BENCHMARKS.md) | Metodologia, resultados, reprodução |
+| [Demonstração pública](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/docs/DEPLOY.md) | Implantação em servidor próprio com HTTPS |
+| [Publicação de versões](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/docs/PUBLICACAO.md) | PyPI, GHCR, assinatura, SBOM e proveniência |
+| [Decisões de arquitetura](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/docs/adr/README.md) | Registros de decisão |
+| [Histórico de versões](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/CHANGELOG.md) | Alterações por versão |
 
 ## Uso com o Presidio
 
@@ -228,14 +231,14 @@ No sentido inverso, qualquer reconhecedor do Presidio pode ser somado ao Themis 
 
 ## Contribuição
 
-Ver [CONTRIBUTING.md](CONTRIBUTING.md). Ao relatar um dado que não foi tarjado, use sempre exemplo
-fictício. Código de conduta: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+Ver [CONTRIBUTING.md](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/CONTRIBUTING.md). Ao relatar um dado que não foi tarjado, use sempre exemplo
+fictício. Código de conduta: [CODE_OF_CONDUCT.md](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/CODE_OF_CONDUCT.md).
 
 ## Origem e créditos
 
 O Themis LGPD foi desenvolvido a partir de uma solução apresentada no 1º Hackathon em Controle Social
 (Participa DF) e reescrito para publicação aberta. Autores: Gilson Maciel e Matheus Teixeira.
-Componentes de terceiros e respectivas licenças: [NOTICE](NOTICE). O projeto não é afiliado nem
+Componentes de terceiros e respectivas licenças: [NOTICE](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/NOTICE). O projeto não é afiliado nem
 endossado por órgão público.
 
-Licença: [MIT](LICENSE).
+Licença: [MIT](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/LICENSE).

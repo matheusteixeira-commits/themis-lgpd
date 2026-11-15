@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "themis-lgpd"
-version = "1.0.0"
+dynamic = ["version"]
 description = "Anonimização de documentos públicos brasileiros (LGPD/LAI) sobre o Microsoft Presidio: nomes, CPF, CNPJ alfanumérico, PIS, CNH, título, CNS, processos e dados sensíveis, com tarja real em PDF, DOCX e planilhas — 100% local."
 readme = "README.md"
 license = "MIT"
@@ -14,9 +14,15 @@ authors = [{ name = "Gilson Maciel" }, { name = "Matheus Teixeira" }]
 keywords = ["lgpd", "lai", "anonimização", "pii", "tarjamento", "privacidade", "brasil", "cpf", "redaction", "presidio"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Environment :: Web Environment",
+    "Framework :: FastAPI",
     "Intended Audience :: Developers",
     "Intended Audience :: Legal Industry",
     "Natural Language :: Portuguese (Brazilian)",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -66,7 +72,13 @@ themis = "themis_lgpd.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/matheusteixeira-commits/themis-lgpd"
+Documentation = "https://github.com/matheusteixeira-commits/themis-lgpd/tree/main/docs"
+Changelog = "https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/CHANGELOG.md"
+Source = "https://github.com/matheusteixeira-commits/themis-lgpd"
 Issues = "https://github.com/matheusteixeira-commits/themis-lgpd/issues"
+
+[tool.setuptools.dynamic]
+version = { attr = "themis_lgpd._versao.__version__" }
 
 [tool.setuptools.packages.find]
 where = ["src"]

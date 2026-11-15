@@ -8,7 +8,7 @@ services:
   themis:
     build:
       context: ..
-    image: themis-lgpd:1.0.0
+    image: themis-lgpd:local
     restart: unless-stopped
     environment:
       THEMIS_DEMO: "${THEMIS_DEMO:-true}"
@@ -26,6 +26,36 @@ services:
     mem_limit: 3g
     cpus: 2
     logging:                    # o app não registra conteúdo; mesmo assim, logs curtos e rotativos
+      driver: json-file
+      options: { max-size: "5m", max-file: "2" }
+    networks: [interna]
+
+  # API HTTP, opcional: docker compose --profile api up -d. Fica acessível apenas na rede interna e no
+  # próprio servidor (127.0.0.1:8000), para integração com sistemas do órgão; para publicá-la pelo
+  # proxy, ver docs/DEPLOY.md. A verificação de saúde da imagem ("themis saude") vale também para ela.
+  api:
+    image: themis-lgpd:local
+    profiles: ["api"]
+    restart: unless-stopped
+    depends_on: [themis]          # reaproveita a imagem construída pelo serviço themis
+    environment:
+      THEMIS_DEMO: "${THEMIS_DEMO:-true}"
+      THEMIS_CHAVES_API: "${THEMIS_CHAVES_API:?defina THEMIS_CHAVES_API no .env para usar a API}"
+      THEMIS_MAX_MB: "${THEMIS_MAX_MB:-5}"
+      THEMIS_MAX_PAGINAS: "${THEMIS_MAX_PAGINAS:-10}"
+      THEMIS_MAX_CARACTERES: "${THEMIS_MAX_CARACTERES:-20000}"
+      THEMIS_PROCESSOS: "${THEMIS_PROCESSOS:-1}"
+    command: ["api", "--endereco", "0.0.0.0", "--porta", "8000"]
+    ports: ["127.0.0.1:8000:8000"]
+    read_only: true
+    tmpfs:
+      - /tmp:size=512m,mode=1777
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 256
+    mem_limit: 3g
+    cpus: 2
+    logging:
       driver: json-file
       options: { max-size: "5m", max-file: "2" }
     networks: [interna]
