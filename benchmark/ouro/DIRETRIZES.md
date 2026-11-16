@@ -62,3 +62,16 @@ Regras de extensão:
   parte do `ENDERECO`.
 * Na dúvida entre dois rótulos de dado pessoal, escolha o mais específico; na dúvida entre pessoal e
   público, prefira pessoal e registre a dúvida na adjudicação.
+
+## Conjunto congelado
+
+| Arquivo | Documentos | Entidades | Trechos públicos | Concordância antes da adjudicação (F1) |
+|---|---:|---:|---:|---:|
+| `ouro_a.jsonl` | 60 | 523 | 836 | 0,956 |
+| `ouro_b.jsonl` | 60 | 783 | 565 | 0,861 |
+
+Os dois lotes cobrem as 27 UFs e doze gêneros documentais; o lote B concentra laudos, prontuários
+e documentos de saúde. Resumos SHA-256 em `CONGELAMENTO.json`. A pasta `processo/` guarda, por lote,
+as anotações independentes do redator e da anotação cega e o relatório de adjudicação, de modo que a
+concordância pode ser recalculada (`ferramentas.py concordancia`). Toda divergência foi de extensão
+ou de inclusão; nenhuma foi só de rótulo.
