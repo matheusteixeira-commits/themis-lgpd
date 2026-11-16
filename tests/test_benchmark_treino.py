@@ -78,3 +78,20 @@ def test_precisao_e_preservacao_no_conjunto_de_referencia():
     m = agregadas([r])
     assert m["precisao_tarjas"] == 0.5 and m["preservacao_publicos"] == 0.5
     assert avaliar_documento(d, [ent("Maria Souza", "alertar")])["vazou"]
+
+
+def test_erros_por_documento_e_recusa_fora_do_ajuste(tmp_path):
+    import pytest
+    from avaliar_ouro import PASTA, _somente_ajuste, erros_documento
+
+    texto = "A Secretaria de Saúde atendeu Maria Souza no Hospital Regional."
+    d = {"id": "R-1", "texto": texto, "entidades": [{"tipo": "NOME_PESSOA", "valor": "Maria Souza"}],
+         "publicos": ["Hospital Regional"]}
+    inicio = texto.index("Hospital Regional")
+    r = erros_documento(d, [SimpleNamespace(inicio=inicio, fim=inicio + 17, acao="tarjar", tipo="NOME")])
+    assert r["vazou"] and r["nao_protegidas"][0]["situacao"] == "nao_detectada"
+    assert r["tarjas_fora"][0]["trecho"] == "Hospital Regional" and len(r["publicos_tarjados"]) == 1
+    _somente_ajuste([tmp_path / "ajuste.jsonl"])
+    for proibido in (PASTA / "ouro_a.jsonl", tmp_path / "selecao.jsonl", PASTA / "ajuste.jsonl"):
+        with pytest.raises(SystemExit):
+            _somente_ajuste([proibido])

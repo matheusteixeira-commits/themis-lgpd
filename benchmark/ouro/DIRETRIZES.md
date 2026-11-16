@@ -63,6 +63,44 @@ Regras de extensão:
 * Na dúvida entre dois rótulos de dado pessoal, escolha o mais específico; na dúvida entre pessoal e
   público, prefira pessoal e registre a dúvida na adjudicação.
 
+## Convenções de extensão
+
+Fixadas na adjudicação dos lotes A e B a partir do que os anotadores já faziam nas entidades de
+consenso; valem para todo conjunto anotado segundo estas diretrizes.
+
+1. **Palavras-chave e qualificadores ficam fora** do valor: "CPF", "nascida em", "peso de", "vaga
+   reservada a", "mensais", "renda estimada de", "dívida de". Medidas com unidade entram sem a
+   palavra-chave ("38 semanas", "150 x 100 mmHg"); escalas clínicas mantêm o nome ("Glasgow 13").
+2. **Nome de pessoa** entra sem pronome de tratamento ("dona Joana" → "Joana"). Iniciais e nomes
+   parciais de pessoa identificável também são `NOME_PESSOA`. Quando o mesmo nome aparece em duas
+   grafias (caixa alta e normal), cada grafia é uma entrada; quebra de linha dentro do valor é
+   copiada como está no texto.
+3. **Saúde:** uma condição com seus atributos (medida, lateralidade, características, data do
+   diagnóstico, estado do tratamento) ou uma cadeia causal ("X decorrente de Y") é uma só expressão;
+   achados, sintomas, medicamentos, terapias e exames coordenados são entradas separadas, salvo
+   quando um núcleo comum governa a lista ("testagem para HIV, sífilis e hepatites"). Exame e
+   resultado contíguos formam uma expressão; exame realizado na pessoa identificada entra mesmo
+   sem resultado. Posologia contígua (dose, frequência, duração) integra o medicamento ou a terapia.
+   Verbo de ligação ou de uso fica fora ("é diabética" → "diabética"), salvo quando é o próprio
+   conteúdo ("não deambula"). Licença que enuncia motivo de saúde é `DADO_SAUDE`; a simples duração
+   de um afastamento não é.
+4. **Endereço** vai do logradouro ao complemento; conjunto habitacional, quadra, lote e casa contam
+   como complemento; localidade rural ou aldeia que integra o endereço entra. Bairro, município, UF,
+   tipo de área ("zona rural") e território ficam fora.
+5. **Quase-identificador:** o identificador mais o atributo revelado, sem artigo inicial.
+6. **Dado sensível:** a expressão inteira ("indígena da etnia X", "membro da Igreja Y"); sigla de
+   sindicato ou partido em aposição entra, porque revelaria o dado.
+7. **Valores monetários recebidos ou devidos por pessoa natural** (salário, benefício, bolsa,
+   aluguel, cachê, renda, dívida, prejuízo alegado) são `DADO_FINANCEIRO`. Valores agregados ou de
+   pessoa jurídica (contratos com empresas, verbas de órgão, totais de programas) são públicos.
+   Agência e conta são entradas separadas, sem as palavras "agência" e "conta"; o nome do banco fica
+   fora.
+8. **Número de procedimento, relatório ou registro sobre pessoa ou família** (relatório social,
+   laudo, prontuário, ficha de matrícula, sindicância, auto de infração) é `ID_PROCESSUAL`; atas,
+   notas técnicas e comunicados sobre uma coletividade são públicos.
+9. **Trechos públicos** são listados por unidade ("Caruaru" e "18 de agosto de 2025", não "Caruaru,
+   18 de agosto de 2025"); compostos só entram quando têm partes que não estão na lista.
+
 ## Conjunto congelado
 
 | Arquivo | Documentos | Entidades | Trechos públicos | Concordância antes da adjudicação (F1) |

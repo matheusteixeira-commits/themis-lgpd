@@ -16,11 +16,15 @@ Cada métrica acompanha o intervalo de confiança de 95% por *bootstrap* de docu
 ``--detalhes`` grava o resultado por documento para a comparação pareada
 (``benchmark/treino/comparar_execucoes.py``).
 
-O conjunto é exclusivamente de avaliação: não examine erros nele para ajustar regras.
+O conjunto de referência é exclusivamente de avaliação: não examine erros nele para ajustar regras.
+O mesmo avaliador mede o corpus de desenvolvimento de documentos oficiais (``benchmark/oficial``),
+anotado segundo as mesmas diretrizes; ``--erros`` lista os erros documento a documento e só é aceito
+na partição de ajuste desse corpus.
 
 Uso::
 
     python benchmark/avaliar_ouro.py [ARQUIVOS.jsonl ...] [--perfil lai] [--json r.json] [--detalhes d.jsonl]
+    python benchmark/avaliar_ouro.py benchmark/oficial/ajuste.jsonl --erros erros.jsonl
 """
 
 from __future__ import annotations
@@ -88,14 +92,58 @@ def avaliar_documento(d: dict, ents) -> dict:
     }
 
 
+def erros_documento(d: dict, ents) -> dict:
+    """Erros de um documento: dados pessoais não protegidos, tarjas fora de dado pessoal e trechos
+    públicos tarjados, cada um com o contexto."""
+    texto = d["texto"]
+    mascara, revisao, pessoal = [False] * len(texto), [False] * len(texto), [False] * len(texto)
+    for e in ents:
+        for k in range(e.inicio, min(e.fim, len(texto))):
+            revisao[k] = True
+            mascara[k] = mascara[k] or e.acao == "tarjar"
+    for e in d["entidades"]:
+        for a, b in ocorrencias(texto, e["valor"]):
+            pessoal[a:b] = [True] * (b - a)
+
+    def contexto(a: int, b: int) -> str:
+        return texto[max(0, a - 60):b + 60]
+
+    nao_protegidas = []
+    for e in d["entidades"]:
+        lista = ocorrencias(texto, e["valor"])
+        alvo = revisao if e["tipo"] in SO_ALERTA else mascara
+        if lista and not all(coberto(texto, a, b, alvo) for a, b in lista):
+            situacao = "sinalizada" if all(coberto(texto, a, b, revisao) for a, b in lista) else "nao_detectada"
+            nao_protegidas.append({"tipo": e["tipo"], "valor": e["valor"], "situacao": situacao,
+                                   "contexto": contexto(*lista[0])})
+    fora = [{"tipo_sistema": e.tipo, "trecho": texto[e.inicio:e.fim], "contexto": contexto(e.inicio, e.fim)}
+            for e in ents if e.acao == "tarjar"
+            and not any(pessoal[k] for k in range(e.inicio, min(e.fim, len(texto))) if texto[k].isalnum())]
+    publicos = [{"publico": texto[a:b], "contexto": contexto(a, b)}
+                for p in d.get("publicos", []) for a, b in ocorrencias(texto, p) if any(mascara[a:b])]
+    return {"id": d["id"], "vazou": avaliar_documento(d, ents)["vazou"], "nao_protegidas": nao_protegidas,
+            "tarjas_fora": fora, "publicos_tarjados": publicos}
+
+
+def _somente_ajuste(arquivos: list[Path]) -> None:
+    """Recusa a listagem de erros fora da partição de ajuste do corpus de desenvolvimento."""
+    for arq in arquivos:
+        caminho = Path(arq).resolve()
+        if caminho.parent == PASTA.resolve() or not caminho.stem.startswith("ajuste"):
+            raise SystemExit(f"--erros só é aceito na partição de ajuste do corpus de desenvolvimento: {arq}")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("arquivos", type=Path, nargs="*", help="padrão: todos os .jsonl congelados em benchmark/ouro")
     ap.add_argument("--perfil", default="lai")
     ap.add_argument("--json", type=Path)
     ap.add_argument("--detalhes", type=Path)
+    ap.add_argument("--erros", type=Path, help="lista os erros por documento (só na partição de ajuste)")
     args = ap.parse_args()
     arquivos = args.arquivos or sorted(PASTA.glob("*.jsonl"))
+    if args.erros:
+        _somente_ajuste(arquivos)
     docs = [d for arq in arquivos for d in ler(arq)]
     anon = Anonimizador(perfil=args.perfil)
     t0 = time.perf_counter()
@@ -127,6 +175,10 @@ def main() -> None:
     if args.detalhes:
         args.detalhes.write_text("".join(json.dumps(x, ensure_ascii=False) + "\n" for x in detalhes),
                                  encoding="utf-8", newline="\n")
+    if args.erros:
+        erros = [erros_documento(d, ents) for d, ents in zip(docs, analises)]
+        args.erros.write_text("".join(json.dumps(x, ensure_ascii=False) + "\n" for x in erros),
+                              encoding="utf-8", newline="\n")
 
 
 if __name__ == "__main__":
