@@ -370,7 +370,7 @@ _SALARIOS = (r"\b(?:meio|um|dois|tr[êe]s|quatro|cinco|seis|sete|oito|nove|dez|\
              r"sal[áa]rios?[\s-]+m[íi]nimos?\b")
 #: Percentual dos rendimentos de alguém: "25% (vinte e cinco por cento) dos rendimentos brutos".
 _PERCENTUAL = (r"\b\d{1,3}(?:,\d{1,2})?\s?%(?:\s*\([^()\n]{3,60}\))?(?=\s+d[oa]s?\s+(?:rendimentos|sal[áa]rios?|"
-               r"remunera[çc](?:[ãa]o|[õo]es)|proventos|vencimentos)\b)")
+               r"remunera[çc](?:[ãa]o|[õo]es)|proventos|vencimentos)\b(?!\s+(?:inicial|iniciais|base|b[áa]sico)\b))")
 _VALOR = re.compile(r"(?P<reais>" + _REAIS + r")|(?P<salarios>" + _SALARIOS + r")|(?P<percentual>" + _PERCENTUAL + r")",
                     re.IGNORECASE)
 

@@ -157,6 +157,7 @@ def test_valor_de_pessoa_natural(texto, valor):
     "Município | Beneficiários | Valor (R$)\nCampo Alto | 1.204 | 845.000,00",
     "O desconto em folha não pode exceder 30% da remuneração do servidor.",
     "O reajuste de 5% dos vencimentos dos servidores foi aprovado.",
+    "Segundo o edital, eu ganho ajuda de custo de 50% do salário inicial durante o curso de formação.",
 ])
 def test_valor_publico_fica_legivel(texto):
     assert _trechos(ReconhecedorValores(), texto, "VALOR_PESSOAL") == []
