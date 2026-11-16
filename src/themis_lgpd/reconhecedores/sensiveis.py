@@ -1458,14 +1458,24 @@ _NORMATIVO_ANTES = re.compile(r"\b(?:cabe|caber[áa]|compete|competir[áa]|incum
                               re.IGNORECASE)
 
 
+#: Pessoa designada só pela responsabilidade ("o responsável pela biblioteca"): a própria indicação de
+#: responsável não basta para individualizá-la; é preciso outro elemento ("…do bloco 2").
+_RESPONSAVEL_NO_INICIO = re.compile(r"respons[áa]vel\s+pel[oa]s?\b", re.IGNORECASE)
+
+
 class _PadraoIndividualizado(Padrao):
     """:class:`Padrao` cujo achado só é aceito se contiver um elemento de :data:`_INDIVIDUALIZA` e não
     fizer parte de um enunciado normativo."""
 
     def detectar(self, texto: str) -> list:
-        return [d for d in super().detectar(texto) if _INDIVIDUALIZA.search(texto[d.inicio:d.fim])
-                and not _NORMATIVO_DEPOIS.match(texto, d.fim)
-                and not _NORMATIVO_ANTES.search(texto[max(0, d.inicio - 20):d.inicio])]
+        saida = []
+        for d in super().detectar(texto):
+            trecho = texto[d.inicio:d.fim]
+            m = _RESPONSAVEL_NO_INICIO.match(trecho)
+            if (_INDIVIDUALIZA.search(trecho, m.end() if m else 0) and not _NORMATIVO_DEPOIS.match(texto, d.fim)
+                    and not _NORMATIVO_ANTES.search(texto[max(0, d.inicio - 20):d.inicio])):
+                saida.append(d)
+        return saida
 
 
 #: Marcas físicas que distinguem uma pessoa de outras: tatuagem, cicatriz, piercing, modo de andar ou de

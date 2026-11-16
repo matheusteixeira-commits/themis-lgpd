@@ -185,6 +185,7 @@ def test_quase_identificador_por_funcao_lingua_ou_origem(texto, trecho):
     "A presidente da Câmara abriu a sessão.",
     "O vendedor deverá emitir a nota fiscal no ato da entrega.",
     "Os carroceiros cadastrados receberão o auxílio no mês passado.",
+    "Solicito o nome do responsável pelo setor de compras da Secretaria.",
 ])
 def test_funcao_sem_individualizacao_nao_e_quase_identificador(texto):
     assert _quase(texto) == []
@@ -270,7 +271,7 @@ CONTATOS_DO_ORGAO = [
 
 @pytest.mark.parametrize("texto,contato", CONTATOS_DO_ORGAO)
 def test_contato_do_orgao_fica_legivel(anon, texto, contato):
-    r = anon.anonimizar(texto)
+    r = anon.anonimizar(TIMBRE + texto)
     assert contato in r.texto, r.texto
     assert any(e.tipo == "CONTATO_INSTITUCIONAL" and e.acao == "alertar" for e in r.entidades)
 
@@ -362,6 +363,10 @@ def test_veiculo_particular_continua_tarjado(anon, texto, placa):
      "Comércio, 45"),
     ("Nossa empresa enviou a proposta pelo e-mail vendas@ferragenspinheiro.com.br e não teve retorno.",
      "vendas@ferragenspinheiro.com.br"),
+    # O número que o cidadão cita ao lado do canal do órgão costuma ser o dele.
+    ("Liguei para o 0800 do INSS e pedi retorno no (61) 99887-1122.", "(61) 99887-1122"),
+    ("Dúvidas sobre o meu caso: (61) 3344-2211, falar com Joana.", "(61) 3344-2211"),
+    ("Moro perto da Secretaria de Saúde e uso o e-mail saude.joana@gmail.com.", "saude.joana@gmail.com"),
 ])
 def test_no_pedido_do_cidadao_continua_tarjado(anon, texto, valor):
     assert valor not in anon.anonimizar(texto).texto
@@ -376,7 +381,7 @@ def test_no_pedido_do_cidadao_continua_tarjado(anon, texto, valor):
     ("nomeado para o cargo em comissão de Assessor, símbolo CC-2, a partir de 1º de março", "CC-2"),
 ])
 def test_numero_publico_fica_legivel(anon, texto, trecho):
-    assert trecho in anon.anonimizar(texto).texto
+    assert trecho in anon.anonimizar(TIMBRE + texto).texto
 
 
 def test_perfil_maximo_tarja_contato_de_empresa():

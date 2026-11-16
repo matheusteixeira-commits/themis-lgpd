@@ -125,7 +125,7 @@ _CAUDA = (
 #: Tipos de logradouro urbano.
 _LOGRADOURO = (r"(?:rua|r\.|avenida|av\.?|alameda|al\.|travessa|trav\.?|tv\.|rodovia|rod\.?|estrada|estr\.?|"
                r"pra[çc]a|p[çc]a\.?|largo|lgo\.?|viela|beco|servid[ãa]o|passagem|psg\.?|ladeira|vila|"
-               r"conjunto habitacional|condom[íi]nio|setor habitacional|quadra|(?-i:Via|VIA)|marginal|vicinal|passarela)")
+               r"conjunto habitacional|condom[íi]nio|setor habitacional|quadra|via|marginal|vicinal|passarela)")
 #: Propriedades rurais, identificadas pelo nome, sem número: o nome designa o imóvel da família.
 _PROPRIEDADE_RURAL = (r"(?:s[íi]tio|fazenda|ch[áa]cara|granja|est[âa]ncia|gleba|n[úu]cleo rural|"
                       r"col[ôo]nia(?: agr[íi]cola)?|vila rural|lote rural)")
@@ -166,7 +166,7 @@ PADROES: list[Padrao] = [
     Padrao("ENDERECO",
            r"\b" + _LOGRADOURO + r"\s+(?:" + _NOME_DATA + r"|" + _INICIO_NOME + _NOME_LOGRADOURO
            # "Rua Projetada 4": o número integra o nome da via e não é o do imóvel.
-           + r")[^\S\n]*,?[^\S\n]*(?:(?<!\bprojetad[ao]\s{1,3})" + _NUMERO + r"|" + _COMPONENTE + r")" + _COMPONENTES
+           + r")\s*,?\s*(?:(?<!\bprojetad[ao]\s{1,3})" + _NUMERO + r"|" + _COMPONENTE + r")" + _COMPONENTES
            + _CAUDA, 0.85, contexto=CTX_RESIDENCIA, janela=60, nome="endereco:logradouro"),
     # Logradouro numerado ou com letra ("Rua 15, nº 230", "Rua A, 15", "Avenida T-9, 1220", "Rua 04,
     # Lote 15"), seguido obrigatoriamente de número ou componente.
@@ -523,8 +523,8 @@ _FORA_DO_ENDERECO = re.compile(
 
 
 def _aparar_valor(texto: str, ini: int, fim: int) -> int:
-    """Fim do valor de um campo de endereço sem os segmentos finais que não o integram (município, UF,
-    zona rural, território, país)."""
+    """Fim do valor de um campo de endereço sem os segmentos finais que não o integram (município, região
+    administrativa do DF, UF, zona rural, território, país)."""
     while True:
         while fim > ini and texto[fim - 1] in " \t.;,":
             fim -= 1
@@ -534,7 +534,7 @@ def _aparar_valor(texto: str, ini: int, fim: int) -> int:
         m = separadores[-1]
         segmento = texto[m.end():fim]
         if not segmento or not (_FORA_DO_ENDERECO.match(segmento) or municipio_em(texto, m.end()) == fim
-                                or re.fullmatch(_CIDADE_UF, segmento, re.IGNORECASE)):
+                                or re.fullmatch(_CIDADE_UF, segmento, re.IGNORECASE) or _LOCALIDADES.fullmatch(segmento)):
             return fim
         fim = m.start()
 

@@ -287,10 +287,13 @@ setor, de empresa (`.com.br`) fora de contexto de fornecimento ou com nome de pe
 coladas ao sobrenome); vínculo pessoal próximo ("meu telefone", "telefone da genitora", "residente na",
 campo de qualificação como "Nome:" e "Endereço:" na linha anterior) prevalece sobre a menção ao órgão; o
 veículo designado por tipo comum ("o carro de placa…") ou com posse particular ("do declarante",
-"particular") continua tarjado. A citação de veículo no singular, a sede e o estabelecimento de empresa e
-o e-mail de fornecedor só são reclassificados em documento expedido pelo órgão (timbre nas três
-primeiras linhas): no pedido ou na manifestação do cidadão, a placa da viatura aponta o servidor que a
-conduzia, e a empresa costuma ser a própria requerente. O mesmo número, e-mail ou identificador de
+"particular") continua tarjado. A citação de veículo no singular, a sede e o estabelecimento de empresa,
+o e-mail de fornecedor, o celular do órgão, o e-mail do setor em provedor gratuito ou com nome próprio,
+o número após a designação do setor ou o rótulo de atendimento, o e-mail sob "Contato:", o pedido de
+resposta e o número após "Convênio nº" só são reclassificados em documento expedido pelo órgão (timbre
+nas três primeiras linhas): no pedido ou na manifestação do cidadão, a placa da viatura aponta o
+servidor que a conduzia, a empresa costuma ser a própria requerente e o número citado ao lado do órgão
+costuma ser o da própria pessoa. O mesmo número, e-mail ou identificador de
 veículo recebe a mesma classificação em todo o documento.
 
 Números públicos com forma de dado pessoal são descartados: códigos de natureza de despesa ("natureza

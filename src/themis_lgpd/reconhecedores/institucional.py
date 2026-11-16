@@ -20,9 +20,11 @@ mantém legível e sinaliza para revisão. Na dúvida, o achado continua pessoal
 * e-mail de provedor pessoal ou com nome de pessoa só é do órgão quando a parte local começa pela sigla
   do setor ("cpl.municipio@…") e o órgão é citado por perto; e-mail de empresa, só ao lado de menção ao
   fornecedor ou à contratada;
-* a placa da viatura citada no singular e o endereço e o contato de empresa só são reclassificados em
-  documento expedido pelo órgão (com timbre): no pedido ou na manifestação do cidadão, a placa aponta o
-  servidor que conduzia o veículo, e a empresa costuma ser a própria requerente;
+* a placa da viatura citada no singular, o endereço e o contato de empresa e os canais do órgão
+  reconhecidos pelas regras mais amplas (celular, provedor gratuito, designação do setor, rótulo de
+  atendimento) só são reclassificados em documento expedido pelo órgão (com timbre): no pedido ou na
+  manifestação do cidadão, a placa aponta o servidor que conduzia o veículo, a empresa costuma ser a
+  própria requerente e o número citado ao lado do órgão costuma ser o da própria pessoa;
 * expressão de vínculo pessoal ("meu telefone", "residente na", "telefone da genitora") prevalece
   sobre a menção ao órgão;
 * o mesmo valor citado em outro ponto do documento recebe a mesma classificação.
@@ -164,13 +166,14 @@ _CANAL_ORGAO = re.compile(
     r"(?:telefones?|n[úu]meros?|ligue|ligar|disque)\s+(?:para\s+(?:o\s+)?)?1\d{2}(?!\d)|"
     r"(?:poder[áã]o?|pode(?:m|r[áã]o?)?)\s+(?:\w+\s+){0,2}?(?:acompanhar|consultar|obter|solicitar|agendar|"
     r"esclarecer|tirar|registrar|entrar\s+em\s+contato)|"
-    r"(?:solicita|requisita|aguarda)-se\s+(?:a\s+)?resposta|"
     r"(?:pel[oa]|n[oa]|à|ao|junto\s+(?:a|à|ao))\s+" + _ORGAO + r"\b[^.;\n]{0,70}?"
     r"\b(?:telefones?|fones?|n[úu]meros?|e-?mails?|endere[çc]os?\s+eletr[ôo]nicos?)|"
     r"(?:telefones?|fones?|tel\.?|e-?mails?|contatos?|endere[çc]os?(?:\s+eletr[ôo]nicos?)?)\s+"
     r"(?:d[aoe]s?\s+)?(?:unidade|[óo]rg[ãa]o|setor|institui[çc][ãa]o|sede|equipe|" + _ORGAO + r"))\b",
     re.IGNORECASE,
 )
+#: Pedido de resposta feito pelo órgão ("Solicita-se resposta pelo e-mail…").
+_PEDIDO_DE_RESPOSTA = re.compile(r"\b(?:solicita|requisita|aguarda)-se\s+(?:a\s+)?resposta\b", re.IGNORECASE)
 #: Rótulo de campo de contato no início da linha ("Telefone:", "Fone:", "Contato:").
 _ROTULO_CONTATO = re.compile(r"^\s*(?:telefones?|fones?|tel\.?|contatos?|e-?mails?)\s*:", re.IGNORECASE)
 #: Rótulo que anuncia um canal de atendimento do órgão no período do contato ("Atendimento presencial do
@@ -446,20 +449,26 @@ def _contexto_contato(texto: str, d: Deteccao, anterior: int, contatos: list[Det
         return "orgao"
     if _PESSOAL_SEM_MEIO.search(perto):
         return "pessoal"
+    # As regras seguintes de canal do órgão (celular, provedor gratuito, designação do setor, rótulo de
+    # atendimento) só valem no documento expedido pelo órgão: no pedido do cidadão, o número citado ao
+    # lado do órgão costuma ser o da própria pessoa.
+    doc_orgao = _documento_do_orgao(texto)
     if d.tipo == "TELEFONE" and (celular(valor) or _MEIO_MOVEL_RE.search(perto)):
-        return "orgao" if _movel_do_orgao(texto, d, contatos) else "pessoal"
+        return "orgao" if doc_orgao and _movel_do_orgao(texto, d, contatos) else "pessoal"
     if _MEIO_MOVEL_RE.search(perto):
         return "pessoal"
     if d.tipo == "EMAIL" and not email_institucional(valor):
-        if _email_de_setor(texto, d):
+        if doc_orgao and _email_de_setor(texto, d):
             return "orgao"
         return "empresa" if _email_de_empresa(texto, d) else "pessoal"
     if d.inicio < _fim_cabecalho(texto):
         return "orgao"
-    if _CANAL_ORGAO.search(antes) or _LINHA_ORGAO.match(linha_antes) or _SEGMENTO_ORGAO.search(linha_antes):
+    if _CANAL_ORGAO.search(antes) or _LINHA_ORGAO.match(linha_antes):
+        return "orgao"
+    if doc_orgao and (_SEGMENTO_ORGAO.search(linha_antes) or _PEDIDO_DE_RESPOSTA.search(antes)):
         return "orgao"
     periodo = _periodo_antes(texto, d.inicio)
-    rotulo = _ROTULO_CANAL.search(periodo)
+    rotulo = _ROTULO_CANAL.search(periodo) if doc_orgao else None
     if rotulo and not _PESSOAL.search(periodo, rotulo.start()):
         return "orgao"
     # Rótulo "Telefone:" no início da linha: vale a linha anterior (o nome do órgão no cabeçalho ou o
@@ -469,7 +478,7 @@ def _contexto_contato(texto: str, d: Deteccao, anterior: int, contatos: list[Det
         acima = _linha_anterior(texto, la)
         if _LINHA_ORGAO.match(acima) and not _CAMPO_PESSOAL.match(acima) and not _PESSOAL.search(acima):
             return "orgao"
-        if d.tipo == "EMAIL" and re.match(r"\s*contatos?\s*:", linha_antes, re.IGNORECASE) \
+        if doc_orgao and d.tipo == "EMAIL" and re.match(r"\s*contatos?\s*:", linha_antes, re.IGNORECASE) \
                 and not _CAMPO_PESSOAL.match(acima):
             return "orgao"
         return "neutro"
@@ -836,7 +845,8 @@ def _numero_publico(texto: str, d: Deteccao, chaves: list[tuple[int, int]], veic
         return False
     if any(v.inicio <= d.inicio and d.fim <= v.fim for v in veiculos):
         return True
-    return bool(_ATO_ANTES.search(texto, max(0, d.inicio - 40), d.inicio))
+    # Num pedido, o número que segue "Convênio nº" pode ser referência do próprio requerente.
+    return _documento_do_orgao(texto) and bool(_ATO_ANTES.search(texto, max(0, d.inicio - 40), d.inicio))
 
 
 def reclassificar(texto: str, deteccoes: list[Deteccao]) -> list[Deteccao]:
