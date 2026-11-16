@@ -1,0 +1,43 @@
+{
+  "versao": 1,
+  "sha256_train": "e1e2e68579b8a743de087a8cad6775e2654cbfa0ec8394d2c22d328fa33948bf",
+  "sha256_test": "994a7d3166e75156928bc72707998772ee5dafd0fbb8e21536b1de15f38d7e69",
+  "documentos": {
+    "ajuste": 3557,
+    "selecao": 916,
+    "lockbox": 975
+  },
+  "entidades": {
+    "ajuste": {
+      "CONTATO": 931,
+      "DADO_FINANCEIRO": 305,
+      "DADO_SAUDE": 650,
+      "DATA_NASC": 275,
+      "DOC_EMPRESA": 381,
+      "DOC_PESSOAL": 675,
+      "DOC_PROFISSIONAL": 388,
+      "ENDERECO": 537,
+      "ID_PROCESSUAL": 1294,
+      "ID_VEICULO": 359,
+      "NOME_PESSOA": 1636,
+      "ORG_JURIDICA": 3825,
+      "QUASI_IDENTIFICADOR": 334
+    },
+    "selecao": {
+      "CONTATO": 246,
+      "DADO_FINANCEIRO": 73,
+      "DADO_SAUDE": 160,
+      "DATA_NASC": 75,
+      "DOC_EMPRESA": 98,
+      "DOC_PESSOAL": 177,
+      "DOC_PROFISSIONAL": 82,
+      "ENDERECO": 141,
+      "ID_PROCESSUAL": 333,
+      "ID_VEICULO": 88,
+      "NOME_PESSOA": 414,
+      "ORG_JURIDICA": 970,
+      "QUASI_IDENTIFICADOR": 63
+    }
+  },
+  "contaminados": []
+}

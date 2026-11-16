@@ -19,21 +19,34 @@ Para ajustar regras use a partição ``train``; a ``test`` fica reservada para o
   anotada. É um indicador aproximado de excesso de tarja, pois o gabarito não anota todo dado
   pessoal presente.
 
+Cada métrica principal acompanha o intervalo de confiança de 95% por *bootstrap* de documentos
+(1.000 reamostragens, semente fixa). Com ``--detalhes``, o resultado de cada documento é gravado para a
+comparação pareada entre duas versões (``benchmark/treino/comparar_execucoes.py``).
+
 O conjunto é baixado do Hugging Face na primeira execução e mantido em ``benchmark/.cache``.
+
+Partições (ver ``benchmark/treino/particoes.py``): ``ajuste`` e ``selecao`` dividem a partição
+``train`` do conjunto; ``lockbox`` é a partição ``test``, reservada à avaliação final — cada uso exige
+``--lockbox MOTIVO`` e fica registrado em ``benchmark/treino/registro_lockbox.jsonl``. Os exemplos de
+erro (``--erros``, ``--erros-arquivo``) só são emitidos para a partição ``ajuste``.
 
 Uso::
 
-    python benchmark/esic_ner.py [--split test] [--perfil lai] [--limite N] [--erros 20] [--json saida.json]
+    python benchmark/esic_ner.py [--particao selecao] [--perfil lai] [--json saida.json]
+        [--detalhes docs.jsonl] [--erros 20] [--erros-arquivo erros.jsonl] [--lockbox MOTIVO]
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import random
+import subprocess  # noqa: S404 - apenas "git rev-parse", para registrar o commit avaliado  # nosec B404
 import sys
 import time
 import urllib.request
 from collections import Counter, defaultdict
+from datetime import UTC, datetime
 from pathlib import Path
 
 from themis_lgpd import Anonimizador
@@ -80,8 +93,8 @@ def coberto(texto: str, ini: int, fim: int, mascara: list[bool], estrito: bool =
     return all(mascara[k] for k in alvo)
 
 
-def metricas(dados: list[dict], trechos: list[list[tuple[int, int, str]]], duracao: float,
-             rotulo: str = "") -> tuple[dict, list]:
+def metricas(dados: list[dict], trechos: list[list[tuple]], duracao: float,
+             rotulo: str = "", detalhes: list | None = None) -> tuple[dict, list]:
     """Calcula as métricas a partir dos trechos produzidos por um sistema.
 
     A função é independente do sistema avaliado, o que permite comparar o Themis com outras
@@ -89,10 +102,13 @@ def metricas(dados: list[dict], trechos: list[list[tuple[int, int, str]]], durac
 
     Args:
         dados: Documentos do conjunto, com ``text`` e ``entities``.
-        trechos: Para cada documento, os trechos ``(início, fim, ação)`` produzidos pelo sistema;
-            ``ação`` é ``tarjar`` ou ``alertar`` (sinalizado para revisão).
+        trechos: Para cada documento, os trechos ``(início, fim, ação[, tipo])`` produzidos pelo
+            sistema; ``ação`` é ``tarjar`` ou ``alertar`` (sinalizado para revisão).
         duracao: Tempo total de processamento, em segundos.
         rotulo: Nome do sistema, registrado no resultado.
+        detalhes: Lista que, se informada, recebe o resultado de cada documento (contagens por
+            rótulo, vazamento, caracteres tarjados), usado nos intervalos de confiança e na
+            comparação pareada.
 
     Returns:
         ``(métricas, vazamentos)``; cada vazamento é ``(rótulo, valor, contexto)``.
@@ -107,7 +123,7 @@ def metricas(dados: list[dict], trechos: list[list[tuple[int, int, str]]], durac
         texto = d["text"]
         mascara = [False] * len(texto)
         revisao = [False] * len(texto)  # tarjado ou sinalizado para revisão humana
-        for ini, fim, acao in ents:
+        for ini, fim, acao, *_ in ents:
             for k in range(ini, min(fim, len(texto))):
                 revisao[k] = True
                 if acao == "tarjar":
@@ -119,16 +135,20 @@ def metricas(dados: list[dict], trechos: list[list[tuple[int, int, str]]], durac
                 for k in range(a, b):
                     gabarito[k] = True
         vazou = False
+        doc_total, doc_prot, doc_estr = Counter(), Counter(), Counter()
         for e in pessoais:
             occ = ocorrencias(texto, e["value"])
             if not occ:
                 continue
             total[e["type"]] += 1
+            doc_total[e["type"]] += 1
             alvo = revisao if e["type"] in SO_ALERTA else mascara
             if all(coberto(texto, a, b, mascara, estrito=True) for a, b in occ):
                 estritas[e["type"]] += 1
+                doc_estr[e["type"]] += 1
             if all(coberto(texto, a, b, alvo) for a, b in occ):
                 protegidas[e["type"]] += 1
+                doc_prot[e["type"]] += 1
                 continue
             if all(coberto(texto, a, b, revisao) for a, b in occ):
                 sinalizadas[e["type"]] += 1
@@ -143,10 +163,17 @@ def metricas(dados: list[dict], trechos: list[list[tuple[int, int, str]]], durac
         vp += tem_pii and previu
         fp += (not tem_pii) and previu
         fn += tem_pii and not previu
+        doc_tarjados = doc_fora = 0
         for k, m in enumerate(mascara):
             if m and texto[k].isalnum():
-                chars_tarjados += 1
-                chars_fora += not gabarito[k]
+                doc_tarjados += 1
+                doc_fora += not gabarito[k]
+        chars_tarjados += doc_tarjados
+        chars_fora += doc_fora
+        if detalhes is not None:
+            detalhes.append({"chave": chave(texto), "total": dict(doc_total), "protegidas": dict(doc_prot),
+                             "estritas": dict(doc_estr), "tem_pii": tem_pii, "vazou": tem_pii and vazou,
+                             "chars_tarjados": doc_tarjados, "chars_fora": doc_fora})
     precisao = vp / (vp + fp) if vp + fp else 1.0
     recall = vp / (vp + fn) if vp + fn else 1.0
     f1 = 2 * precisao * recall / (precisao + recall) if precisao + recall else 0.0
@@ -171,32 +198,150 @@ def metricas(dados: list[dict], trechos: list[list[tuple[int, int, str]]], durac
     return resultado, erros
 
 
-def trechos_themis(anon: Anonimizador, textos: list[str]) -> list[list[tuple[int, int, str]]]:
-    """Trechos ``(início, fim, ação)`` do Themis; cada pedido é analisado como documento independente."""
-    return [[(e.inicio, e.fim, e.acao) for e in ents] for ents in anon.analisar_lote(textos)]
+def trechos_themis(anon: Anonimizador, textos: list[str]) -> list[list[tuple[int, int, str, str]]]:
+    """Trechos ``(início, fim, ação, tipo)`` do Themis; cada pedido é analisado como documento independente."""
+    return [[(e.inicio, e.fim, e.acao, e.tipo) for e in ents] for ents in anon.analisar_lote(textos)]
+
+
+def chave(texto: str) -> str:
+    """Identificador estável do documento (ver ``benchmark/treino/particoes.py``)."""
+    import hashlib
+
+    return hashlib.sha256(" ".join(texto.split()).lower().encode("utf-8")).hexdigest()
+
+
+def agregadas(docs: list[dict]) -> dict[str, float]:
+    """Métricas principais a partir dos resultados por documento."""
+    total, prot, estr = Counter(), Counter(), Counter()
+    for d in docs:
+        total.update(d["total"])
+        prot.update(d["protegidas"])
+        estr.update(d["estritas"])
+    com_pii = sum(d["tem_pii"] for d in docs)
+    tarjados = sum(d["chars_tarjados"] for d in docs)
+    saida = {
+        "recall_entidades": sum(prot.values()) / max(1, sum(total.values())),
+        "recall_estrito": sum(estr.values()) / max(1, sum(total.values())),
+        "documentos_com_vazamento": sum(d["vazou"] for d in docs) / max(1, com_pii),
+        "tarja_fora_do_gabarito": sum(d["chars_fora"] for d in docs) / max(1, tarjados),
+    }
+    saida.update({f"recall:{r}": prot[r] / total[r] for r in total})
+    if any("tarjas_total" in d for d in docs):  # conjunto de referência, com anotação exaustiva
+        saida["precisao_tarjas"] = 1 - sum(d["tarjas_fora"] for d in docs) / max(1, sum(d["tarjas_total"] for d in docs))
+        saida["preservacao_publicos"] = (sum(d["publicos_preservados"] for d in docs)
+                                         / max(1, sum(d["publicos_total"] for d in docs)))
+    return saida
+
+
+def intervalos(docs: list[dict], reamostragens: int = 1000, semente: int = 20261116) -> dict[str, list[float]]:
+    """Intervalo de confiança de 95% (percentis 2,5 e 97,5) de cada métrica, por *bootstrap* de documentos."""
+    gerador = random.Random(semente)
+    amostras = defaultdict(list)
+    for _ in range(reamostragens):
+        sorteio = [docs[gerador.randrange(len(docs))] for _ in docs]
+        for nome, valor in agregadas(sorteio).items():
+            amostras[nome].append(valor)
+    saida = {}
+    for nome, valores in sorted(amostras.items()):
+        valores.sort()
+        saida[nome] = [round(valores[int(0.025 * len(valores))], 4), round(valores[int(0.975 * len(valores)) - 1], 4)]
+    return saida
+
+
+def erros_detalhados(dados: list[dict], trechos: list[list[tuple]]) -> list[dict]:
+    """Falsos negativos (entidade anotada visível) e trechos tarjados fora do gabarito, com contexto."""
+    saida = []
+    for d, ents in zip(dados, trechos):
+        texto = d["text"]
+        mascara, revisao, gabarito = [False] * len(texto), [False] * len(texto), [False] * len(texto)
+        for ini, fim, acao, *_ in ents:
+            for k in range(ini, min(fim, len(texto))):
+                revisao[k] = True
+                mascara[k] = mascara[k] or acao == "tarjar"
+        for e in d["entities"]:
+            for a, b in ocorrencias(texto, e["value"]):
+                gabarito[a:b] = [True] * (b - a)
+        for e in d["entities"]:
+            if e["type"] in NAO_PESSOAIS:
+                continue
+            occ = ocorrencias(texto, e["value"])
+            alvo = revisao if e["type"] in SO_ALERTA else mascara
+            if occ and not all(coberto(texto, a, b, alvo) for a, b in occ):
+                a, b = occ[0]
+                situacao = "sinalizada" if all(coberto(texto, x, y, revisao) for x, y in occ) else "nao_detectada"
+                saida.append({"erro": "nao_tarjada", "rotulo": e["type"], "valor": e["value"], "situacao": situacao,
+                              "contexto": texto[max(0, a - 80): b + 80], "chave": chave(texto)})
+        for ini, fim, acao, *resto in ents:
+            alnum = [k for k in range(ini, min(fim, len(texto))) if texto[k].isalnum()]
+            if acao == "tarjar" and alnum and not any(gabarito[k] for k in alnum):
+                saida.append({"erro": "tarja_fora_do_gabarito", "tipo_themis": resto[0] if resto else "",
+                              "valor": texto[ini:fim], "contexto": texto[max(0, ini - 80): fim + 80],
+                              "chave": chave(texto)})
+    return saida
+
+
+def _registrar_lockbox(motivo: str, perfil: str, resultado: dict) -> None:
+    from treino.particoes import REGISTRO_LOCKBOX
+
+    try:
+        commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True,  # noqa: S607
+                                cwd=Path(__file__).parent, timeout=20, check=False).stdout.strip()  # nosec B603 B607
+    except OSError:
+        commit = ""
+    linha = {"data": datetime.now(UTC).isoformat(timespec="seconds"), "motivo": motivo, "commit": commit,
+             "perfil": perfil, "recall_entidades": resultado["recall_entidades"],
+             "documentos_com_vazamento": resultado["documentos_com_vazamento"]}
+    with REGISTRO_LOCKBOX.open("a", encoding="utf-8", newline="\n") as arq:
+        arq.write(json.dumps(linha, ensure_ascii=False) + "\n")
 
 
 def main() -> None:
     """Executa a avaliação pela linha de comando."""
     ap = argparse.ArgumentParser()
-    ap.add_argument("--split", default="test")
+    ap.add_argument("--particao", default="selecao", choices=["ajuste", "selecao", "train", "lockbox"],
+                    help="ajuste e selecao dividem train; lockbox é a partição test (exige --lockbox)")
     ap.add_argument("--perfil", default="lai")
     ap.add_argument("--limite", type=int, default=0)
-    ap.add_argument("--erros", type=int, default=0, help="mostra N exemplos de vazamento")
+    ap.add_argument("--erros", type=int, default=0, help="mostra N exemplos de vazamento (só na partição ajuste)")
+    ap.add_argument("--erros-arquivo", type=Path, help="grava os erros com contexto em JSONL (só na partição ajuste)")
     ap.add_argument("--json", type=Path, help="salva as métricas em JSON")
+    ap.add_argument("--detalhes", type=Path, help="grava o resultado de cada documento em JSONL")
+    ap.add_argument("--sem-intervalos", action="store_true", help="não calcula os intervalos de confiança")
+    ap.add_argument("--lockbox", metavar="MOTIVO", help="autoriza e registra a avaliação na partição lockbox")
     args = ap.parse_args()
 
-    dados = carregar(args.split)
+    if args.particao == "lockbox" and not args.lockbox:
+        ap.error("a partição lockbox é reservada à avaliação final: informe --lockbox MOTIVO (o uso é registrado)")
+    if (args.erros or args.erros_arquivo) and args.particao != "ajuste":
+        ap.error("exemplos de erro só podem ser examinados na partição ajuste")
+    if args.particao in ("ajuste", "selecao"):
+        from treino.particoes import carregar as carregar_particao
+
+        dados = carregar_particao(args.particao)
+    else:
+        dados = carregar("test" if args.particao == "lockbox" else "train")
     if args.limite:
         dados = dados[: args.limite]
     anon = Anonimizador(perfil=args.perfil)
     t0 = time.perf_counter()
     trechos = trechos_themis(anon, [d["text"] for d in dados])
-    resultado, erros = metricas(dados, trechos, time.perf_counter() - t0, f"Themis LGPD (perfil {args.perfil})")
-    resultado["dataset"] = f"EliMC/esic-ner ({args.split})"
+    docs: list[dict] = []
+    resultado, erros = metricas(dados, trechos, time.perf_counter() - t0, f"Themis LGPD (perfil {args.perfil})", docs)
+    resultado["dataset"] = f"EliMC/esic-ner ({args.particao})"
+    if not args.sem_intervalos:
+        resultado["intervalos_95"] = intervalos(docs)
     print(json.dumps(resultado, ensure_ascii=False, indent=2))
     if args.json:
         args.json.write_text(json.dumps(resultado, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+    if args.detalhes:
+        args.detalhes.write_text("".join(json.dumps(d, ensure_ascii=False) + "\n" for d in docs), encoding="utf-8",
+                                 newline="\n")
+    if args.particao == "lockbox":
+        _registrar_lockbox(args.lockbox, args.perfil, resultado)
+    if args.erros_arquivo:
+        args.erros_arquivo.write_text("".join(json.dumps(e, ensure_ascii=False) + "\n"
+                                              for e in erros_detalhados(dados, trechos)),
+                                      encoding="utf-8", newline="\n")
     if args.erros:
         por_tipo = defaultdict(list)
         for t, v, ctx in erros:
