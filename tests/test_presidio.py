@@ -21,8 +21,9 @@ def test_deteccao_usa_o_analyzer_engine_do_presidio(anon):
     assert isinstance(engine.context_aware_enhancer, LemmaContextAwareEnhancer)
     nomes = {r.name for r in engine.registry.get_recognizers(language="pt", all_fields=True)}
     assert {"BR_Documentos", "BR_Nomes_Modelo", "BR_Enderecos", "BR_Saude"} <= nomes
-    tipos_presidio = {type(r) for r in engine.registry.recognizers}
-    assert {PhoneRecognizer, IpRecognizer, CreditCardRecognizer, IbanRecognizer, CryptoRecognizer} <= tipos_presidio
+    # Os reconhecedores prontos podem ser especializados por subclasses que filtram o contexto.
+    for tipo in (PhoneRecognizer, IpRecognizer, CreditCardRecognizer, IbanRecognizer, CryptoRecognizer):
+        assert any(isinstance(r, tipo) for r in engine.registry.recognizers), tipo
 
 
 def test_reconhecedores_prontos_do_presidio_entram_no_resultado(anon):

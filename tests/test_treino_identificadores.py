@@ -73,8 +73,10 @@ def test_cnpj_formatado_nao_vira_protocolo(anon):
 
 
 def test_registro_em_conselho_inteiro(anon):
-    """UF, dígito e sufixo do registro ficam sob a tarja; a sigla do sistema funcional, não."""
+    """Número, dígito e sufixo do registro ficam sob a tarja; a sigla do sistema funcional e a do
+    conselho com a UF, que sem o número não identificam ninguém, não."""
     saida = anon.anonimizar("Matrícula SIAPE 1234567, OAB/SP 123.456, CRM-PE 12345 e COREN-DF 12345-P.").texto
-    for p in ["1234567", "/SP", "123.456", "-PE", "12345", "-DF", "-P"]:
+    for p in ["1234567", "123.456", "12345", "12345-P"]:
         assert p not in saida, saida
-    assert "SIAPE" in saida
+    for p in ["SIAPE", "OAB/SP", "CRM-PE", "COREN-DF"]:
+        assert p in saida, saida

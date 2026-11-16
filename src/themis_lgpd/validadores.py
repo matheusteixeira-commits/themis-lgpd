@@ -233,6 +233,82 @@ def ip_valido(valor: str) -> bool:
     return not (ip.is_unspecified or ip.is_loopback)
 
 
+# ---------------------------------------------------------------- Documentos estrangeiros
+#: Valores dos caracteres em posição ímpar no cálculo do caractere de controle do codice fiscale.
+_CF_IMPAR = dict(zip("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                     [1, 0, 5, 7, 9, 13, 15, 17, 19, 21, 1, 0, 5, 7, 9, 13, 15, 17, 19, 21, 2, 4, 18, 20, 11, 3, 6, 8, 12,
+                      14, 16, 10, 22, 25, 24, 23]))
+
+
+def codice_fiscale_valido(valor: str) -> bool:
+    """Indica se ``valor`` é um codice fiscale italiano com o caractere de controle correto.
+
+    Os quinze primeiros caracteres valem, nas posições pares (contadas a partir de 1), o próprio
+    algarismo ou a ordem da letra (A = 0); nas ímpares, o valor de uma tabela fixa. O controle é a
+    letra de ordem igual ao resto da soma por 26.
+    """
+    s = valor.strip().upper()
+    if len(s) != 16 or not s.isalnum():
+        return False
+    soma = 0
+    for i, c in enumerate(s[:15]):
+        if i % 2 == 0:
+            soma += _CF_IMPAR[c]
+        else:
+            soma += int(c) if c.isdigit() else ord(c) - 65
+    return chr(65 + soma % 26) == s[15]
+
+
+_PESOS_CHINA = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]
+
+
+def identidade_chinesa_valida(valor: str) -> bool:
+    """Indica se ``valor`` é um número de identidade de residente chinês (GB 11643-1999) válido.
+
+    O número tem dezoito caracteres: seis do código da região, a data de nascimento (AAAAMMDD), três
+    de sequência e o controle ISO 7064 MOD 11-2, que pode ser "X".
+    """
+    s = valor.strip().upper()
+    if len(s) != 18 or not s[:17].isdigit() or not (s[17].isdigit() or s[17] == "X"):
+        return False
+    try:
+        date(int(s[6:10]), int(s[10:12]), int(s[12:14]))
+    except ValueError:
+        return False
+    if not 1900 <= int(s[6:10]) <= date.today().year:
+        return False
+    return "10X98765432"[sum(int(c) * p for c, p in zip(s, _PESOS_CHINA)) % 11] == s[17]
+
+
+# ---------------------------------------------------------------- Numeração com forma de IP ou de cartão
+#: Designações que precedem a numeração hierárquica de itens e códigos de classificação ("subitem
+#: 8.3.1.2", "cláusula 15.3.2.1", "COBRADE 1.3.2.1.4").
+_ANTES_ITEM = re.compile(r"\b(?:sub)?(?:ite(?:m|ns)|incisos?|al[íi]neas?|cl[áa]usulas?|se[çc](?:[ãa]o|[õo]es)|cap[íi]tulos?|"
+                         r"anexos?|tabelas?|quadros?|t[óo]picos?|c[óo]digos?|classifica[çc](?:[ãa]o|[õo]es)|COBRADE|CNAE|"
+                         r"CBO|natureza|elemento|rubrica|art(?:igo)?s?\.?|§)\s*(?:n[º°o]\.?\s*)?$", re.IGNORECASE)
+
+
+def numeracao_de_item(texto: str, inicio: int, fim: int) -> bool:
+    """Indica se ``texto[inicio:fim]``, com a forma de um endereço IPv4, é numeração de item ou código.
+
+    É numeração quando vem logo após a designação de item, cláusula, anexo ou código de classificação,
+    ou quando continua em mais um nível ("1.3.2.1.4").
+    """
+    if re.match(r"\.\d", texto[fim:fim + 2]) or re.search(r"\d\.$", texto[max(0, inicio - 2):inicio]):
+        return True
+    return bool(_ANTES_ITEM.search(texto[max(0, inicio - 30):inicio]))
+
+
+def parte_de_sequencia(texto: str, inicio: int, fim: int) -> bool:
+    """Indica se ``texto[inicio:fim]`` é parte de uma sequência maior de grupos de dígitos.
+
+    Chaves de acesso de notas fiscais eletrônicas (44 dígitos em grupos de quatro), códigos de barras
+    e linhas digitáveis contêm trechos que satisfazem o algoritmo de Luhn sem serem cartões.
+    """
+    return bool(re.search(r"\d{4}[\s.\-]$", texto[max(0, inicio - 5):inicio])
+                or re.match(r"[\s.\-]\d{4}", texto[fim:fim + 5]))
+
+
 # ---------------------------------------------------------------- Ano plausível (processos)
 def ano_plausivel(valor: str) -> bool:
     """Indica se ``valor`` contém um ano entre 1960 e o ano seguinte ao atual.
