@@ -287,15 +287,159 @@ MENOR_CONTEXTUAL = [
 ]
 
 # --------------------------------------------------------------------------- Quase-identificadores
-#: Descrições que, sem nome, apontam para uma pessoa determinada: função somada a local e turno ("a
-#: atendente do guichê 3 no plantão da manhã"). São sinalizadas para revisão.
+# Descrições que, sem nome, apontam para uma pessoa determinada: a função somada ao posto, ao turno, à
+# data ou à circunstância em que a pessoa foi encontrada ("a atendente do guichê 3 no plantão da manhã",
+# "o fiscal que esteve aqui no dia 12/05 às 10h"). Basta uma dessas descrições para que o órgão, ou
+# qualquer colega, saiba de quem se trata; por isso são sinalizadas para revisão (perfil LAI) ou
+# tarjadas (perfis de ouvidoria e de educação).
+#
+# A descrição tem três partes: a palavra que a introduz (artigo, contração ou "como", "sou", "era"),
+# que distingue a função de usos adjetivos ("nota fiscal", "parecer técnico"); a função; e a cadeia de
+# complementos que a delimitam — locuções preposicionadas ("do guichê 4", "no turno da manhã"), orações
+# relativas ("que me atendeu") e advérbios de tempo e lugar ("ontem", "aqui"). Só é sinalizada a
+# descrição cuja cadeia contém um elemento que individualiza a pessoa (ver :data:`_INDIVIDUALIZA`):
+# "o servidor do setor de protocolo", sozinho, designa qualquer servidor do setor.
+
+#: Funções e ocupações de quem atende o público ou presta serviço, no singular. O feminino fica de fora
+#: quando coincide com objeto ou conceito comum ("a carteira", "a porteira", "a mecânica").
+_FUNCOES = (
+    # Atendimento, portaria e segurança
+    r"atendente", r"recepcionista", r"telefonista", r"balconista", r"bilheteir[oa]", r"porteiro", r"vigilante",
+    r"vigia", r"sentinela", r"zelador(?:a)?", r"bombeir[oa]", r"brigadista", r"salva-vidas", r"guarda-vidas",
+    r"gar[çc]om", r"gar[çc]onete", r"ajudante", r"servente", r"coletor(?:a)?",
+    # Transporte
+    r"motorista", r"cobrador(?:a)?", r"condutor(?:a)?", r"maquinista", r"operador", r"carteiro",
+    r"entregador(?:a)?", r"frentista", r"manobrista", r"despachante", r"comiss[áa]ri[oa]\s+de\s+bordo",
+    r"controlador(?:a)?\s+de\s+(?:tr[áa]fego|voo|acesso)",
+    # Serviço público, fiscalização e polícia
+    r"servidor(?:a)?", r"funcion[áa]ri[oa]", r"colaborador(?:a)?", r"terceirizad[oa]", r"estagi[áa]ri[oa]",
+    r"bolsista", r"aprendiz", r"volunt[áa]ri[oa]", r"fiscal", r"inspetor(?:a)?", r"auditor(?:a)?", r"perit[oa]",
+    r"vistoriador(?:a)?", r"avaliador(?:a)?", r"examinador(?:a)?", r"aplicador(?:a)?", r"pregoeir[oa]",
+    r"escriv[ãa]o?", r"conferente", r"almoxarife", r"agente", r"policial", r"oficial\s+de\s+justi[çc]a",
+    r"carcereir[oa]", r"investigador(?:a)?", r"escrevente", r"recenseador(?:a)?", r"entrevistador(?:a)?",
+    r"conciliador(?:a)?", r"mediador(?:a)?",
+    # Chefia
+    r"supervisor(?:a)?", r"gerente", r"chefe", r"encarregad[oa]", r"coordenador(?:a)?", r"vice-diretor(?:a)?",
+    r"diretor(?:a)?", r"gestor(?:a)?",
+    # Educação, cultura e esporte
+    r"professor(?:a)?", r"docente", r"tutor(?:a)?", r"monitor(?:a)?", r"instrutor(?:a)?", r"treinador(?:a)?",
+    r"educador(?:a)?", r"orientador(?:a)?", r"pedagog[oa]", r"bibliotec[áa]ri[oa]", r"merendeir[oa]",
+    r"int[ée]rprete", r"cuidador(?:a)?", r"palestrante", r"oficineir[oa]", r"preceptor(?:a)?",
+    # Saúde
+    r"m[ée]dic[oa]", r"enfermeir[oa]", r"t[ée]cnic[oa]", r"auxiliar", r"assistente", r"dentista",
+    r"odont[óo]log[oa]", r"nutricionista", r"farmac[êe]utic[oa]", r"fisioterapeuta", r"fonoaudi[óo]log[oa]",
+    r"psic[óo]log[oa]", r"psiquiatra", r"terapeuta", r"pediatra", r"ortopedista", r"ginecologista", r"obstetra",
+    r"cardiologista", r"neurologista", r"anestesista", r"cirurgi(?:[ãa]o|ã)", r"cl[íi]nic[oa]\s+geral", r"plantonista",
+    r"socorrista", r"param[ée]dic[oa]", r"maqueir[oa]", r"veterin[áa]ri[oa]", r"biom[ée]dic[oa]", r"radiologista",
+    r"vacinador(?:a)?",
+    # Técnicos, obras e manutenção
+    r"analista", r"engenheir[oa]", r"arquitet[oa]", r"agr[ôo]nom[oa]", r"agrimensor(?:a)?", r"top[óo]graf[oa]",
+    r"ge[óo]log[oa]", r"extensionista", r"pesquisador(?:a)?", r"arquivista", r"consultor(?:a)?", r"mec[âa]nico",
+    r"eletricista", r"encanador(?:a)?", r"pedreir[oa]", r"mestre\s+de\s+obras", r"oper[áa]ri[oa]", r"gari",
+    r"varredor(?:a)?", r"faxineir[oa]", r"cozinheir[oa]", r"copeir[oa]", r"jardineir[oa]",
+    # Referência coloquial a quem atendeu
+    r"rapaz", r"mo[çc][oa]",
+)
+#: Palavra que introduz a função como pessoa: artigo, contração, demonstrativo, possessivo, "como",
+#: verbos de ligação ("sou motorista", "trabalhei como vigilante"), "na função de" e "na qualidade de"
+#: ou rótulo ("Servidor envolvido:").
+_INTRODUZ = (r"(?<=(?:(?:^|[^\w])(?:o|a|um|uma|do|da|no|na|pelo|pela|ao|à|num|numa|dum|duma|"
+             r"(?:d|n|daqu|naqu|aqu)?(?:est|ess|el)[ea]|aquel[ea]|como|sou|era|fui|é|foi|seu|sua|meu|minha|nosso|"
+             r"nossa|pr[oa]s?|prum|pruma|(?:fun[çc][ãa]o|qualidade|condi[çc][ãa]o)\s+de)\s+)|:\s*)")
+#: "Segurança" e "guarda municipal" só designam a pessoa no masculino ("o segurança", "o guarda
+#: municipal"); no feminino, são o conceito ("a segurança do paciente") e a corporação.
+_INTRODUZ_MASC = r"(?<=(?:^|[^\w])(?:o|um|do|no|pelo|ao|num|dum|(?:d|n|daqu|naqu|aqu)?(?:est|ess|el)e|como|sou|era|fui)\s+)"
+_PREPOSICAO = (r"(?:d[oa]s?|de|n[oa]s?|em|num|numa|pel[oa]s?|ao|aos|à|às|a|as|entre|durante|desde|at[ée]|sobre|"
+               r"sentido|com|como|d(?:aquel|est|ess)[ea]s?|n(?:aquel|est|ess)[ea]s?)")
+#: Palavras que encerram a descrição: conjunções, pronomes, artigos, verbos de ligação e advérbios que
+#: costumam iniciar a oração principal ("o atendente do guichê 4 *me* disse…").
+_PARADA = (r"(?:que|quem|qual|quais|cuj[oa]s?|e|ou|nem|mas|pois|porque|por[ée]m|quando|onde|enquanto|se|n[ãa]o|"
+           r"me|nos|lhe|lhes|te|mim|ele|ela|eles|elas|eu|voc[êe]s?|o|os|um|uma|uns|umas|[ée]|foi|era|eram|s[ãa]o|"
+           r"est[áa]|estava|estavam|esteve|tem|t[êe]m|tinha|teve|h[áa]|havia|pode|podia|deve|deveria|precisa|disse|"
+           r"diz|fala|sabe|quer|vai|ia|fica|faz|fez|deu|d[áa]|sempre|nunca|tamb[ée]m|ainda|j[áa]|muito|mais|menos|"
+           r"quase|s[óo]|apenas|ent[ãa]o|para|pra|pro|por|sem|sob|conforme|contra|perante|ap[óo]s|aqui|l[áa]|ali|"
+           r"ontem|anteontem|hoje|cedo|(?-i:[a-zà-ú]+r(?:á|ão)))")
+_PALAVRA = r"(?:(?:av|r|rod|qd|cj|conj|lt|dr|dra|sr|sra|prof|profa)\.|\w+(?:[-'’./:]\w+)*)"
+_NUCLEO = rf"(?!(?:{_PARADA}|{_PREPOSICAO})\b){_PALAVRA}"
+#: Modificador do núcleo; não pode ter terminação típica de verbo flexionado ou no infinitivo
+#: ("recebeu", "barrou", "cumprir").
+_MODIFICADOR = (rf"(?!(?:{_PARADA}|{_PREPOSICAO})\b)(?!\w+(?:ou|eu|iu|ava|avam|aram|eram|iram|ndo|er|ir)\b)"
+                rf"{_PALAVRA}")
+#: Número com a indicação que o acompanha: "4", "3º ano C", "204 Sul", "12/05/2024", "10h30".
+_NUMERO = (r"\d\w*(?:[./:\-]\w+)*(?:\s+(?:ano|s[ée]rie|semestre|andar|horas?))?"
+           r"(?:\s+(?-i:[A-Z])\b|\s+(?:sul|norte|leste|oeste)\b)?")
+_DETERMINANTE = r"(?:o|a|os|as|um|uma|minha|meu|minhas|meus|nossa|nosso|sua|seu|ess[ea]s?|est[ea]s?|aquel[ea]s?)"
+_SINTAGMA = (rf"(?:{_DETERMINANTE}\s+)?(?:{_NUMERO}|{_NUCLEO}(?:\s+{_MODIFICADOR}){{0,4}}"
+             rf"(?:\s+{_NUMERO}|\s+(?-i:[A-Z])\b)?)")
+#: Primeira palavra da oração relativa, que deve ser o verbo: não pode ser artigo, pronome ou conjunção.
+_NAO_VERBO = (r"(?:o|a|os|as|um|uma|ele|ela|eles|elas|eu|voc[êe]s?|n[ãa]o|que|e|ou|se|me|nos|lhe|"
+              r"meus?|minhas?|seus?|suas?|nossos?|nossas?|est[ea]s?|ess[ea]s?|d[oa]s?|de|n[oa]s?|em|para|pra|por|com)")
+_DIA_SEMANA = r"(?:(?:segunda|ter[çc]a|quarta|quinta|sexta)s?(?:[- ]feiras?)?|s[áa]bados?|domingos?)"
+_MES = r"(?:janeiro|fevereiro|mar[çc]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)"
+#: Elementos da cadeia de complementos.
+_COMPLEMENTO = (
+    rf"(?:(?:at[ée]\s+)?{_PREPOSICAO}|por\s+volta\s+d(?:e|[ao]s?)|em\s+frente\s+(?:a[os]?|à)|ao\s+lado\s+d[eoa]s?|"
+    rf"perto\s+d[eoa]s?|pr[óo]xim[oa]\s+(?:a[os]?|à)|referente\s+(?:a[os]?|à)|l[áa]\s+n[oa]s?)\s+{_SINTAGMA}",
+    # Oração relativa: "que me atendeu", "que esteve aqui", "que realizou a vistoria".
+    rf"que\s+(?:(?:me|nos|lhe|se|te)\s+)?(?!{_NAO_VERBO}\b){_PALAVRA}(?:\s+(?:aqui|l[áa]|ali|ontem|hoje|cedo))?"
+    rf"(?:\s+\w+(?:ad|id)[oa]s?\b|\s+{_DETERMINANTE}\s+{_NUCLEO}(?:\s+{_MODIFICADOR}){{0,2}}|\s+{_MODIFICADOR})?",
+    r"(?:d[ea]\s+)?(?:ontem|anteontem|hoje)|aqui|l[áa]|ali|cedo",
+    r"(?:(?:n[oa]\s+)?(?:[úu]ltim[oa]\s+)?(?:semana|m[êe]s|ano|semestre)\s+passad[oa]|"
+    r"(?:d|n)(?:est|ess)[ea]\s+(?:semana|m[êe]s|ano|semestre))",
+    r"dia\s+\d{1,2}(?:/\d{1,2}(?:/\d{2,4})?)?",
+    rf"e\s+(?:{_NUMERO}|{_DIA_SEMANA}|{_MES}|(?:jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\b)",
+)
+#: Vírgula seguida de novo complemento de tempo ou lugar: "ontem, dia 10, por volta das 15h".
+_VIRGULA = (r"\s*,\s*(?=(?:n[oa]s?|num|numa|em|entre|durante|desde|at[ée]|sentido|por\s+volta|que|dia|ontem|"
+            r"anteontem|hoje|l[áa])\b|(?:[àa]s?|d[ao]s|de)\s+\d)")
+_CADEIA = r"(?:(?:" + _VIRGULA + r"|\s+)(?:" + "|".join(_COMPLEMENTO) + r")|\s*\([^()\n]{1,40}\))"
+#: Elementos que individualizam a pessoa: turno, horário, data, dia da semana, posto de atendimento
+#: identificado, oração relativa que narra o encontro ("que me atendeu", "que esteve aqui") ou a
+#: indicação de responsável ("responsável pela vistoria"). "Período", "horário" e "semana", sozinhos,
+#: não individualizam ("a carga horária no período letivo").
+_INDIVIDUALIZA = re.compile(
+    r"\b(?:turno|plant[ãa]o|escala|madrugada|manh[ãa]|tarde|noite|matutino|vespertino|noturno|diurno|temporada|"
+    r"ontem|anteontem|hoje|(?:semana|m[êe]s|ano|semestre)\s+passad[oa]|[úu]ltim[oa]\s+(?:semana|m[êe]s|ano|semestre)|"
+    r"(?:d|n)(?:est|ess)[ea]\s+(?:semana|m[êe]s|ano|semestre)|"
+    rf"{_DIA_SEMANA}|fins?\s+de\s+semana|\d{{1,2}}\s+de\s+{_MES}|"
+    r"guich[êe]|balc[ãa]o|guarita|port[ãa]o|cancela|cabine)\b"
+    r"|\b\d{1,2}\s*(?:h\s*\d{0,2}|:\d{2}|\s+horas?)\b"
+    r"|(?<![\d/])(?:0?[1-9]|[12]\d|3[01])/(?:0?[1-9]|1[0-2])(?:/(?:\d{4}|\d{2}))?\b(?!/)"
+    r"|\bdia\s+\d{1,2}\b|\b(?:em|desde|de|entre)\s+(?:19|20)\d{2}\b"
+    r"|\b(?:sala|bloco|mesa|caixa|posto|plataforma|ala|andar|linha|rota|viatura|ambul[âa]ncia|turma|s[ée]rie|ano|"
+    r"laborat[óo]rio|galp[ãa]o|hangar|consult[óo]rio|pista|quadra|oficina|lote|terminal|box|baia|leito|"
+    r"enfermaria|prefixo|setor|gleba|trecho|poste)\s+(?:n[º°o.]?\s*)?(?:\d+\w*|(?-i:[A-Z])\b)"
+    r"|\bque\s+(?:me|nos|lhe)\s+\w+"
+    r"|\bque\s+\w+(?:ou|eu|iu|ava|ia|eve|ez|eio)\b"
+    r"|\bque\s+(?:atua|atende|trabalha|fica|faz|d[áa]|passa|circula|opera|coordena|leciona|cuida|acompanha|"
+    r"conduz|presta)\b"
+    r"|\brespons[áa]vel\s+pel[oa]s?\b|\bencarregad[oa]\s+d[eoa]s?\b|\bde\s+plant[ãa]o\b|\b[úu]nic[oa]\s",
+    re.IGNORECASE)
+_FUNCAO = (rf"(?:{_INTRODUZ}(?:ex-)?(?:(?:atual|[úu]nic[oa]|mesm[oa]|referid[oa])\s+)?(?:{'|'.join(_FUNCOES)})"
+           rf"|{_INTRODUZ_MASC}(?:seguran[çc]a|guarda\s+(?:municipal|civil|patrimonial)))(?:-chefe)?\b")
+
+
+#: Enunciado normativo, que trata da função em abstrato ("o servidor do plantão noturno deverá…",
+#: "compete ao diretor da escola…"), e não de uma pessoa determinada.
+_NORMATIVO_DEPOIS = re.compile(r"\s*,?\s*(?:dever[áã]o?|poder[áã]o?|caber[áã]o?|ter[áã]o?\s+(?:de|que)|"
+                               r"fica(?:r[áã]o?)?\s+obrigad[oa]s?|est[áa]\s+obrigad[oa])\b", re.IGNORECASE)
+_NORMATIVO_ANTES = re.compile(r"\b(?:cabe|caber[áa]|compete|competir[áa]|incumbe|incumbir[áa])\s+(?:ao?|à)\s+$",
+                              re.IGNORECASE)
+
+
+class _PadraoIndividualizado(Padrao):
+    """:class:`Padrao` cujo achado só é aceito se contiver um elemento de :data:`_INDIVIDUALIZA` e não
+    fizer parte de um enunciado normativo."""
+
+    def detectar(self, texto: str) -> list:
+        return [d for d in super().detectar(texto) if _INDIVIDUALIZA.search(texto[d.inicio:d.fim])
+                and not _NORMATIVO_DEPOIS.match(texto, d.fim)
+                and not _NORMATIVO_ANTES.search(texto[max(0, d.inicio - 20):d.inicio])]
+
+
 QUASE_IDENTIFICADORES = [
-    Padrao("QUASE_IDENTIFICADOR",
-           r"\b(?:(?:o|a)\s+)?(?:atendente|recepcionista|motorista|cobrador(?:a)?|vigilante|porteir[oa]|fiscal|"
-           r"servidor(?:a)?|funcion[áa]ri[oa]|professor(?:a)?|m[ée]dic[oa]|enfermeir[oa]|plantonista|condutor(?:a)?|"
-           r"agente|t[ée]cnic[oa]|estagi[áa]ri[oa]|bolsista)\s+(?:do|da|de|que)\s+[^\n.;]{5,80}?"
-           r"(?:\b(?:turno|plant[ãa]o|hor[áa]rio|guich[êe]|linha|sala|bloco|per[íi]odo)\b[^\n.;,]{0,30}|\b\d{1,2}h\d{0,2}\b|"
-           r"\b(?:ontem|anteontem|manh[ãa]|tarde|noite)\b)", 0.6, camada=CONTEXTUAL, nome="quase:funcao-turno"),
+    _PadraoIndividualizado("QUASE_IDENTIFICADOR", _FUNCAO + rf"(?:\s+{_MODIFICADOR}){{0,2}}(?:{_CADEIA}){{1,12}}",
+                           0.6, camada=CONTEXTUAL, nome="quase:funcao-complemento"),
 ]
 
 
