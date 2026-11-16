@@ -26,6 +26,7 @@ Todos os exemplos deste documento são fictícios.
 | `EMPRESA` | Identificação de pessoa jurídica | LAI, art. 22 (quando houver sigilo legal) | não |
 | `LOCALIDADE` | Localidade | LGPD, art. 5º, I; LAI, art. 31, § 1º, I | não |
 | `URL` | Endereço de internet | LAI, art. 31 (quando pessoal) | não |
+| `INSTITUCIONAL` | Dado de órgão ou entidade | LAI, art. 8º, § 1º, I; LGPD, art. 5º, I (a contrario) | não |
 | `QUASE_IDENTIFICADOR` | Quase-identificador | LGPD, art. 5º, I; LAI, art. 31, § 1º, I | não |
 | `MANUAL` | Tarja manual | Decisão do revisor | sim |
 
@@ -70,7 +71,7 @@ coluna **Validação** indica o que é conferido além do formato.
 | `TELEFONE` | Telefone | `[TELEFONE]` | 85 | Padrões próprios e biblioteca phonenumbers (região BR) | (61) 99876-5432 |
 | `PERFIL_REDE_SOCIAL` | Perfil em rede social | `[PERFIL]` | 85 | `@usuario` com contexto ou URL de rede social | @maria.souza |
 | `IP` | Endereço IP | `[IP]` | 80 | Reconhecedor do Presidio | 203.0.113.45 |
-| `ENDERECO` | Endereço | `[ENDEREÇO]` | 70 | Logradouro (inclusive abreviado e numerado) e componentes; propriedades e localidades rurais; rodovias das 27 UFs; endereçamento do DF; município ou região de residência | Rua B-15, Quadra 30, Lote 10; Sítio Boa Esperança; PE-060, km 10; QNM 12 Conjunto B Casa 4 |
+| `ENDERECO` | Endereço | `[ENDEREÇO]` | 70 | Logradouro (inclusive abreviado, numerado, com ordem — "2ª Travessa" — e passarela) e componentes (inclusive barraco e "casa sem número"), com o ponto de referência que o completa ("ao lado da capela…"); propriedades e localidades rurais, ocupações e favelas; rodovias das 27 UFs; endereçamento do DF; município ou região de residência. Linha de tabela ("Rua X \| 9") não forma endereço | Rua B-15, Quadra 30, Lote 10; Sítio Boa Esperança; PE-060, km 10; QNM 12 Conjunto B Casa 4 |
 | `CAR` | Recibo do Cadastro Ambiental Rural | `[CAR]` | 90 | Formato (UF, código IBGE do município e 32 caracteres hexadecimais) | MT-5107925-1A2B.3C4D.… |
 | `CEP` | CEP | `[CEP]` | 80 | Formato com hífen ou após "CEP" | 72215-120 |
 | `CONTA_BANCARIA` | Agência/conta bancária | `[CONTA BANCÁRIA]` | 85 | Contexto bancário; IBAN pelo Presidio | agência 1234, conta 56789-0 |
@@ -97,7 +98,10 @@ coluna **Validação** indica o que é conferido além do formato.
 | `CNPJ` | CNPJ | `[CNPJ]` | 90 | Módulo 11, inclusive o CNPJ alfanumérico (IN RFB nº 2.229/2024), como GM.Y1U.F3A/0001-01 |
 | `LOCALIDADE` | Cidade ou região administrativa | `[LOCALIDADE]` | 30 | Os 5.570 municípios do IBGE ("Cidade/UF" com conferência da UF, "município de Cidade", menção isolada não ambígua) e as regiões administrativas do DF; "moro em campinas" e "resido em Taguatinga" são classificados como `ENDERECO` |
 | `URL` | Endereço de internet | `[URL]` | 20 | |
-| `QUASE_IDENTIFICADOR` | Quase-identificador | `[QUASE-IDENTIFICADOR]` | 15 | Função, local e turno ("atendente do guichê 4 na tarde de ontem") |
+| `CONTATO_INSTITUCIONAL` | Telefone ou e-mail de órgão ou setor | `[CONTATO INSTITUCIONAL]` | 20 | Ver [Contatos, endereços e veículos do órgão](#contatos-endereços-e-veículos-do-órgão) |
+| `ENDERECO_INSTITUCIONAL` | Endereço de sede ou unidade de órgão | `[ENDEREÇO INSTITUCIONAL]` | 20 | "na sede da Secretaria, situada na Rua…"; cabeçalho do documento |
+| `PLACA_OFICIAL` | Placa de veículo da frota oficial | `[PLACA OFICIAL]` | 20 | "veículos oficiais de placas …"; tabela de unidades e placas em documento sobre a frota |
+| `QUASE_IDENTIFICADOR` | Quase-identificador | `[QUASE-IDENTIFICADOR]` | 15 | Função, local e turno ("atendente do guichê 4 na tarde de ontem"); função ou condição precedida de "único" ("única professora surda da escola", "o único apenado da galeria que atua como monitor"); aposto que descreve a pessoa ("o escrivão do plantão, um senhor grisalho de bigode"); descrição física com marca distintiva ("o mais alto, com tatuagem no pescoço") |
 | `NUMERO_NAO_IDENTIFICADO` | Número longo não identificado | `[NÚMERO]` | 10 | Reservado; não é produzido pelos reconhecedores padrão |
 | `MANUAL` | Trecho tarjado manualmente | `[TARJADO]` | 110 | Lista de bloqueio e tarjas manuais da revisão |
 
@@ -152,6 +156,7 @@ Nomes que integram nomes de lugares, instituições ou normas ("São Paulo", "Es
 | `EMPRESA` | manter | manter | manter | alertar | manter | tarjar |
 | `LOCALIDADE` | alertar | manter | alertar | tarjar | alertar | tarjar |
 | `URL` | manter | manter | manter | tarjar | manter | tarjar |
+| `INSTITUCIONAL` | alertar | alertar | alertar | alertar | alertar | tarjar |
 | `QUASE_IDENTIFICADOR` | alertar | alertar | alertar | tarjar | tarjar | tarjar |
 | Confiança mínima para aplicar a regra (`score_minimo`) | 0,6 | 0,6 | 0,6 | 0,5 | 0,6 | 0,4 |
 | Confiança mínima para considerar o achado (`score_alerta`) | 0,4 | 0,4 | 0,4 | 0,4 | 0,4 | 0,3 |
@@ -164,6 +169,40 @@ O perfil `ouvidoria` atende à preservação da identidade do manifestante (Lei 
 permitiriam reconhecer quem se manifestou. O perfil `educacao` protege estudantes (LGPD, art. 14; ECA,
 art. 17): RA, matrícula, turma, série e dados de crianças e adolescentes são sempre tarjados.
 Perfis próprios do órgão são derivados destes no `themis.toml` ([CONFIGURACAO.md](CONFIGURACAO.md)).
+
+### Contatos, endereços e veículos do órgão
+
+Telefone e e-mail de setor, endereço de sede ou de unidade de atendimento e placa da frota oficial não
+são dados pessoais: a LAI manda divulgá-los (art. 8º, § 1º, I). Depois de todos os reconhecedores, o
+contexto do documento inteiro reclassifica esses achados para a categoria `INSTITUCIONAL`, que o perfil
+LAI mantém legível e sinaliza para revisão:
+
+- **contato do órgão:** número de serviço (0800, 4004); telefone fixo ou e-mail de domínio público
+  (`.gov.br`, `.jus.br`, `.mp.br`, `.leg.br`, `.def.br`, `.edu.br`, `.org.br`) sem nome de pessoa,
+  quando o contexto é de canal de atendimento ("Dúvidas…", "Informações:", "telefone institucional",
+  "Telefone da unidade:", "à disposição para esclarecimentos", "poderão ser esclarecidas pelo telefone"),
+  quando a linha começa pelo nome de um órgão ou unidade ("Núcleo de Endemias – (69) 3216-7742"), no
+  cabeçalho do documento ou na mesma frase de outro contato do órgão ("pelo telefone … ou pelo e-mail
+  setor@orgao.gov.br");
+- **endereço do órgão:** no cabeçalho do documento (bloco de linhas curtas separado do corpo), após o
+  rótulo "Endereço da unidade:" ou o edifício-sede ("Palácio…", "Centro Administrativo…") ou introduzido
+  pela sede ou pela unidade ("na sede da Corregedoria, na Rua…", "a Diretoria de Atenção Primária,
+  situada na Avenida…", "na UBS Vila Nova, na Rua…") numa frase que anuncia o serviço — horário de
+  atendimento, hora do ato ou providência ("poderão ser retirados", "deverá ser protocolada"); num
+  pedido, a mesma construção costuma descrever o lugar que a pessoa frequenta. O CEP do mesmo endereço
+  acompanha a classificação, e o nome de pessoa dentro dele é o nome do logradouro;
+- **placa oficial:** enumeração após "veículos oficiais de placas…" ou "viaturas de placas…" e linhas de
+  tabela que associam unidades do órgão a placas, em documento sobre a frota.
+
+Na dúvida, o achado continua pessoal e tarjado: celular nunca é institucional; e-mail de provedor de uso
+pessoal, de empresa (`.com.br`) ou com nome de pessoa (prenome, iniciais coladas ao sobrenome) também
+não; vínculo pessoal próximo ("meu telefone", "telefone da genitora", "residente na", campo de
+qualificação como "Nome:" e "Endereço:" na linha anterior) prevalece sobre a menção ao órgão. O mesmo
+número ou e-mail recebe a mesma classificação em todo o documento. A placa de viatura citada no singular
+continua tarjada, porque em relatos costuma identificar o servidor que a conduzia.
+
+Códigos de natureza de despesa ("natureza de despesa 3.3.90.39"), que têm a forma de endereço IP, são
+descartados quando o contexto é orçamentário.
 
 ### Regras
 
