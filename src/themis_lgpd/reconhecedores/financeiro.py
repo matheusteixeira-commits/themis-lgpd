@@ -173,7 +173,7 @@ _QUALIFICATIVOS = (r"(?:[ \t]+(?:\((?-i:[A-Z]{2,8})\)|(?!(?:" + _ATOS_PUBLICOS +
 #: :mod:`themis_lgpd.texto`). Os dois-pontos de um campo de formulário ("Laudo: …") também indicam o
 #: número, mas exigem valor com forma de registro, pois também introduzem quantidades.
 _MARCA_REGISTRO = r"(?:n[º°o]\b\.?|n\.\s*[º°o]?|n[úu]mero|nr\b\.?)\s*[:.]?"
-#: Número do documento: sigla opcional da unidade emissora antes ("ABC-0123/2025", "XY-AB 019/2026")
+#: Número do documento: sigla opcional da unidade emissora antes ("ABC-0123/2025", "XY-AB 027/2026")
 #: ou depois ("0123/2025-PTC", "0451/2026-ABC/DEF"), ou código alfanumérico em maiúsculas com ao menos
 #: três dígitos ("7D3K5M2P").
 _VALOR_REGISTRO = (r"(?P<v>(?:(?-i:(?!(?:CPF|CNPJ|RG|CNH|PIS|NIS|CEP|CNS|OAB|CRM|SIAPE)\b)[A-Z][A-Z0-9]{0,7}"
@@ -186,7 +186,7 @@ _NAO_CODIGO_PUBLICO = r"(?<!\b(?-i:IBGE|CNAE|CBO|CID|NCM|CATMAT|CATSER|UASG)\s{0
 
 #: Título de documento de licitação ou de contratação pública: linha curta, em maiúsculas, iniciada
 #: pela espécie do documento e com a designação do procedimento ("AVISO DE LICITAÇÃO", "ATA DA
-#: SESSÃO – CONCORRÊNCIA ELETRÔNICA Nº 4/2025", "EXTRATO DO CONTRATO Nº 12/2025", "TERMO DE
+#: SESSÃO – CONCORRÊNCIA ELETRÔNICA Nº 6/2024", "EXTRATO DO CONTRATO Nº 12/2025", "TERMO DE
 #: REFERÊNCIA").
 _TITULO_CONTRATACAO = re.compile(
     r"\s*(?=(?:AVISO|EXTRATO|ATA|EDITAL|TERMO|RESULTADO|HOMOLOGA[ÇC][ÃA]O|ADJUDICA[ÇC][ÃA]O|PREG[ÃA]O|CONCORR[ÊE]NCIA|"
@@ -336,7 +336,7 @@ def _id_plausivel(valor: str) -> bool:
     """Indica se ``valor`` tem a forma de um número de registro.
 
     Exige pelo menos cinco dígitos, ou quatro com separador, e rejeita anos isolados, datas (inclusive
-    só o dia e o mês, "02/06") e valores iniciados por letra minúscula (palavra da frase, não prefixo
+    só o dia e o mês, "25/11") e valores iniciados por letra minúscula (palavra da frase, não prefixo
     de protocolo).
     """
     n = sum(c.isdigit() for c in valor)
