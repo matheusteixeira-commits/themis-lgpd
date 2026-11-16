@@ -18,8 +18,8 @@ from .base import ANTES_NUM, CONTEXTUAL, DEPOIS_NUM, Padrao
 #: Indicação opcional de número entre a palavra-chave e o valor: "nº", "n.", "número", "de número".
 _NUM = r"(?:(?:de\s+)?n(?:[º°o]|úm(?:ero)?|um(?:ero)?)?\.?\s*)?"
 #: Separador opcional entre a palavra-chave e o valor: "RG: 123", "RG - 123", "meu RG é 123",
-#: "meu RG é o 123", "inscrito sob o nº 123".
-_SEP = r"\s*(?:[:\-–]|\b(?:é|e|era|sendo|seria)\b(?:\s+(?:o|a)\b)?|\bsob\s+o\b)?\s*"
+#: "meu RG é o 123", "inscrito sob o nº 123", "o RG dele é 123".
+_SEP = r"\s*(?:\b(?:dele|dela|deles|delas)\b\s*)?(?:[:\-–]|\b(?:é|e|era|sendo|seria)\b(?:\s+(?:o|a)\b)?|\bsob\s+o\b)?\s*"
 
 #: Contexto do CPF; "CIC" é a denominação antiga do documento.
 CTX_CPF = ("cpf", r"c\.p\.f\.?", "cadastro de pessoas? f[íi]sicas?", r"inscrit[oa] no", "cic")
@@ -76,13 +76,16 @@ PADROES: list[Padrao] = [
     # ---------------- RG: o formato varia por estado; exige a palavra-chave e inclui o órgão emissor
     # e a UF ("1.234.567 SSP/DF"), que também identificam a pessoa quando combinados ao número.
     Padrao("RG",
-           r"(?:\bRG|\bR\.G\.|\bidentidade|carteira de identidade|c[ée]dula de identidade|\bCIN\b|"
-           r"registro geral|\bdoc(?:umento)?\.? de identidade)" + _SEP + _NUM + _SEP +
+           r"(?:\bRG|\bR\.G\.|\bidentidade(?:\s+(?:civil|militar))?|carteira de identidade|c[ée]dula de identidade|"
+           r"\bCIN\b|registro geral|\bdoc(?:umento)?\.? de identidade)" + _SEP + _NUM + _SEP +
            r"(?P<v>(?:[A-Z]{2}[-\s]?)?\d{1,3}(?:\.?\d{3}){1,3}(?:\s?-\s?[\dXx])?"
            r"(?:\s*[-/]?\s*(?:SSP|SESP|SDS|PC|PCDF|SSPDF|DETRAN|IFP|IIRGD|SJS|SSPDS|DGPC|IGP|SEJUSP|SPTC|DIC|ITEP)"
            r"(?:\s*[-/]\s*[A-Z]{2})?)?)", 0.9, camada=CONTEXTUAL, grupo="v", nome="rg:contexto"),
-    # ---------------- Passaporte brasileiro: duas letras e seis dígitos (formatos antigos variam)
-    Padrao("PASSAPORTE", r"passaporte" + _SEP + _NUM + _SEP + r"(?P<v>[A-Z]{1,2}\s?\d{6,8})\b", 0.9,
+    # ---------------- Passaporte brasileiro: duas letras e seis dígitos (formatos antigos variam).
+    # Passaportes estrangeiros têm de seis a nove caracteres, com letras e dígitos em qualquer posição
+    # ("C01X00T47"): aceitos em maiúsculas e com ao menos três dígitos.
+    Padrao("PASSAPORTE", r"passaporte" + _SEP + _NUM + _SEP +
+           r"(?P<v>[A-Z]{1,2}\s?\d{6,8}\b|(?-i:(?=[A-Z0-9]{6,9}(?![\w]))(?=(?:[A-Z]*\d){3})[A-Z0-9]{6,9}))", 0.9,
            camada=CONTEXTUAL, grupo="v"),
     # ---------------- CTPS: número e, opcionalmente, série e UF
     Padrao("CTPS",
@@ -93,12 +96,12 @@ PADROES: list[Padrao] = [
     Padrao("CERTIDAO", ANTES_NUM + r"\d{6}\s?\d{2}\s?\d{2}\s?\d{4}\s?\d\s?\d{5}\s?\d{3}\s?\d{7}[-\s]?\d{2}" + DEPOIS_NUM,
            0.9),
     # ---------------- Matrícula funcional: SIAPE (União), MASP (MG), ID funcional (RJ, RS), registro e
-    # identidade funcional dos demais entes.
+    # identidade funcional dos demais entes. A sigla do órgão pode preceder o número ("ABC-12345-X").
     Padrao("MATRICULA",
            r"(?:matr[íi]cula(?:\s+(?:funcional|gdf|siape|do servidor|da servidora))?|\bmat\.|\bsiape|\bMASP\b|"
            r"\bID\s+funcional|\b(?:registro|identidade|identifica[çc][ãa]o)\s+funcional)" + _SEP + _NUM +
-           _SEP + r"(?P<v>[A-Z]?\d{1,3}(?:\.\d{3}){1,2}(?:\s?-\s?[\dXx])?|[A-Z]?\d{4,10}(?:\s?-\s?[\dXx]|[A-Z])?)"
-           + DEPOIS_NUM,
+           _SEP + r"(?P<v>(?:(?-i:[A-Z]{2,4})-)?(?:[A-Z]?\d{1,3}(?:\.\d{3}){1,2}(?:\s?-\s?[\dXx])?|"
+           r"[A-Z]?\d{4,10}(?:\s?-\s?[\dXx]|[A-Z])?))" + DEPOIS_NUM,
            0.9, camada=CONTEXTUAL, grupo="v"),
     # ---------------- Número de benefício do INSS (NB), com dez dígitos.
     Padrao("BENEFICIO",
@@ -132,6 +135,15 @@ PADROES: list[Padrao] = [
     # ---------------- Registro em cadastros profissionais não vinculados a conselho.
     Padrao("REGISTRO_PROFISSIONAL", r"(?-i:\b(?:RNTRC|CADASTUR))" + _SEP + _NUM + _SEP + r"(?P<v>\d[\d.\-/]{4,16}\d)",
            0.9, camada=CONTEXTUAL, grupo="v", nome="registro:cadastro"),
+    # ---------------- "Registro profissional" seguido do registro em qualquer formato: sigla do conselho
+    # ou do órgão, com UF ou região ("ABC/SP 12345/RJ", "XYZ-12345"), ou o número seguido da UF ou de
+    # letra de categoria ("012345-DF", "12345-P"). O registro inteiro identifica o profissional.
+    Padrao("REGISTRO_PROFISSIONAL",
+           r"\b(?:registro|inscri[çc][ãa]o)\s+(?:profissional|de\s+classe|no\s+conselho)"
+           r"(?:\s+(?:provis[óo]ri[oa]|definitiv[oa]|secund[áa]ri[oa]))?" + _SEP + _NUM + _SEP +
+           r"(?P<v>(?:(?-i:[A-Z]{2,7})(?:\s*[-/]\s*(?:(?-i:[A-Z]{2})|\d{1,2}))?\s*[-:]?\s*)?"
+           r"(?:\d{1,3}(?:\.\d{3})+|\d{3,12})(?:\s*[-/]\s*(?:(?-i:[A-Z]{1,4})|\d{1,2})(?![\w]))?)" + DEPOIS_NUM,
+           0.9, camada=CONTEXTUAL, grupo="v", nome="registro:profissional"),
     # ---------------- Certidão no formato antigo: número do termo, com livro e folha por perto.
     Padrao("CERTIDAO", r"\btermo\s*(?:n[º°o]?\.?\s*)?(?P<v>\d[\d.]{1,9}\d|\d)(?![\d])", 0.85,
            contexto=(r"livro", r"folhas?", r"fls?\."), contexto_obrigatorio=True, janela=60, camada=CONTEXTUAL,
@@ -168,9 +180,12 @@ PADROES: list[Padrao] = [
                      r"cadastro", r"contratos?", r"im[óo]vel", r"iptu", r"cliente", r"benef[íi]cio"),
            contexto_obrigatorio=True, janela=50, nome="documento:cliente"),
     # ---------------- Qualquer número após palavra que designa documento (falhar fechado): cobre
-    # documentos de estrangeiros (RNE, RNM, CRNM), inscrições estaduais e municipais e registros.
+    # documentos de estrangeiros (RNE, RNM, CRNM), inscrições estaduais e municipais e registros. O
+    # RNE e o RNM têm uma letra, seis dígitos e o dígito verificador, que pode ser letra
+    # ("V123456-K"); o dígito "X" também ocorre no RG ("12.345.678-X").
     Padrao("DOCUMENTO",
            r"(?:\bdocumento|\binscri[çc][ãa]o(?: estadual| municipal)?|\bRNE|\bRNM|\bCRNM|\bNIRF|\bCAEPF|"
            r"\bregistro(?: civil)?)\s*(?:de identifica[çc][ãa]o\s*)?" + _SEP + _NUM + _SEP +
-           r"(?P<v>[A-Z]{0,3}\d[\d.\-/]{5,20}\d)", 0.75, camada=CONTEXTUAL, grupo="v", nome="documento:contexto"),
+           r"(?P<v>(?:[A-Z]{0,3}\d[\d.\-/]{5,20}\d|(?-i:[A-Z]{1,3})\d{5,6})(?:-(?-i:[0-9A-Z])(?![\w])|-x(?![\w]))?)",
+           0.75, camada=CONTEXTUAL, grupo="v", nome="documento:contexto"),
 ]
