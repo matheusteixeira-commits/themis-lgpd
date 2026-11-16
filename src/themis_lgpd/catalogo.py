@@ -157,6 +157,8 @@ TIPOS: dict[str, TipoInfo] = {
         TipoInfo("ENDERECO_INSTITUCIONAL", "Endereço de sede ou unidade de órgão", "INSTITUCIONAL",
                  "[ENDEREÇO INSTITUCIONAL]", 20),
         TipoInfo("PLACA_OFICIAL", "Placa de veículo da frota oficial", "INSTITUCIONAL", "[PLACA OFICIAL]", 20),
+        TipoInfo("UNIDADE_INSTITUCIONAL", "Nome de órgão, unidade, estabelecimento ou empresa", "INSTITUCIONAL",
+                 "[UNIDADE]", 20),
         TipoInfo("QUASE_IDENTIFICADOR", "Quase-identificador", "QUASE_IDENTIFICADOR", "[QUASE-IDENTIFICADOR]", 15),
         TipoInfo("NUMERO_NAO_IDENTIFICADO", "Número longo não identificado", "QUASE_IDENTIFICADOR", "[NÚMERO]", 10),
         TipoInfo("MANUAL", "Trecho tarjado manualmente", "MANUAL", "[TARJADO]", 110),
