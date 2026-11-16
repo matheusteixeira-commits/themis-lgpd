@@ -109,13 +109,13 @@ coluna **Validação** indica o que é conferido além do formato.
 
 | Código | Nome | Etiqueta | Categoria | Exemplos de achado |
 |---|---|---|---|---|
-| `SAUDE` | Dado de saúde | `[DADO DE SAÚDE]` | `SENSIVEL` | CID F32.1, F41.1 e G40; C.I.D. 6A70.1; "Diagnósticos de alta: E11.5; M86.1"; "diagnosticado com depressão"; "asma"; "faço uso de fluoxetina 20mg"; "creatinina de 1,6 mg/dL"; "PA 150 x 95 mmHg"; "Glasgow 13"; "licença para tratamento de saúde" |
-| `RELIGIAO` | Convicção religiosa | `[CONVICÇÃO RELIGIOSA]` | `SENSIVEL` | "sou católico"; "membro da Igreja …"; "filha de santo do Terreiro …" |
-| `OPINIAO_POLITICA` | Opinião política | `[OPINIÃO POLÍTICA]` | `SENSIVEL` | "filiado ao Partido … (sigla) e membro de seu diretório municipal" |
-| `FILIACAO_SINDICAL` | Filiação sindical ou associativa | `[FILIAÇÃO]` | `SENSIVEL` | "sou sindicalizado"; "mensalidade sindical"; "desfiliado do Sindicato … (sigla)" |
-| `VIDA_SEXUAL` | Vida sexual / orientação sexual | `[VIDA SEXUAL]` | `SENSIVEL` | "relacionamento homoafetivo"; "homem cisgênero" |
+| `SAUDE` | Dado de saúde | `[DADO DE SAÚDE]` | `SENSIVEL` | CID F32.1, F41.1 e G40; C.I.D. 6A70.1; "Diagnósticos de alta: E11.5; M86.1"; "diagnosticado com depressão"; "asma"; "faço uso de fluoxetina 20mg"; "creatinina de 1,6 mg/dL"; "PA 150 x 95 mmHg"; "Glasgow 13"; "licença para tratamento de saúde"; "ouve vozes"; "cheira cola nos fins de semana"; "acompanhamento no CAPS AD"; "usa bombinha"; "gestante de oito meses"; "PcD (def. visual)"; "TRÍPLICE VIRAL D2" |
+| `RELIGIAO` | Convicção religiosa | `[CONVICÇÃO RELIGIOSA]` | `SENSIVEL` | "sou católico"; "membro da Igreja …"; "filha de santo do Terreiro …"; "frequenta a Paróquia …"; "ogã de um terreiro de candomblé"; "Religião: …" |
+| `OPINIAO_POLITICA` | Opinião política | `[OPINIÃO POLÍTICA]` | `SENSIVEL` | "filiado ao Partido … (sigla) e membro de seu diretório municipal"; "filiada ao mesmo partido do prefeito"; "candidata a vereadora pelo Partido …"; "fez campanha para …" |
+| `FILIACAO_SINDICAL` | Filiação sindical ou associativa | `[FILIAÇÃO]` | `SENSIVEL` | "sou sindicalizado"; "mensalidade sindical"; "desfiliado do Sindicato … (sigla)"; "delegada sindical do Sinpro"; "liberado para mandato classista" |
+| `VIDA_SEXUAL` | Vida sexual / orientação sexual | `[VIDA SEXUAL]` | `SENSIVEL` | "relacionamento homoafetivo"; "homem cisgênero"; "mantém relações sexuais com …"; "se identifica como menina"; "Identidade de gênero: …" |
 | `GENETICO_BIOMETRICO` | Dado genético ou biométrico | `[DADO BIOMÉTRICO]` | `SENSIVEL` | exame de DNA, impressão digital |
-| `ORIGEM_RACIAL` | Origem racial ou étnica | `[ORIGEM RACIAL]` | `SENSIVEL` | "Raça/cor: parda"; "indígena da etnia …"; "remanescente de quilombo" |
+| `ORIGEM_RACIAL` | Origem racial ou étnica | `[ORIGEM RACIAL]` | `SENSIVEL` | "Raça/cor: parda"; "indígena da etnia …"; "remanescente de quilombo"; "família cigana"; "pertence ao povo …"; "Pertencimento étnico: quilombola" |
 | `VIOLENCIA` | Situação de violência ou risco | `[SITUAÇÃO DE VIOLÊNCIA]` | `INTIMIDADE` | "vítima de violência doméstica"; "medida protetiva" (com vínculo) |
 | `DADO_DE_MENOR` | Dado de criança ou adolescente | `[DADO DE MENOR]` | `MENOR` | "meu filho de 9 anos"; "medida socioeducativa" |
 
@@ -130,6 +130,31 @@ condição: gravidade, tipo, localização anatômica e sigla entre parênteses 
 alguém ("estou com suspeita de…", "sofri uma fratura…"), registros clínicos ("laudo de…",
 "prontuário referente à…") e campos de formulário ("Condição clínica: …") são contextuais.
 As demais categorias sensíveis usam vocabulário próprio.
+
+Fora do registro clínico, a saúde costuma vir em linguagem leiga, em fala relatada ou pelo serviço que
+atende a pessoa. São reconhecidos também: sintoma e comportamento ("ouve vozes", "não dorme", "parou de
+comer", "se corta nos braços", "risco de autoextermínio"); uso de substância por verbo ou perífrase
+("cheirava loló", "vive tomando pinga", "usuário de pedra"); tratamento descrito pelo serviço ("consulta
+no CAPS", "acompanhamento quinzenal no CAPS infantojuvenil", "internações em comunidade terapêutica",
+"fila do transplante"), com o serviço citado pelo tipo dentro da tarja e a unidade citada pelo nome
+("CAPS Infantojuvenil Primavera") legível; dispositivo e ato assistencial ("bombinha", "nebulizador",
+"glicosímetro", "curativo", "pré-natal iniciado"); gestação em semanas ou meses e prematuridade; siglas
+de tratamento (TARV, PrEP, TDO, PQT); deficiência, licença e vacina abreviadas em tabela ("PcD (def.
+visual)", "Licença-saúde", "TRÍPLICE VIRAL D1"); nome comercial de medicamento ("Rivotril"); campo de
+ficha ("Alergias: …", "Medicação contínua: …"). O trecho inclui a frequência ("todos os dias", "nos fins
+de semana", "de manhã e à noite"), o início ("desde os 13 anos", "desde que perdeu o emprego"), o estado
+do tratamento ou da lesão (", interrompido desde…", "suturado", ", aguardando cirurgia") e o ato que
+governa o termo ("avaliação de prótese", "suspeita de dislexia", "duas internações"). O termo coordenado a
+outro já tarjado ("apresentava febre e tosse") e a ocorrência contida num trecho tarjado ("órtese" depois
+de "órtese nas duas pernas") também são tarjados.
+
+O dado sensível de terceira pessoa é reconhecido pela prática ou pela função ("a família congrega na
+Igreja …", "participa das celebrações da Pastoral …", "mãe pequena de um terreiro de umbanda"), pela
+pertença ("indígena do povo …", "ciganos da etnia …", "família quilombola …"), pela relação ("mantém
+relações sexuais com …", "relacionamento afetivo com outra interna", "parceiro fixo"), pela função sindical
+ou partidária e pelo campo de cadastro ("Identidade de gênero:", "Religião:", "Pertencimento étnico:").
+A expressão "nome social" não é dado de vida sexual: nomeia o direito (Decreto nº 8.727/2016) e aparece
+em orientações e rótulos.
 
 O tipo de violência só é contextual com o enquadramento que o atribui a alguém ("vítima de", "sofreu",
 "medo de"); citado sem enquadramento ("denúncias de assédio moral"), assim como "situação de risco" ou
@@ -171,11 +196,19 @@ linha (coluna "Nome", "Candidato"), o dado sensível da célula se refere à pes
 Não são vinculados a pessoa, e viram alerta, o termo sensível dentro de nome de instituição, programa,
 norma ou serviço ("Departamento de Controle da Hanseníase", "Vara de Violência Doméstica",
 "ambulatório de pé diabético"), em título do documento (salvo título que enuncia o motivo de uma licença),
-na linha de assinatura do profissional, em rótulo de campo ("Internação:", "Nome social:"), em
+na linha de assinatura do profissional, em rótulo de campo ("Internação:", "Alergias:"), em
 classificação do caso no cabeçalho ("Assunto:", "Natureza:"), negado ou hipotético ("nega alergias",
 "em caso de febre", "Possui deficiência? não"), em quesito padrão não respondido com "sim", o termo de
 cor ou etnia que integra nome próprio ou qualifica serviço ("Terra Indígena …", "saúde indígena") e o
-trecho em maiúsculas do classificador treinado sem termo do léxico.
+trecho em maiúsculas do classificador treinado sem termo do léxico. Também viram alerta: o termo em
+contagem ou estatística de um grupo ("41 casos de violência sexual", "nove deles com gravidez", "63% em
+situação de violência", "38 estudantes com deficiência visual"); a expressão de diagnóstico em indicador
+fora de documento sobre pessoa ("o intervalo entre o diagnóstico de câncer e o início da quimioterapia foi
+de 38 dias em média"); a denominação religiosa e o termo em iniciais maiúsculas que continuam nome próprio
+("Bernardino Batista", "Diretora de Atenção a Populações em Situação de Violência"); "internação" em
+documento de medida socioeducativa, sem serviço de saúde na frase; o exame pericial só requisitado
+("requisitado exame de corpo de delito"); e o trecho do classificador sem termo do léxico que começa por
+palavra funcional ("Em entrevista") ou descreve medida ou material de obra ("fck 35 MPa", "pedra tosca").
 
 O classificador de trechos treinado (ver [Configuração](CONFIGURACAO.md#classificador-de-dados-sensíveis))
 complementa essas regras com condições descritas em linguagem clínica ou com palavras próprias, achados de
@@ -276,8 +309,15 @@ descartados quando o contexto é orçamentário.
   determinada e, caso contrário, viram alerta.
 
 A frase se refere a uma pessoa determinada quando contém marcador de primeira pessoa ("eu", "minha",
-"tenho", "sofri"), possessivo ou papel ("a requerente", "o paciente", "minha filha"), ou um
-identificador pessoal já detectado (nome, documento, contato, processo). Assim, "a política de saúde
+"tenho", "sofri"), pronome pessoal ("ele", "dela"), autodeclaração ("declarou-se negra", "se reconhece
+como quilombola"), fala relatada da própria pessoa ("contou que é lésbica"), possessivo ou papel ("a
+requerente", "o paciente", "minha filha", "o declarante", "a custodiada", "a família"), ou um
+identificador pessoal já detectado (nome, documento, contato, processo). Em enunciado normativo ou de
+protocolo — verbo deôntico ("deve receber", "deverá apresentar", "tem assegurada", "aplicam-se") e oração
+que começa por sujeito genérico ("O paciente com sinais de alarme…", "Toda gestante…", "Nos casos de…") —,
+fora de documento centrado em pessoa, o papel com artigo designa qualquer pessoa na situação descrita: o
+termo vira alerta, salvo com marcador de primeira pessoa, pronome pessoal ou identificador direto na
+frase. Assim, "a política de saúde
 mental prevê atendimento para depressão" permanece legível, enquanto "minha filha tem autismo" é
 tarjado. A regra evita tarjar conteúdo de interesse público, em atenção ao princípio da máxima
 divulgação da LAI. Ver [ADR 0004](adr/0004-perfis-lgpd-e-lai.md).

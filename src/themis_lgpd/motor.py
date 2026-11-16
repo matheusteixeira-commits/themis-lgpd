@@ -35,28 +35,76 @@ from .reconhecedores import base as B
 from .reconhecedores import sensiveis as S
 from .texto import TextoNormalizado, dobrar, normalizar
 
-# Marcadores de que a frase se refere a uma pessoa determinada: primeira pessoa ("tenho", "sofri",
-# "minha"), possessivos e papéis ("o requerente", "a paciente"). Usados para decidir se um termo
-# sensível isolado ("asma", "católico") deve ser tarjado ou apenas sinalizado para revisão.
-_VINCULO = re.compile(
-    r"\b(?:eu|meu|minha|meus|minhas|me|mim|comigo|sou|estou|estive|tive|fui|sofro|sofri|"
+#: Marcadores que indicam pessoa determinada mesmo em enunciado com verbo deôntico: primeira pessoa,
+#: pronome pessoal de terceira pessoa, autodeclaração ("declarou-se negra", "se reconhece como quilombola")
+#: e fala relatada da própria pessoa ("contou que é lésbica", "relatou que está grávida").
+_VINCULO_FORTE = (
+    r"eu|meu|minha|meus|minhas|me|mim|comigo|sou|estou|estive|tive|fui|sofro|sofri|"
     # "tenho interesse", "tenho as seguintes dúvidas": fórmulas do pedido, não situação pessoal.
     r"tenho(?!\s+(?:(?:as|algumas|alguns|umas?|seguintes|outras?|muitas?)\s+)*(?:interesse|d[úu]vidas?|perguntas|"
     r"quest[õo]es|curiosidade|conhecimento|ci[êe]ncia)\b)|"
-    r"trato|tratei|tomo|tomei|uso|sinto|senti|convivo|enfrento|enfrentei|descobri|fa[çc]o|fiz|fiquei|passei|"
+    # "uso" de primeira pessoa, e não o substantivo ("o uso do nome social", "uso de equipamento").
+    r"trato|tratei|tomo|tomei|"
+    r"(?<!\b(?:o|do|no|ao|pelo|em|de|para|sem|com|seu|sua|meu|nosso|nossa|esse|este|cujo)\s)uso(?!\s+d[oa]s?\b)|"
+    r"sinto|senti|convivo|enfrento|enfrentei|descobri|fa[çc]o|fiz|fiquei|passei|"
     r"nasci|moro|recebi|realizei|internei|operei|preciso\s+de\s+(?:tratamento|rem[ée]dio|medica[çc][ãa]o|cirurgia)|"
     r"possuo|utilizo|dependo|realizo|perdi|desenvolvi|contra[íi]|pude|dei\s+entrada|"
     r"t[ôo]|tava|(?!solicitei|requisitei|pedi)\w{3,}ei|perten[çc]o|participo|frequento|"
-    r"seu|sua|seus|suas|dele|dela|deles|delas|ele|ela|"
+    r"dele|dela|deles|delas|ele|ela|"
     r"(?:um|uma)\s+(?:familiar|parente)|"
+    r"(?:auto)?declarou-se|(?:auto)?declara-se|se\s+(?:auto)?declara(?:va|ram|m)?|se\s+reconhece(?:m|u)?|reconhece-se|"
+    r"se\s+identifica(?:va)?|identifica-se|"
+    r"(?:contou|relatou|relata|admitiu|revelou|confidenciou|confessou|referiu)\s+(?:que\s+)?"
+    r"(?:j[áa]\s+|ainda\s+|n[ãa]o\s+)?(?:[ée]|era|est[áa]|estava|tem|tinha|teve|foi|faz|fazia|usa|usava|toma|tomava|sente|sentia|"
+    r"sofre|sofria|vem|mant[ée]m|mantinha|frequenta|frequentava|bebe|bebia|fuma|fumava|ouve|escuta|v[êe])"
+)
+#: Papéis com artigo ("o requerente", "a paciente", "a família") e possessivos de terceira pessoa: designam
+#: a pessoa de que o texto trata, mas também qualquer pessoa num enunciado normativo ("O paciente com
+#: sinais de alarme deve receber hidratação").
+_VINCULO_PAPEL = (
+    r"seu|sua|seus|suas|"
     r"(?:o|a|do|da|ao|à|pel[oa])\s+(?:servidor|servidora|requerente|paciente|cidad[ãa]o|cidad[ãa]|interessad[oa]|"
     r"denunciante|v[íi]tima|solicitante|alun[oa]|estudante|funcion[áa]ri[oa]|empregad[oa]|segurad[oa]|"
     r"benefici[áa]ri[oa]|filh[oa]|espos[oa]|marido|mulher|companheir[oa]|m[ãa]e|pai|irm[ãa]o?|vizinh[oa]|colega|"
     r"chefe|menor|crian[çc]a|adolescente|idos[oa]|titular|candidat[oa]|reclamante|usu[áa]ri[oa]|"
     r"net[oa]|ti[oa]|av[ôóo]|sobrinh[oa]|prim[oa]|sogr[oa]|cunhad[oa]|entead[oa]|beb[êe]|detent[oa]|pres[oa]|"
-    r"internad[oa]|client[ea]|assistid[oa]|dependente|familiar))\b",
-    re.IGNORECASE,
+    r"internad[oa]|client[ea]|assistid[oa]|dependente|familiar|"
+    # Partes e pessoas atendidas em registros policiais, judiciais, prisionais e de assistência social.
+    r"r[ée]u|acusad[oa]|indiciad[oa]|investigad[oa]|declarante|depoente|noticiante|comunicante|manifestante|"
+    r"reeducand[oa]|apenad[oa]|custodiad[oa]|socioeducand[oa]|acolhid[oa]|genitor[a]?|padrasto|madrasta|"
+    r"ex-marido|ex-mulher|ex-espos[oa]|ex-companheir[oa]|namorad[oa]|fam[íi]lia)"
 )
+# Marcadores de que a frase se refere a uma pessoa determinada: primeira pessoa ("tenho", "sofri",
+# "minha"), possessivos e papéis ("o requerente", "a paciente"). Usados para decidir se um termo
+# sensível isolado ("asma", "católico") deve ser tarjado ou apenas sinalizado para revisão.
+_VINCULO = re.compile(r"\b(?:" + _VINCULO_FORTE + "|" + _VINCULO_PAPEL + r")\b", re.IGNORECASE)
+_VINCULO_FORTE_RE = re.compile(r"\b(?:" + _VINCULO_FORTE + r")\b", re.IGNORECASE)
+#: Verbo deôntico ou fórmula de norma, protocolo ou edital ("deve receber", "deverá apresentar", "tem
+#: assegurada", "aplicam-se"): com só papéis genéricos na frase, o termo sensível não se refere a pessoa
+#: determinada (LAI, art. 3º, I).
+_NORMATIVO = re.compile(
+    r"\b(?:deve|devem|dever[áã]o?|poder[áã]o?|precisa(?:m)?\s+ser|aplica(?:m)?-se|utiliza(?:m)?-se|considera(?:m)?-se|"
+    r"(?:[ée]|s[ãa]o|ser[áã]o?|fica(?:m)?|t[êe]m|tem)\s+(?:assegurad|garantid|vedad|obrigat[óo]ri|facultad|dispensad)\w*|"
+    r"ter[áã]o?\s+(?:direito|prioridade|prefer[êe]ncia)|faz(?:em)?\s+jus|compete|incumbe|vedad[oa]s?)\b", re.IGNORECASE)
+#: Início de oração com sujeito genérico ("O paciente com sinais de alarme…", "Toda gestante…", "Nos casos
+#: de violência doméstica…", "Em caso de febre…"), depois da numeração do item. Num relato, a mesma frase
+#: com papel retomado do contexto ("Em atenção ao pedido da família, a estudante poderá…") não é norma.
+_INICIO_GENERICO = re.compile(
+    r"\W*(?:\d+(?:\.\d+)*\.?\s+|[a-z]\)\s+|[–•-]\s+)?(?:(?:(?:o|a|os|as)\s+)?(?:pacientes?|gestantes?|crian[çc]as?|v[íi]timas?|"
+    r"candidat[oa]s?|estudantes?|alun[oa]s?|usu[áa]ri[oa]s?|servidor(?:a|es|as)?|pessoas?|mulher(?:es)?|homens?|adolescentes?|"
+    r"idos[oa]s?|benefici[áa]ri[oa]s?|segurad[oa]s?|requerentes?|interessad[oa]s?|trabalhador(?:a|es|as)?|profissionais?|"
+    r"profissional|rec[ée]m-nascid[oa]s?|pu[ée]rperas?|portador(?:a|es|as)?|empregad[oa]s?|titulares?|dependentes?|"
+    r"fam[íi]lias?|respons[áa]ve(?:l|is)|conselheir[oa]s?)\b|(?:todo|toda|todos|todas|cada|qualquer|nenhum|nenhuma)\b|"
+    r"(?:nos|nas|em)\s+(?:casos?|registros|situa[çc][õo]es|hip[óo]teses?)\b|(?:quando|caso|se|com|sem)\b)", re.IGNORECASE)
+_MOTIVO_NORMATIVO = "Termo sensível em enunciado normativo ou de protocolo, sem pessoa determinada — revisar"
+#: Achados contextuais que, em norma ou protocolo, descrevem a situação em abstrato ("A vítima de violência
+#: sexual deve ser acolhida", "o portador de doença grave terá direito à isenção").
+_CONTEXTUAIS_EM_NORMA = frozenset({"intimidade:violencia", "saude:cid", "saude:cid-sem-ponto", "saude:frase", "saude:possui"})
+
+# Separação entre termos coordenados: vírgula, "e" ou "ou", com o determinante do segundo termo ("e o
+# respectivo tratamento oncológico"), sem pontuação final nem quebra de parágrafo.
+_COORDENACAO = re.compile(r"[ \t]*(?:,[ \t]*(?:(?:e|ou)[ \t]+)?|(?:e|ou)[ \t]+)(?:(?:o|a|os|as|seu|sua|seus|suas|"
+                          r"respectiv[oa]s?)[ \t]+)*", re.IGNORECASE)
 
 # Fronteiras de frase usadas para delimitar a janela da regra de vínculo.
 _FIM_FRASE = re.compile(r"[.!?;]\s|\n\s*\n|\n(?=\s*[-•*\d])")
@@ -426,6 +474,20 @@ class Anonimizador:
             return True
         return any(a <= x < b or a < y <= b for x, y in ancoras)
 
+    def _normativa(self, texto: str, ini: int, fim: int, identificadores: list[tuple[int, int]]) -> bool:
+        """Indica se a frase do trecho é enunciado normativo sem pessoa determinada (ver :data:`_NORMATIVO`).
+
+        A frase tem verbo deôntico ou fórmula de norma e nenhum marcador de :data:`_VINCULO_FORTE` nem
+        identificador direto (nome, documento, contato); os papéis com artigo ("o paciente", "a gestante")
+        designam qualquer pessoa na situação descrita.
+        """
+        a, b = self._frase(texto, ini, fim)
+        oracao = max(a, texto.rfind(";", a, ini) + 1, texto.rfind(":", a, ini) + 1, texto.rfind("\n", a, ini) + 1)
+        if (not _NORMATIVO.search(texto, a, b) or not _INICIO_GENERICO.match(texto, oracao)
+                or _VINCULO_FORTE_RE.search(texto, a, b)):
+            return False
+        return not any(a <= x < b or a < y <= b for x, y in identificadores)
+
     def _vinculado_vizinhas(self, texto: str, ini: int, fim: int) -> bool:
         """Indica se a frase anterior ou a seguinte se refere a uma pessoa determinada (ver :data:`_COLETIVO`).
 
@@ -486,6 +548,8 @@ class Anonimizador:
         ancoras = [(d.inicio, d.fim) for d in dets
                    if info_tipo(d.tipo).categoria in {"PESSOA", "DOCUMENTO", "CONTATO", "PROCESSO", "DADO_PESSOAL"}
                    and d.score >= 0.6]
+        identificadores = [(d.inicio, d.fim) for d in dets
+                           if info_tipo(d.tipo).categoria in {"PESSOA", "DOCUMENTO", "CONTATO"} and d.score >= 0.6]
         # Vínculo no nível do documento (ver themis_lgpd.reconhecedores.sensiveis.contexto_documental): num
         # documento centrado numa pessoa identificada, o dado sensível se refere a ela; num registro clínico,
         # o trecho tarjado vai até a fronteira da frase.
@@ -519,6 +583,10 @@ class Anonimizador:
                            else ctx.isencao(texto, d.inicio, d.fim, d.camada, d.origem, d.tipo))
                 if isencao:
                     acao, motivo = P.ALERTAR, isencao
+                elif (not ctx.centrado and d.tipo not in perfil.tarjar_sensivel_sempre
+                      and (d.camada == B.SEMANTICA or d.origem in _CONTEXTUAIS_EM_NORMA)
+                      and self._normativa(texto, d.inicio, d.fim, identificadores)):
+                    acao, motivo = P.ALERTAR, _MOTIVO_NORMATIVO
                 elif d.camada != B.SEMANTICA or d.tipo in perfil.tarjar_sensivel_sempre:
                     acao = P.TARJAR
                 elif self._vinculado(texto, d.inicio, d.fim, ancoras):
@@ -539,7 +607,8 @@ class Anonimizador:
                 acao, motivo = P.MANTER, _MOTIVO_AGENTE
             trechos = [(d.inicio, d.fim)]
             if acao == P.TARJAR and d.tipo == "SAUDE":
-                trechos = ctx.recortar(texto, *ctx.estender(texto, d.inicio, d.fim, saude, localidades))
+                trechos = ctx.recortar(texto, *ctx.estender(texto, d.inicio, d.fim, saude, localidades),
+                                       achado=(d.inicio, d.fim))
             for inicio, final in trechos:
                 ini, fim = norm.para_original(inicio, final)
                 entidades.append(Entidade(ini, fim, d.tipo, norm.original[ini:fim], d.score, d.origem, d.camada,
@@ -552,8 +621,27 @@ class Anonimizador:
                 ini, fim = norm.para_original(a, b)
                 entidades.append(Entidade(ini, fim, "SAUDE", norm.original[ini:fim], 0.65, S.ORIGEM_CLINICA + "tabela",
                                           B.SEMANTICA, None, acao, _MOTIVO_DOCUMENTO))
+        self._saude_coordenada(norm.original, entidades)
         self._saude_consistente(entidades)
         return self._consolidar(norm.original, entidades)
+
+    @staticmethod
+    def _saude_coordenada(original: str, entidades: list[Entidade]) -> None:
+        """Tarja o termo de saúde coordenado a outro já tarjado ("apresentava febre e tosse").
+
+        A coordenação por vírgula, "e" ou "ou" atribui os dois termos à mesma pessoa; o que fica isolado
+        de vínculo próprio é o segundo ("tosse"), sinalizado sem esta regra.
+        """
+        tarjadas = sorted((e.inicio, e.fim) for e in entidades if e.tipo == "SAUDE" and e.acao == P.TARJAR)
+        if not tarjadas:
+            return
+        for e in entidades:
+            if (e.tipo != "SAUDE" or e.acao != P.ALERTAR or e.motivo in S.MOTIVOS_ISENCAO
+                    or e.motivo == _MOTIVO_NORMATIVO):
+                continue
+            if any(_COORDENACAO.fullmatch(original, b, e.inicio) or _COORDENACAO.fullmatch(original, e.fim, a)
+                   for a, b in tarjadas if b <= e.inicio or e.fim <= a):
+                e.acao, e.motivo = P.TARJAR, "Termo de saúde coordenado a outro já tarjado"
 
     @staticmethod
     def _saude_consistente(entidades: list[Entidade]) -> None:
@@ -561,14 +649,21 @@ class Anonimizador:
 
         Em "tive complicações por diabetes tipo 2 … o afastamento para tratamento de diabetes tipo 2
         interrompe o interstício?", a segunda menção revelaria a condição protegida na primeira. Só se
-        aplica a ocorrências com o mesmo termo (sem distinção de caixa, acentos e espaços).
+        aplica a ocorrências com o mesmo termo (sem distinção de caixa, acentos e espaços) ou contidas num
+        trecho tarjado com qualificadores e atributos ("órtese" depois de "órtese nas duas pernas", "asma
+        grave" depois de "crise de asma grave"), salvo os núcleos genéricos ("deficiência").
         """
         def chave(e: Entidade) -> str:
             return " ".join(dobrar(e.valor).split())
 
         tarjadas = {chave(e) for e in entidades if e.tipo == "SAUDE" and e.acao == P.TARJAR}
         for e in entidades:
-            if e.tipo == "SAUDE" and e.acao == P.ALERTAR and chave(e) in tarjadas and e.motivo not in S.MOTIVOS_ISENCAO:
+            if (e.tipo != "SAUDE" or e.acao != P.ALERTAR or e.motivo in S.MOTIVOS_ISENCAO
+                    or e.motivo == _MOTIVO_NORMATIVO):
+                continue
+            k = chave(e)
+            if k in tarjadas or (len(k) >= 4 and not S.termo_generico(k)
+                                 and any(f" {k} " in f" {t} " for t in tarjadas)):
                 e.acao, e.motivo = P.TARJAR, "Mesmo dado de saúde já tarjado no texto"
 
     @staticmethod
