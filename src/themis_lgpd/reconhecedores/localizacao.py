@@ -86,8 +86,9 @@ _NOME_DATA = r"(?:[12]?\d|3[01])[º°]?\s+de\s+" + _MESES
 #: referência ("altura do número 450"). O dia de um nome-data ("rua 15 de novembro") não é número.
 _NUMERO = (r"(?:(?:na\s+)?altura\s+do\s+)?(?:n[º°o]?\.?\s*|n[úu]mero\s*)?(?:\d{1,3}(?:\.\d{3})+|\d{1,6}[A-Za-z]?|s/?n)"
            r"(?![\w/])" + _NAO_DATA)
-#: Cidade seguida de UF ("Joinville - SC", "Goiânia/GO", "Recife (PE)").
-_CIDADE_UF = rf"[A-ZÀ-Ú][^\n,;.\d]{{1,35}}?\s*(?:[-/–,]\s*|\(\s*){_UF}\)?(?![\w])"
+#: Cidade seguida de UF ("Joinville - SC", "Goiânia/GO", "Recife (PE)"). O pronome oblíquo colado ao
+#: verbo ("…, encontra-se interditado", "reuniram-se") não é a sigla de Sergipe.
+_CIDADE_UF = rf"[A-ZÀ-Ú][^\n,;.\d]{{1,35}}?\s*(?:[-/–,]\s*|\(\s*)(?!(?<=\w-)(?-i:se)\b){_UF}\)?(?![\w])"
 #: Complementos opcionais do endereço: bairro (com ou sem a palavra "bairro", quando seguido de
 #: cidade e UF), cidade e UF, CEP (", Bairro Vila Nova", ", Centro, Porto Alegre/RS",
 #: ", Brasília/DF, CEP 70000-000").

@@ -98,6 +98,7 @@ def test_mesmo_numero_recebe_a_mesma_classificacao(anon):
 @pytest.mark.parametrize("valor,esperado", [
     ("ouvidoria@saude.go.gov.br", True), ("cpl.licitacoes@tjpi.jus.br", True), ("frota@itaberai.go.gov.br", True),
     ("ana.lima@saude.go.gov.br", False), ("rsantos@mpf.mp.br", False), ("contato@empresa.com.br", False),
+    ("clara.mendes@educacao.ba.gov.br", False), ("bezerra.coelho@tce.pe.gov.br", False),
     ("ouvidoria@hotmail.com", False),
 ])
 def test_email_institucional(valor, esperado):
@@ -205,6 +206,14 @@ def test_endereco_residual(texto, trecho):
 def test_ordem_da_via_tarjada(anon):
     saida = anon.anonimizar("Endereço: 2ª Travessa São Caetano, 14, casa B, Pernambués").texto
     assert "2ª" not in saida and "14" not in saida, saida
+
+
+@pytest.mark.parametrize("texto,visivel", [
+    ("O imóvel da Rua das Palmeiras, 12, encontra-se interditado.", "encontra-se"),
+    ("na sala da Casa dos Conselhos, na Avenida Sete, 220, bairro Centro, reuniram-se os conselheiros", "reuniram-se"),
+])
+def test_pronome_obliquo_nao_e_sigla_de_uf(texto, visivel):
+    assert not any(visivel in e for e in _enderecos(texto)), _enderecos(texto)
 
 
 def test_colonia_penal_nao_e_endereco():

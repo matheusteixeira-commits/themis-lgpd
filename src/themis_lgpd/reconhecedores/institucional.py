@@ -98,23 +98,23 @@ _PARTES_LOCAL = re.compile(r"[a-z]+")
 
 
 @cache
-def _listas_nomes() -> tuple[frozenset[str], frozenset[str]]:
-    """Prenomes (sem os ambíguos) e sobrenomes, sem acentos e em minúsculas."""
+def _listas_nomes() -> tuple[frozenset[str], frozenset[str], frozenset[str]]:
+    """Prenomes (sem os ambíguos), prenomes ambíguos e sobrenomes, sem acentos e em minúsculas."""
     from .nomes import ambiguos, prenomes, sobrenomes
 
-    return frozenset(prenomes() - ambiguos()), frozenset(sobrenomes())
+    return frozenset(prenomes() - ambiguos()), frozenset(ambiguos()), frozenset(sobrenomes())
 
 
 def _tem_nome(local: str) -> bool:
-    """Indica se a parte local de um e-mail contém nome de pessoa ("maria.souza", "jsilva",
-    "carlamendes82"): um prenome inteiro ou no início da parte, sobrenome precedido de iniciais ou dois
-    sobrenomes."""
-    prenomes, sobrenomes = _listas_nomes()
+    """Indica se a parte local de um e-mail contém nome de pessoa ("maria.souza", "clara.lima", "jsilva",
+    "carlamendes82"): um prenome inteiro ou no início de uma parte, sobrenome ou prenome ambíguo ao lado
+    de outra parte, ou sobrenome precedido de iniciais. Um sobrenome sozinho ("frota@") não basta: também
+    é palavra comum que nomeia o setor."""
+    prenomes, ambiguos, sobrenomes = _listas_nomes()
     partes = _PARTES_LOCAL.findall(dobrar(local))
     if any(p in prenomes for p in partes):
         return True
-    if sum(p in sobrenomes for p in partes) >= 2 or (len(partes) >= 2 and any(len(p) <= 2 for p in partes)
-                                                       and any(p in sobrenomes for p in partes)):
+    if len(partes) >= 2 and any(p in sobrenomes or p in ambiguos for p in partes):
         return True
     for p in partes:
         # Iniciais coladas ao sobrenome ("jsilva", "mcarvalho") ou prenome colado a outra parte ("anabia").
@@ -172,14 +172,15 @@ def _linha_anterior(texto: str, inicio_linha: int) -> str:
 
 @lru_cache(maxsize=16)
 def _fim_cabecalho(texto: str) -> int:
-    """Fim do cabeçalho do documento (timbre): o primeiro bloco de linhas, até a primeira linha em branco,
-    quando uma das três primeiras linhas designa órgão ou unidade. Zero se não houver cabeçalho."""
+    """Fim do cabeçalho do documento (timbre): o primeiro bloco de duas a oito linhas curtas, separado do
+    corpo por uma linha em branco, quando uma das três primeiras linhas designa órgão ou unidade. Zero se
+    não houver cabeçalho; um texto de parágrafo único ("Secretaria de Saúde, solicito…") não tem."""
     inicio = len(texto) - len(texto.lstrip())
     fim = texto.find("\n\n", inicio)
-    fim = len(texto) if fim < 0 else fim
-    bloco = texto[inicio:fim]
-    linhas = bloco.split("\n")
-    if fim - inicio > 600 or len(linhas) > 8:
+    if fim < 0 or not texto[fim:].strip():
+        return 0
+    linhas = texto[inicio:fim].split("\n")
+    if not 2 <= len(linhas) <= 8 or any(len(linha) > 100 for linha in linhas):
         return 0
     if not any(_LINHA_ORGAO.match(linha) for linha in linhas[:3]):
         return 0
@@ -275,15 +276,33 @@ def _reclassificar_contatos(texto: str, deteccoes: list[Deteccao]) -> None:
 
 
 # --------------------------------------------------------------------------- Endereços
-#: Endereço de sede ou unidade: "na sede da …", "a Diretoria …, situada na", "na UBS X, na Rua". O
-#: rótulo "Endereço da escola:" não basta: em pedidos, costuma ser o endereço que a pessoa frequenta.
-_ENDERECO_ORGAO = re.compile(
+_FIM_ENDERECO_ORGAO = r"(?:(?:n[oa]|à|em|:)\s*)?[-–:,]?\s*$"
+#: Endereço introduzido pela sede ou pela unidade: "na sede da …", "a Diretoria …, situada na", "na UBS
+#: X, na Rua". Num pedido, a mesma construção costuma descrever o lugar que a própria pessoa frequenta;
+#: por isso só vale no anúncio do serviço (ver :data:`_ANUNCIO`).
+_ENDERECO_SEDE = re.compile(
     r"(?:(?:\b(?:n[ao]|à|a)\s+|^\s*)sede\b[^.;\n]{0,90}?"
     r"|\b" + _ORGAO + r"\b[^.;\n]{0,90}?(?:,\s*)?\b(?:situad|sediad|instalad)[oa]s?\s+"
-    r"|\bendere[çc]o\s+d[ao]\s+(?:unidade|[óo]rg[ãa]o)\s*:\s*"
-    r"|\b(?:n[oa]|à|ao)\s+" + _ORGAO + r"\b[^.;\n,]{0,70},\s*"
+    r"|\b(?:n[oa]|à|ao)\s+" + _ORGAO + r"\b[^.;\n,]{0,70},\s*)" + _FIM_ENDERECO_ORGAO,
+    re.IGNORECASE,
+)
+#: Rótulo do endereço da unidade ("Endereço da unidade:") e edifício-sede do governo ("Palácio …",
+#: "Centro Administrativo …"), que bastam por si.
+_ENDERECO_ORGAO = re.compile(
+    r"(?:\bendere[çc]o\s+d[ao]\s+(?:unidade|[óo]rg[ãa]o)\s*:\s*"
     r"|\b(?:pal[áa]cio|pa[çc]o\s+municipal|centro\s+administrativo|edif[íi]cio[-\s]sede)\b[^.;\n]{0,60}?)"
-    r"(?:(?:n[oa]|à|em|:)\s*)?[-–:,]?\s*$",
+    + _FIM_ENDERECO_ORGAO,
+    re.IGNORECASE,
+)
+#: Anúncio do serviço pelo órgão, na mesma frase do endereço: horário de atendimento ("de segunda a
+#: sexta-feira, das 8h às 17h"), hora do ato ("às 10 horas, … compareceu") ou providência a cargo do
+#: público ou do órgão ("poderão ser retirados", "deverá ser protocolada", "fica assegurada vista").
+_ANUNCIO = re.compile(
+    r"\b(?:das?\s+\d{1,2}\s*(?:h|:\d{2}|horas)|de\s+segunda\s+a\s+(?:sexta|s[áa]bado)|em\s+dias\s+[úu]teis|"
+    r"no\s+hor[áa]rio|[àa]s\s+\d{1,2}\s*(?:h|:\d{2}|horas)|"
+    r"compareceu|compareceram|reuni(?:u|ram)-se|assegurad[oa]|"
+    r"(?:poder[áã]o?|dever[áã]o?|ser[áã]o?)\s+(?:ser\s+)?(?:retirad|entregue|protocolad|apresentad|recebid|"
+    r"realizad|prestad|atendid|mantid)\w*)",
     re.IGNORECASE,
 )
 #: Expressão de residência ou propriedade da própria pessoa, que prevalece sobre a menção a órgão.
@@ -295,13 +314,19 @@ _RESIDENCIA = re.compile(
 
 
 def endereco_institucional(texto: str, inicio: int) -> bool:
-    """Indica se o endereço que começa em ``inicio`` é de sede ou unidade de órgão público: está no
-    cabeçalho do documento ou é introduzido pela sede ou pela unidade, sem expressão de residência
-    própria na frase."""
+    """Indica se o endereço que começa em ``inicio`` é de sede ou unidade de órgão público, sem expressão
+    de residência própria na frase: está no cabeçalho do documento, segue o rótulo do endereço da
+    unidade ou o edifício-sede, ou é introduzido pela sede ou pela unidade numa frase que anuncia o
+    serviço."""
     antes = _frase_antes(texto, inicio, 140)
     if _RESIDENCIA.search(antes):
         return False
-    return inicio < _fim_cabecalho(texto) or bool(_ENDERECO_ORGAO.search(antes))
+    if inicio < _fim_cabecalho(texto) or _ENDERECO_ORGAO.search(antes):
+        return True
+    if not _ENDERECO_SEDE.search(antes):
+        return False
+    a, b = _frase(texto, inicio, inicio)
+    return bool(_ANUNCIO.search(texto, max(0, a - 1), min(len(texto), b + 200)))
 
 
 def _reclassificar_enderecos(texto: str, deteccoes: list[Deteccao]) -> None:
