@@ -54,6 +54,15 @@ FINANCEIRO: list[Padrao] = [
            camada=CONTEXTUAL, grupo="v", nome="pix:numerica"),
 ]
 
+#: Siglas e abreviaturas que, seguidas de número, têm a forma de placa antiga ("ISO-9001", "LEI-1234",
+#: "ano 2019"). Também valem em minúsculas na regra que depende de menção a veículo.
+_NAO_PLACA = (r"ISO|NBR|IEC|ABNT|LAI|OUV|SEI|SIC|LEI|ART|CEP|CPF|CID|PEC|ADI|RES|DEC|INC|PAR|COD|REF|"
+              r"TEL|CEL|FAX|NUM|ANO|DOC|ATA|OAB|CRM|SUS|CNH|CNS|PIS|INSS|MEC|STF|STJ|TST|TSE|TCU|TCDF|CLDF|GDF|SES|SEE|"
+              r"BRB|NOV|DEZ|JAN|FEV|MAR|ABR|MAI|JUN|JUL|AGO|SET|OUT")
+#: A placa não continua a numeração de um ato ("Contrato nº 214/PGE-2024") nem é o número de série de
+#: um equipamento ("medidor nº MVF-0137", "lacre nº ABC-1234"): o número de placa não é precedido de "nº".
+_ANTES_PLACA = r"(?<![\w-])(?=[A-Za-z]{3}[-\s]?\d)(?<!\d/)(?<!\bn[º°o]\.?\s{0,2})(?<!\bn[úu]mero\s{1,2})"
+
 #: Regras de identificação de veículos.
 VEICULOS: list[Padrao] = [
     # Placa Mercosul (AAA0A00): formato distintivo, reconhecido sem contexto, em maiúsculas.
@@ -61,13 +70,11 @@ VEICULOS: list[Padrao] = [
     # Placa antiga (AAA-0000): o formato coincide com siglas seguidas de número ("ISO-9001",
     # "LEI-1234"), excluídas explicitamente.
     Padrao("PLACA",
-           r"(?<![\w-])(?!(?:ISO|NBR|IEC|ABNT|LAI|OUV|SEI|SIC|LEI|ART|CEP|CPF|CID|PEC|ADI|RES|DEC|INC|PAR|COD|REF|"
-           r"TEL|CEL|FAX|NUM|ANO|DOC|ATA|OAB|CRM|SUS|CNH|CNS|PIS|INSS|MEC|STF|STJ|TST|TSE|TCU|TCDF|CLDF|GDF|SES|SEE|"
-           r"BRB|NOV|DEZ|JAN|FEV|MAR|ABR|MAI|JUN|JUL|AGO|SET|OUT)-)[A-Z]{3}-\d{4}(?![\w])",
+           _ANTES_PLACA + r"(?!(?:" + _NAO_PLACA + r")-)[A-Z]{3}-\d{4}(?![\w])",
            0.8, ignorar_caixa=False, contexto=("placa", "ve[íi]culo", "carro", "moto(?:cicleta)?", "autom[óo]vel",
                                                "caminh[ãa]o", "[ôo]nibus", "renavam"), nome="placa:antiga"),
     # Qualquer dos dois formatos, em minúsculas ou sem hífen, quando há menção a veículo.
-    Padrao("PLACA", r"(?<![\w-])[A-Za-z]{3}[-\s]?\d[A-Za-z0-9]\d{2}(?![\w])", 0.85,
+    Padrao("PLACA", _ANTES_PLACA + r"(?!(?:" + _NAO_PLACA + r")[-\s])[A-Za-z]{3}[-\s]?\d[A-Za-z0-9]\d{2}(?![\w])", 0.85,
            contexto=("placa", "ve[íi]culo", "carro", "moto(?:cicleta)?", "autom[óo]vel", "caminh[ãa]o"),
            contexto_obrigatorio=True, nome="placa:contexto"),
     # RENAVAM: também com a grafia "renavan" e com pontuação ("2914.1777638"); o dígito verificador

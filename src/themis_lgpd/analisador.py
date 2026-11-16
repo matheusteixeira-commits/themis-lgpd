@@ -58,6 +58,7 @@ from presidio_analyzer.predefined_recognizers import (
 from .catalogo import tipo as info_tipo
 from .reconhecedores import aprendido, contatos, documentos, financeiro, localizacao, nomes, sensiveis
 from .reconhecedores import base as B
+from .reconhecedores.institucional import reclassificar as reclassificar_institucionais
 
 #: Código de idioma usado em todo o registro do Presidio.
 IDIOMA = "pt"
@@ -358,4 +359,7 @@ def analisar_textos(textos: Sequence[str], modelo: str | None, extras: Sequence[
         resultados = engine.analyze(text=parte, language=IDIOMA, nlp_artifacts=art, score_threshold=score_minimo,
                                     ad_hoc_recognizers=list(extras) or None, return_decision_process=True)
         saida[i].extend(_deteccao(r, desloc) for r in resultados)
+    # Contatos, endereços e placas do próprio órgão, reconhecidos pelo contexto do texto inteiro.
+    for texto, dets in zip(textos, saida):
+        reclassificar_institucionais(texto, dets)
     return saida

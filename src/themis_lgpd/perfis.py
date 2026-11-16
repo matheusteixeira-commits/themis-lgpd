@@ -28,10 +28,11 @@ CATEGORIAS_IDENTIFICADORAS = frozenset({
     "MANUAL",
 })
 
-#: Categorias de nomes próprios que não designam pessoas (lugares e organizações). Quando uma entidade
-#: dessas categorias não é tarjada, as ocorrências de valores tarjados contidas nela são preservadas:
-#: "Paulo" tarjado como pessoa não transforma "São Paulo" em "São [NOME]".
-NOMES_NAO_PESSOAIS = frozenset({"LOCALIDADE", "EMPRESA"})
+#: Categorias de nomes próprios que não designam pessoas (lugares, organizações e dados do próprio órgão).
+#: Quando uma entidade dessas categorias não é tarjada, as ocorrências de valores tarjados contidas nela são
+#: preservadas: "Paulo" tarjado como pessoa não transforma "São Paulo" em "São [NOME]", nem o endereço da
+#: sede, "Rua Paulo Afonso, 100", em "Rua [NOME] Afonso, 100".
+NOMES_NAO_PESSOAIS = frozenset({"LOCALIDADE", "EMPRESA", "INSTITUCIONAL"})
 
 _IDENTIFICADORES = dict.fromkeys(CATEGORIAS_IDENTIFICADORAS, TARJAR)
 
@@ -73,20 +74,23 @@ PERFIS: dict[str, Perfil] = {
             "Padrão para publicar respostas e documentos públicos: tarja identificadores e dados sensíveis "
             "ligados a pessoas; mantém CNPJ, cidades e termos genéricos, que viram alerta para revisão.",
             {**_IDENTIFICADORES, "SENSIVEL": VINCULADO, "INTIMIDADE": VINCULADO, "MENOR": VINCULADO,
-             "EMPRESA": MANTER, "LOCALIDADE": ALERTAR, "URL": MANTER, "QUASE_IDENTIFICADOR": ALERTAR},
+             "EMPRESA": MANTER, "LOCALIDADE": ALERTAR, "URL": MANTER, "QUASE_IDENTIFICADOR": ALERTAR,
+             "INSTITUCIONAL": ALERTAR},
         ),
         Perfil(
             "identificadores", "Somente identificadores",
             "Tarja apenas o que identifica diretamente a pessoa (nomes, documentos, contatos, endereços, "
             "processos). Dados sensíveis viram alerta. Útil para bases de dados e pesquisa.",
             {**_IDENTIFICADORES, "SENSIVEL": ALERTAR, "INTIMIDADE": ALERTAR, "MENOR": ALERTAR,
-             "EMPRESA": MANTER, "LOCALIDADE": MANTER, "URL": MANTER, "QUASE_IDENTIFICADOR": ALERTAR},
+             "EMPRESA": MANTER, "LOCALIDADE": MANTER, "URL": MANTER, "QUASE_IDENTIFICADOR": ALERTAR,
+             "INSTITUCIONAL": ALERTAR},
         ),
         Perfil(
             "saude", "Saúde",
             "Como o perfil LAI, mas tarja qualquer menção a doenças, tratamentos e condições de saúde.",
             {**_IDENTIFICADORES, "SENSIVEL": VINCULADO, "INTIMIDADE": VINCULADO, "MENOR": VINCULADO,
-             "EMPRESA": MANTER, "LOCALIDADE": ALERTAR, "URL": MANTER, "QUASE_IDENTIFICADOR": ALERTAR},
+             "EMPRESA": MANTER, "LOCALIDADE": ALERTAR, "URL": MANTER, "QUASE_IDENTIFICADOR": ALERTAR,
+             "INSTITUCIONAL": ALERTAR},
             tarjar_sensivel_sempre=frozenset({"SAUDE", "GENETICO_BIOMETRICO"}),
         ),
         Perfil(
@@ -95,7 +99,8 @@ PERFIS: dict[str, Perfil] = {
             "§ 7º). Além dos identificadores, tarja cidade, lotação, função e turno e outros "
             "quase-identificadores que, combinados, permitiriam reconhecer quem se manifestou.",
             {**_IDENTIFICADORES, "SENSIVEL": VINCULADO, "INTIMIDADE": VINCULADO, "MENOR": TARJAR,
-             "EMPRESA": ALERTAR, "LOCALIDADE": TARJAR, "URL": TARJAR, "QUASE_IDENTIFICADOR": TARJAR},
+             "EMPRESA": ALERTAR, "LOCALIDADE": TARJAR, "URL": TARJAR, "QUASE_IDENTIFICADOR": TARJAR,
+             "INSTITUCIONAL": ALERTAR},
             score_minimo=0.5,
         ),
         Perfil(
@@ -104,7 +109,8 @@ PERFIS: dict[str, Perfil] = {
             "tarjados (LGPD, art. 14; ECA, art. 17), assim como turma, série e outros quase-identificadores "
             "de estudantes.",
             {**_IDENTIFICADORES, "SENSIVEL": VINCULADO, "INTIMIDADE": VINCULADO, "MENOR": TARJAR,
-             "EMPRESA": MANTER, "LOCALIDADE": ALERTAR, "URL": MANTER, "QUASE_IDENTIFICADOR": TARJAR},
+             "EMPRESA": MANTER, "LOCALIDADE": ALERTAR, "URL": MANTER, "QUASE_IDENTIFICADOR": TARJAR,
+             "INSTITUCIONAL": ALERTAR},
             tarjar_sensivel_sempre=frozenset({"SAUDE"}),
         ),
         Perfil(
@@ -112,7 +118,8 @@ PERFIS: dict[str, Perfil] = {
             "Tarja tudo o que for detectado, inclusive termos sensíveis isolados, cidades, CNPJ, URLs e "
             "quase-identificadores. Maior proteção, menor legibilidade.",
             {**_IDENTIFICADORES, "SENSIVEL": TARJAR, "INTIMIDADE": TARJAR, "MENOR": TARJAR, "EMPRESA": TARJAR,
-             "LOCALIDADE": TARJAR, "URL": TARJAR, "QUASE_IDENTIFICADOR": TARJAR},
+             "LOCALIDADE": TARJAR, "URL": TARJAR, "QUASE_IDENTIFICADOR": TARJAR,
+             "INSTITUCIONAL": TARJAR},
             score_minimo=0.4, score_alerta=0.3,
         ),
     ]

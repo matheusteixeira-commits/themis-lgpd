@@ -50,7 +50,7 @@ CTX_RESIDENCIA = (
 _ROTULO_COMPONENTE = (
     r"\b(?:conjunto|conj\.?|cj\.?|casa|cs\.?|lote(?:\s+rural)?|lt\.?|bloco|bl\.?|apartamento|apto\.?|ap\.?|sala|loja|"
     r"quadra|qd\.?|rua|alameda|al\.|avenida|av\.|travessa|ch[áa]cara|ch\.?|m[óo]dulo|proje[çc][ãa]o|"
-    r"andar|km|torre|unidade|trecho|gleba|setor)"
+    r"andar|km|torre|unidade|trecho|gleba|setor|barraco|barraca|kitnet|quitinete|c[ôo]modo)"
 )
 #: Rótulo cujo valor só pode ser número: "nº", "número" e rodovia ("BR-020", "GO-060"). Exigir o
 #: número impede que "mas" seja lido como "MA" + "s" ou "nos" como "nº" + "s".
@@ -63,7 +63,8 @@ _NAO_DATA = rf"(?!\s+de\s+{_MESES})"
 _VALOR_COMP = r"(?:\d{1,3}(?:\.\d{3})+|\d[\dA-Z\-/]{0,5}|[A-Z](?:-?\d{1,4})?)(?![\wÀ-ú])" + _NAO_DATA
 _VALOR_NUMERICO = r"(?:\d{1,3}(?:\.\d{3})+|\d[\dA-Z\-/]{0,5})(?![\wÀ-ú])"
 #: Componente de endereço com o seu valor ("casa 4", "Bloco C", "nº 230", "GO-060") ou "s/n".
-_COMPONENTE = rf"(?:{_ROTULO_COMPONENTE}\s*{_VALOR_COMP}|{_ROTULO_NUMERICO}\s*{_VALOR_NUMERICO}|(?<![\w/])s/n(?![\w/]))"
+_COMPONENTE = (rf"(?:{_ROTULO_COMPONENTE}\s*{_VALOR_COMP}|{_ROTULO_NUMERICO}\s*{_VALOR_NUMERICO}|(?<![\w/])s/n(?![\w/])|"
+               r"\bcasa\s+sem\s+n[úu]mero\b)")
 #: Componente cujo valor é um nome próprio ("Edifício Toronto", "Residencial Bela Vista") ou a rodovia
 #: em que fica o quilômetro ("km 12 da Rodovia Transamazônica", "km 8 da Rodovia LMG-800").
 _COMPONENTE_NOMEADO = (r"\b(?:edif[íi]cio|ed\.|residencial|condom[íi]nio|bloco)\s+(?-i:[A-ZÀ-Ú][\wÀ-ú'’]+"
@@ -77,7 +78,7 @@ _COMPONENTES = rf"(?:\s*[,\-–]?\s*(?:(?:n[oa]|d[ao])\s+)?(?:{_COMPONENTE}|{_CO
 _COMPONENTE_LOTE = rf"\b(?:lote|lt\.?|ch[áa]cara|casa|cs\.?|conjunto|conj\.?|quadra|qd\.?)\s*{_VALOR_COMP}"
 #: Nome do logradouro: não atravessa fim de frase; o ponto só é aceito após abreviações de títulos
 #: ("Rua Dr. Fulano", "Av. Gov. Beltrano").
-_NOME_LOGRADOURO = (r"(?:[^\n,;:()!?\d.]|(?<=\b(?:Dr|Dra|Prof|Gov|Pres|Sen|Dep|Mal|Gal|Cel|Cap|Ten|Sto|Sta|Pe|Fr|D|S))\.)"
+_NOME_LOGRADOURO = (r"(?:[^\n,;:()!?\d.|]|(?<=\b(?:Dr|Dra|Prof|Gov|Pres|Sen|Dep|Mal|Gal|Cel|Cap|Ten|Sto|Sta|Pe|Fr|D|S))\.)"
                     r"{2,60}?")
 #: Nome de logradouro que homenageia uma data ("15 de Novembro", "1º de Maio", "7 de Setembro").
 _NOME_DATA = r"(?:[12]?\d|3[01])[º°]?\s+de\s+" + _MESES
@@ -99,18 +100,19 @@ _CAUDA = (
 #: Tipos de logradouro urbano.
 _LOGRADOURO = (r"(?:rua|r\.|avenida|av\.?|alameda|al\.|travessa|trav\.?|tv\.|rodovia|rod\.?|estrada|estr\.?|"
                r"pra[çc]a|p[çc]a\.?|largo|lgo\.?|viela|beco|servid[ãa]o|passagem|psg\.?|ladeira|vila|"
-               r"conjunto habitacional|condom[íi]nio|setor habitacional|quadra|via|marginal|vicinal)")
+               r"conjunto habitacional|condom[íi]nio|setor habitacional|quadra|via|marginal|vicinal|passarela)")
 #: Propriedades rurais, identificadas pelo nome, sem número: o nome designa o imóvel da família.
 _PROPRIEDADE_RURAL = (r"(?:s[íi]tio|fazenda|ch[áa]cara|granja|est[âa]ncia|gleba|n[úu]cleo rural|"
                       r"col[ôo]nia(?: agr[íi]cola)?|vila rural|lote rural)")
 #: Localidades coletivas (povoados, comunidades, assentamentos, estradas vicinais): também aparecem em
 #: documentos de política pública, por isso só são endereço com expressão de residência por perto.
 _LOCALIDADE_COLETIVA = (r"(?:povoado|(?:projeto\s+de\s+)?assentamento|aldeia|comunidade|quilombo|ramal|loteamento|"
+                        r"ocupa[çc][ãa]o|favela|"
                         r"acampamento|distrito|ilha)")
 #: Termos institucionais que, logo após "fazenda", "distrito" ou "comunidade", indicam órgão ou
 #: conceito, não endereço ("Fazenda Pública", "Distrito Federal", "comunidade escolar").
 _NAO_LOCALIDADE = (r"(?!(?:P[úu]blica|Nacional|Estadual|Municipal|Federal|Escolar|Acad[êe]mica|Cient[íi]fica|"
-                   r"Internacional|Europeia|LGBT|Terap[êe]utica|Sanit[áa]ria|Policial)\b)"
+                   r"Internacional|Europeia|LGBT|Terap[êe]utica|Sanit[áa]ria|Policial|Penal)\b)"
                    # "Fazenda do Distrito Federal", "Fazenda do Estado de Goiás", "Fazenda da Bahia": o órgão.
                    r"(?!(?:d[aeo]s?\s+)?(?:Estado|Distrito\s+Federal|Munic[íi]pio|Uni[ãa]o|Rep[úu]blica|Prefeitura|"
                    r"Governo|Secretaria|Minist[ée]rio|" + "|".join(ESTADOS) + r")\b)")
@@ -255,6 +257,15 @@ _COMPONENTES_DEPOIS = re.compile(
     rf"(?:{_ESPACO}*[,\-–]?{_ESPACO}*(?:(?:n[oa]|d[ao]){_ESPACO}+)?(?:{_COMPONENTE}|{_COMPONENTE_NOMEADO}))+",
     re.IGNORECASE,
 )
+#: Ordem da via antes do logradouro, comum no Nordeste ("2ª Travessa São Jorge", "1ª Rua do Canal").
+_ORDEM_VIA = re.compile(rf"(?<![\w.])\d{{1,2}}(?:[ªº°]|a|o){_ESPACO}+\Z")
+#: Ponto de referência que completa o endereço sem número ("casa sem número, ao lado da capela de São
+#: Benedito", "em frente à escola municipal"): até cinco palavras, sem atravessar a vírgula.
+_REFERENCIA_DEPOIS = re.compile(
+    rf"{_ESPACO}*,?{_ESPACO}*(?:ao{_ESPACO}+lado|em{_ESPACO}+frente|atr[áa]s|pr[óo]xim[oa]|perto|nos{_ESPACO}+fundos)"
+    rf"{_ESPACO}+(?:d[aeo]s?|a[os]?|à|às){_ESPACO}+[\wÀ-ú'’-]+(?:{_ESPACO}+[\wÀ-ú'’-]+){{0,4}}?(?=[,;.\n]|$)",
+    re.IGNORECASE,
+)
 #: Lote, casa ou bairro imediatamente antes do endereço ("Lote 4, Quadra 12", "Setor M Norte QNM 14",
 #: "Vila Planalto, Acampamento Tamboril").
 _PARTE_ANTES = re.compile(
@@ -334,18 +345,23 @@ def _bairro_depois(texto: str, d: Deteccao) -> int | None:
 
 
 def _completar(texto: str, d: Deteccao) -> None:
-    """Estende o endereço aos complementos vizinhos: bairro, lote, componentes e CEP depois dele e
-    lote, casa ou bairro imediatamente antes. Endereços de órgãos públicos não são estendidos."""
+    """Estende o endereço aos complementos vizinhos: bairro, lote, componentes, CEP e ponto de referência
+    depois dele e ordem da via, lote, casa ou bairro imediatamente antes. Endereços de órgãos públicos não
+    são estendidos."""
     if _institucional(texto, d.inicio):
         return
     while True:
         fim = _bairro_depois(texto, d)
         if fim is None:
-            m = _CEP_DEPOIS.match(texto, d.fim) or _COMPONENTES_DEPOIS.match(texto, d.fim)
+            m = (_CEP_DEPOIS.match(texto, d.fim) or _COMPONENTES_DEPOIS.match(texto, d.fim)
+                 or _REFERENCIA_DEPOIS.match(texto, d.fim))
             fim = m.end() if m else None
         if fim is None or fim <= d.fim:
             break
         d.fim = fim
+    m = _ORDEM_VIA.search(texto, max(0, d.inicio - 5), d.inicio)
+    if m and re.match(_LOGRADOURO, texto[d.inicio:], re.IGNORECASE):
+        d.inicio = m.start()
     m = _PARTE_ANTES.search(texto, max(0, d.inicio - 80), d.inicio)
     if m and _bairro_valido(m, depois=False):
         d.inicio = m.start()
