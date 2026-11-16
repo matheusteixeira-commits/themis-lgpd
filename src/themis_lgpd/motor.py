@@ -32,6 +32,7 @@ from .catalogo import TIPOS, categoria_de
 from .catalogo import tipo as info_tipo
 from .operadores import Substituidor, aplicar_com_presidio
 from .reconhecedores import base as B
+from .reconhecedores import sensiveis as S
 from .texto import TextoNormalizado, dobrar, normalizar
 
 # Marcadores de que a frase se refere a uma pessoa determinada: primeira pessoa ("tenho", "sofri",
@@ -108,6 +109,7 @@ _CARGOS_PUBLICOS, _CARGOS_DEPOIS = _regex_cargos(_CARGOS)
 _MOTIVO_AGENTE = "Agente público no exercício da função (transparência ativa)"
 
 _MOTIVO_PROPAGACAO = "Mesmo dado já tarjado em outro ponto do documento"
+_MOTIVO_DOCUMENTO = "Dado sensível em documento centrado em pessoa identificada"
 _MOTIVO_PRECAUCAO = "Identificador com confiança moderada — tarjado por precaução"
 _MOTIVO_ENUMERACAO = "Item de enumeração com o mesmo formato de um identificador tarjado"
 
@@ -363,8 +365,11 @@ class Anonimizador:
         deteccoes = analisar_textos([normais[i].texto for i in pendentes], self.modelo, self._extras,
                                     self.perfil.score_alerta)
         lotes = [list(d) if d is not None else [] for d in definidas]
+        # Partes de um mesmo documento (páginas, parágrafos) compartilham a classificação do documento.
+        contexto = (S.contexto_documental("\n".join(n.texto for n in normais))
+                    if mesmo_documento and len(normais) > 1 else None)
         for i, dets in zip(pendentes, deteccoes):
-            lotes[i] = self._decidir(normais[i], dets)
+            lotes[i] = self._decidir(normais[i], dets, contexto)
             self._enumeracoes(normais[i].original, lotes[i])
         grupos = [list(range(len(normais)))] if mesmo_documento else [[i] for i in range(len(normais))]
         for grupo in grupos:
@@ -454,13 +459,39 @@ class Anonimizador:
         antes_re, depois_re = self._cargos
         return bool(antes_re.search(antes) or depois_re.match(texto[fim:fim + 60]))
 
-    def _decidir(self, norm: TextoNormalizado, dets: list[B.Deteccao]) -> list[Entidade]:
-        """Aplica o perfil a cada detecção e converte as posições para o texto original."""
+    def _coletiva(self, texto: str, ini: int, fim: int, nomes: Sequence[tuple[int, int]] = ()) -> bool:
+        """Indica se a frase do trecho trata de grupo ou estatística (ver :data:`_COLETIVO`).
+
+        A frase vai só até a quebra de linha, para que o título ("RELATÓRIO …") e os campos de
+        identificação não contem, e as palavras dentro de nome próprio ("Sindicato dos Servidores …")
+        são desconsideradas.
+        """
+        a, b = self._frase(texto, ini, fim)
+        a = max(a, texto.rfind("\n", 0, ini) + 1)
+        quebra = texto.find("\n", fim, b)
+        b = b if quebra < 0 else quebra
+        return any(not any(x <= m.start() and m.end() <= y for x, y in nomes) for m in _COLETIVO.finditer(texto, a, b))
+
+    def _decidir(self, norm: TextoNormalizado, dets: list[B.Deteccao],
+                 documento: S.ContextoDocumental | None = None) -> list[Entidade]:
+        """Aplica o perfil a cada detecção e converte as posições para o texto original.
+
+        Args:
+            norm: Texto normalizado.
+            dets: Detecções do texto.
+            documento: Classificação do documento inteiro, quando o texto é uma de suas partes.
+        """
         texto = norm.texto
         permitidos = self._intervalos_permitidos(norm)
         ancoras = [(d.inicio, d.fim) for d in dets
                    if info_tipo(d.tipo).categoria in {"PESSOA", "DOCUMENTO", "CONTATO", "PROCESSO", "DADO_PESSOAL"}
                    and d.score >= 0.6]
+        # Vínculo no nível do documento (ver themis_lgpd.reconhecedores.sensiveis.contexto_documental): num
+        # documento centrado numa pessoa identificada, o dado sensível se refere a ela; num registro clínico,
+        # o trecho tarjado vai até a fronteira da frase.
+        saude = [(d.inicio, d.fim) for d in dets if d.tipo == "SAUDE"]
+        ctx = S.contexto_documental(texto, documento, len(saude))
+        localidades = [(d.inicio, d.fim) for d in dets if d.tipo == "LOCALIDADE"]
         perfil = self.perfil
         entidades: list[Entidade] = []
         for d in dets:
@@ -468,6 +499,9 @@ class Anonimizador:
             regra = perfil.regra(cat)
             motivo = ""
             if d.score < perfil.score_alerta:
+                continue
+            if (d.origem.startswith(S.ORIGEM_CLINICA) and not ctx.centrado
+                    or d.origem.startswith(S.ORIGEM_REGISTRO) and not ctx.clinico):
                 continue
             if any(a <= d.inicio and d.fim <= b for a, b in permitidos):
                 acao, motivo = P.MANTER, "Lista de permissão"
@@ -481,10 +515,19 @@ class Anonimizador:
                 else:
                     acao, motivo = P.ALERTAR, "Confiança baixa — revisar"
             elif regra == P.VINCULADO:
-                if d.camada != B.SEMANTICA or d.tipo in perfil.tarjar_sensivel_sempre:
+                isencao = ("" if d.tipo in perfil.tarjar_sensivel_sempre
+                           else ctx.isencao(texto, d.inicio, d.fim, d.camada, d.origem, d.tipo))
+                if isencao:
+                    acao, motivo = P.ALERTAR, isencao
+                elif d.camada != B.SEMANTICA or d.tipo in perfil.tarjar_sensivel_sempre:
                     acao = P.TARJAR
                 elif self._vinculado(texto, d.inicio, d.fim, ancoras):
                     acao, motivo = P.TARJAR, "Termo sensível em frase que se refere a pessoa"
+                elif cat == "SENSIVEL" and ctx.centrado and (
+                        ctx.clinico or not self._coletiva(texto, d.inicio, d.fim, [*ctx.protegidos, *ctx.nomes_proprios])):
+                    acao, motivo = P.TARJAR, _MOTIVO_DOCUMENTO
+                elif cat == "SENSIVEL" and ctx.em(ctx.linhas_pessoais, d.inicio, d.fim):
+                    acao, motivo = P.TARJAR, "Dado sensível em linha de tabela que identifica a pessoa"
                 elif d.tipo == "SAUDE" and self._vinculado_vizinhas(texto, d.inicio, d.fim):
                     acao, motivo = P.TARJAR, "Dado de saúde em relato sobre pessoa determinada (frase vizinha)"
                 else:
@@ -494,9 +537,21 @@ class Anonimizador:
             if acao == P.TARJAR and d.tipo == "NOME" and self.preservar_agentes_publicos \
                     and self._agente_publico(texto, d.inicio, d.fim):
                 acao, motivo = P.MANTER, _MOTIVO_AGENTE
-            ini, fim = norm.para_original(d.inicio, d.fim)
-            entidades.append(Entidade(ini, fim, d.tipo, norm.original[ini:fim], d.score, d.origem, d.camada,
-                                      d.validado, acao, motivo))
+            trechos = [(d.inicio, d.fim)]
+            if acao == P.TARJAR and d.tipo == "SAUDE":
+                trechos = ctx.recortar(texto, *ctx.estender(texto, d.inicio, d.fim, saude, localidades))
+            for inicio, final in trechos:
+                ini, fim = norm.para_original(inicio, final)
+                entidades.append(Entidade(ini, fim, d.tipo, norm.original[ini:fim], d.score, d.origem, d.camada,
+                                          d.validado, acao, motivo))
+        # Corpo de tabela de registro clínico (exames, prescrição, achados por dente ou por domínio).
+        regra_saude = perfil.regra("SENSIVEL")
+        if saude and regra_saude in (P.VINCULADO, P.TARJAR, P.ALERTAR) and ctx.linhas_clinicas:
+            acao = P.ALERTAR if regra_saude == P.ALERTAR else P.TARJAR
+            for a, b in ctx.linhas_clinicas:
+                ini, fim = norm.para_original(a, b)
+                entidades.append(Entidade(ini, fim, "SAUDE", norm.original[ini:fim], 0.65, S.ORIGEM_CLINICA + "tabela",
+                                          B.SEMANTICA, None, acao, _MOTIVO_DOCUMENTO))
         self._saude_consistente(entidades)
         return self._consolidar(norm.original, entidades)
 
@@ -513,7 +568,7 @@ class Anonimizador:
 
         tarjadas = {chave(e) for e in entidades if e.tipo == "SAUDE" and e.acao == P.TARJAR}
         for e in entidades:
-            if e.tipo == "SAUDE" and e.acao == P.ALERTAR and chave(e) in tarjadas:
+            if e.tipo == "SAUDE" and e.acao == P.ALERTAR and chave(e) in tarjadas and e.motivo not in S.MOTIVOS_ISENCAO:
                 e.acao, e.motivo = P.TARJAR, "Mesmo dado de saúde já tarjado no texto"
 
     @staticmethod

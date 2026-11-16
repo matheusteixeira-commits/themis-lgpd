@@ -19,6 +19,7 @@ As regras se dividem em duas camadas, tratadas de forma diferente pelos perfis:
 
 from __future__ import annotations
 
+from functools import cached_property
 from importlib import resources
 
 import regex as re
@@ -74,7 +75,7 @@ DOENCAS = (
     r"(?:\s*(?:,|\be\b|\bou\b)\s*(?:visual|auditiva|f[íi]sica|intelectual|mental|m[úu]ltipla|motora|sensorial))*",
     r"surdez", r"cegueira",
     r"surd[oa]", r"ceg[oa]", r"pcd", r"amputa[çc][ãa]o", r"amputad[oa]", r"gravidez\s+de\s+risco",
-    r"aborto", r"gestante", r"gr[áa]vida", r"infertilidade", r"endometriose", r"menopausa", r"osteoporose",
+    r"aborto", r"gestante", r"gr[áa]vida(?:\s+de\s+\d{1,2}\s+semanas)?", r"infertilidade", r"endometriose", r"menopausa", r"osteoporose",
     r"glaucoma", r"catarata", r"retinopatia", r"queimaduras?\s+de\s+\w+\s+grau", r"intoxica[çc][ãa]o(?:\s+agud[oa])?(?:\s+(?:alimentar|por\s+[\w-]+(?:\s+de\s+[\w-]+)?))?",
     r"hemodi[áa]lise", r"di[áa]lise", r"quimioterapia", r"radioterapia", r"transplante",
     r"mastectomia", r"histerectomia", r"bari[áa]trica", r"tratamento\s+(?:psiqui[áa]trico|psicol[óo]gico|oncol[óo]gico|"
@@ -148,7 +149,7 @@ DOENCAS = (
     r"doen[çc]as?\s+(?:respirat[óo]rias?|ocupaciona(?:l|is)|cardiovasculares?|card[íi]acas?|renais|renal|"
     r"neurodegenerativas?|infecciosas?|sexualmente\s+transmiss[íi]ve(?:l|is))", r"mol[ée]stias?\s+graves?",
     r"pacientes?\s+cr[ôo]nicos?", r"mal\s+s[úu]bito", r"desmaios?", r"convuls[ãa]o", r"tonturas?", r"vertigens?",
-    r"dores?\s+(?:fortes?|cr[ôo]nicas?|intensas?|constantes?|agudas?|lombar(?:es)?|abdomina(?:l|is)|tor[áa]cicas?|"
+    r"dor(?:es)?\s+(?:fortes?|cr[ôo]nicas?|intensas?|constantes?|agudas?|lombar(?:es)?|abdomina(?:l|is)|tor[áa]cicas?|"
     r"no\s+peito|de\s+cabe[çc]a|nas?\s+costas|nas?\s+articula[çc][õo]es)", r"sangramentos?", r"hemorragias?",
     r"febre\s+(?:alta|persistente)", r"ferimentos?(?:\s+(?:leves?|graves?))?",
     # "complicações" só com o qualificador clínico que a segue ("complicações respiratórias")
@@ -238,6 +239,69 @@ DOENCAS = (
     r"oncologia", r"ortopedia", r"cardiologia", r"neurologia", r"psiquiatria", r"endocrinologia", r"nefrologia",
     r"reumatologia", r"hematologia", r"infectologia", r"urologia", r"oftalmologia", r"gastroenterologia",
     r"pneumologia", r"mastologia", r"proctologia", r"otorrinolaringologia",
+    # Episódio, crise e quadro de transtorno mental ("episódio depressivo moderado", "quadro demencial")
+    r"epis[óo]dios?\s+(?:depressiv[oa]s?|man[íi]ac[oa]s?|hipoman[íi]ac[oa]s?|psic[óo]tic[oa]s?|convulsiv[oa]s?)",
+    r"quadros?\s+(?:demencia(?:l|is)|depressiv[oa]s?|ansios[oa]s?|psic[óo]tic[oa]s?|convulsiv[oa]s?|febri(?:l|s))",
+    # Dependência química: uso, abstinência e sinais de intoxicação alcoólica (Res. Contran 432/2013)
+    r"(?:ex-?)?(?:etilista|tabagista|alcoolista)s?", r"etilismo", r"ex-?tabagismo",
+    r"usu[áa]ri[oa]s?\s+de\s+(?:crack|coca[íi]na|maconha|[áa]lcool|subst[âa]ncias\s+psicoativas|drogas\s+il[íi]citas)",
+    r"dependentes?\s+de\s+(?:crack|coca[íi]na|maconha|[áa]lcool|opioides?|nicotina|benzodiazep[íi]nicos)",
+    r"depend[êe]ncia\s+de\s+(?:maconha|nicotina|benzodiazep[íi]nicos|tabaco)",
+    r"abstin[êe]ncia(?:\s+(?:alco[óo]lica|de\s+(?:crack|coca[íi]na|[áa]lcool|drogas|nicotina|tabaco)))?",
+    r"(?:odor|h[áa]lito)\s+(?:et[íi]lico|alco[óo]lico|de\s+[áa]lcool)", r"olhos\s+(?:vermelhos|avermelhados|hiperemiados)",
+    r"fala\s+(?:pastosa|arrastada|enrolada|desconexa)", r"dificuldade\s+(?:de|no|para\s+manter\s+o)\s+equil[íi]brio",
+    r"sinais\s+de\s+embriaguez", r"embriaguez", r"capacidade\s+psicomotora\s+alterada(?:\s+em\s+raz[ãa]o\s+da\s+influ[êe]ncia\s+de\s+"
+    r"[áa]lcool(?:\s+ou\s+de\s+outra\s+subst[âa]ncia\s+psicoativa(?:\s+que\s+determine\s+depend[êe]ncia)?)?)?",
+    # Licença e afastamento que enunciam o motivo de saúde; a simples duração do afastamento não é dado
+    # de saúde
+    r"licen[çc]as?\s+(?:m[ée]dicas?|para\s+tratamento\s+d[ae]\s+(?:pr[óo]pria\s+)?sa[úu]de|sa[úu]de|"
+    r"por\s+motivo\s+de\s+(?:doen[çc]a|sa[úu]de)(?:\s+(?:em|de)\s+pessoa\s+da\s+fam[íi]lia|\s+pr[óo]pria)?|"
+    r"por\s+acidente\s+(?:em\s+servi[çc]o|de\s+trabalho)|por\s+doen[çc]a\s+profissional)"
+    r"(?:\s+para\s+(?:recupera[çc][ãa]o|tratamento)\s+d[eoa]\s+[^.;,\n()]{3,60})?",
+    r"(?-i:LTS|LTSP)", r"motivos?\s+de\s+sa[úu]de\s+pr[óo]pria", r"afastamento\s+m[ée]dico(?:\s+por\s+\w+)?",
+    # Sinais, sintomas e lesões descritos com a parte do corpo ("corte no supercílio direito",
+    # "hematomas em membros inferiores", "dor no punho esquerdo")
+    r"(?:muita\s+|forte\s+)?dor(?:es)?(?:\s+(?:intensa|forte|difusas?|aguda|cr[ôo]nica|persistente))?(?=\s+(?:[àa]\s+\w+\s+)?"
+    r"(?:n[oa]s?|em|d[eoa]s?|pelo)\s)",
+    r"cortes?(?=\s+(?:n[oa]s?|em)\s+(?:ambos\s+os\s+|ambas\s+as\s+)?(?:antebra|bra[çc]o|perna|coxa|m[ãa]o|p[ée]|pulso|punho|"
+    r"rosto|face|superc[íi]lio|cabe[çc]a|testa|l[áa]bio|nariz|dedo|joelho|costas|t[óo]rax|pesco[çc]o|orelha|ombro))",
+    r"escoria[çc](?:[ãa]o|[õo]es)", r"equimoses?(?:\s+arroxeadas?)?", r"hematomas?",
+    r"edemas?", r"linfedema", r"contus(?:[ãa]o|[õo]es)", r"lacera[çc](?:[ãa]o|[õo]es)", r"pet[ée]quias", r"rigidez\s+de\s+nuca",
+    r"tremor(?:es)?(?:\s+(?:discreto|fino|grosseiro|essencial|de\s+extremidades))*", r"parestesias?", r"emagrecimento",
+    r"perda\s+de\s+peso", r"baixo\s+peso(?:\s+para\s+a\s+idade)?", r"tosse(?:\s+(?:seca|produtiva|persistente|cr[ôo]nica))?",
+    r"febre(?:\s+(?:di[áa]ria|baixa|vespertina|ao\s+entardecer))?(?:\s+de\s+\d+(?:[.,]\d+)?\s*°\s?C)?", r"calafrios",
+    r"prostra[çc][ãa]o", r"cansa[çc]o(?:\s+(?:ao\s+acordar|extremo|aos\s+esfor[çc]os))?", r"sono\s+n[ãa]o\s+reparador",
+    r"(?:tristeza\s+e\s+)?choro\s+f[áa]cil", r"pesadelos(?:\s+recorrentes)?", r"(?:epis[óo]dios\s+de\s+)?enurese(?:\s+noturna)?",
+    r"encoprese", r"dificuldade\s+(?:para|de)\s+(?:dormir|engolir|respirar|enxergar|ouvir|falar|se\s+concentrar|"
+    r"manter\s+a\s+aten[çc][ãa]o(?:\s+em\s+[\w-]+(?:\s+[\w-]+)?)?)", r"lentid[ãa]o\s+(?:na|de|para)\s+\w+(?:\s+e\s+na\s+\w+)?",
+    r"incontin[êe]ncia\s+(?:urin[áa]ria|fecal|esfincteriana)", r"d[ée]ficit\s+(?:auditivo|visual|cognitivo|motor|"
+    r"de\s+ganho\s+ponderal)", r"pico\s+de\s+press[ãa]o(?:\s+arterial)?", r"massagem\s+card[íi]aca",
+    r"reanima[çc][ãa]o\s+(?:cardiopulmonar|card[íi]aca)", r"stents?",
+    r"transfus(?:[ãa]o|[õo]es)(?:\s+de\s+(?:hemoderivados|hemocomponentes|plaquetas|plasma|concentrado\s+de\s+hem[áa]cias|"
+    r"\d+\s+unidades(?:\s+de\s+concentrado\s+de\s+hem[áa]cias)?(?:\s+e\s+\d+\s+de\s+plasma)?))?",
+    r"carga\s+viral\s+(?:indetect[áa]vel|detect[áa]vel|suprimida)",
+    r"interna[çc][ãa]o\s+em\s+(?:unidade\s+(?:coronariana|de\s+terapia\s+intensiva)|(?-i:UTI)|enfermaria|leito\s+\w+)",
+    r"exame\s+de\s+corpo\s+de\s+delito", r"(?:atendimento|acompanhamento)\s+(?:psicol[óo]gico|psicopedag[óo]gico|"
+    r"nefrol[óo]gico|cardiol[óo]gico|oncol[óo]gico|neurol[óo]gico|ortop[ée]dico|ambulatorial)",
+    r"terapia\s+(?:antirretroviral|fonoaudiol[óo]gica|aurioral|comportamental|cognitivo-comportamental|"
+    r"de\s+reposi[çc][ãa]o\s+hormonal|renal\s+substitutiva|intensiva)", r"(?-i:AASI)",
+    r"aparelhos?\s+de\s+amplifica[çc][ãa]o\s+sonora(?:\s+individual)?", r"palmilhas?\s+ortop[ée]dicas?",
+    r"(?:cart[ãa]o|caderneta)\s+de\s+vacina[çc][ãa]o\s+(?:incomplet[oa]|atrasad[oa]|desatualizad[oa])",
+    r"vacina[çc][ãa]o\s+(?:em\s+dia|incompleta|atrasada)", r"esquema\s+(?-i:[A-Z]{2,6})(?:\s+(?:supervisionado|b[áa]sico))?",
+    r"alimenta[çc][ãa]o\s+(?:exclusiva\s+)?por\s+sonda(?:\s+\w+)?", r"dietas?\s+(?:pastosa|l[íi]quida|zero|hiposs[óo]dica|"
+    r"hipoglic[íi]dica|adaptada|branda|sem\s+gl[úu]ten|sem\s+lactose)",
+    r"suplementa[çc][ãa]o(?!\s+or[çc]ament)(?:\s+(?:nutricional|alimentar|vitam[íi]nica|de\s+(?:ferro|c[áa]lcio|zinco|"
+    r"vitaminas?(?:\s+(?-i:[A-K]\d{0,2})(?:\s*,\s*(?-i:[A-K]\d{0,2}))*(?:\s+e\s+(?-i:[A-K]\d{0,2}))?)?)))?",
+    r"incapacidade\s+(?:laborativa|laboral|funcional|f[íi]sica|total|parcial|permanente|tempor[áa]ria|definitiva)"
+    r"(?:\s+(?:e\s+)?(?:total|parcial|permanente|tempor[áa]ria|definitiva))*(?:\s+para\s+(?:o\s+)?(?:trabalho|"
+    r"(?:o\s+)?exerc[íi]cio\s+d[oa]\s+(?:cargo|fun[çc][ãa]o)|a\s+atividade\s+habitual(?:\s+de\s+\w+)?))?",
+    r"(?:temporariamente|definitivamente|permanentemente|totalmente|parcialmente)\s+incapaz(?:\s+para\s+(?:o\s+)?"
+    r"(?:trabalho|exerc[íi]cio\s+d[oa]\s+(?:cargo|fun[çc][ãa]o)))?",
+    r"impedimento\s+de\s+longo\s+prazo(?:\s+de\s+natureza\s+\w+)?(?:,\s+de\s+grau\s+\w+)?",
+    r"grau\s+de\s+(?:depend[êe]ncia|incapacidade(?:\s+f[íi]sica)?)\s+(?-i:[IVX]{1,3}\b|\d)", r"grau\s+\d\s+de\s+incapacidade",
+    r"assist[êe]ncia\s+permanente(?:\s+(?:de\s+(?:outra\s+pessoa|terceiros)|para\s+as\s+atividades\s+de\s+vida\s+di[áa]ria))?",
+    r"supervis[ãa]o\s+cont[íi]nua(?:\s+de\s+terceiros)?", r"atividades\s+(?:b[áa]sicas\s+|instrumentais\s+)?de\s+vida\s+di[áa]ria",
+    r"comprometimento\s+(?:da\s+capacidade\s+de\s+\w+|cognitivo|funcional|motor)",
 )
 
 #: Código da CID-10 ("F41.1", "G40") ou da CID-11 ("6A70.1", "BA00"; sem as letras I e O).
@@ -275,7 +339,7 @@ SAUDE_CONTEXTUAL = [
 #: "dermatite de contato", "depressão pós-parto"), especialidade ("cirurgia cardíaca pediátrica") e
 #: localização anatômica ("tuberculose pulmonar", "artrose no quadril", "câncer de próstata"). Até três
 #: em sequência ("hipertensão arterial sistêmica severa").
-_GRAVIDADE = (r"sever[oa]s?|graves?|leves?|moderad[oa]s?|cr[ôo]nic[oa]s?|agud[oa]s?|avan[çc]ad[oa]|inicial|"
+_GRAVIDADE = (r"sever[oa]s?|graves?|leves?|moderad[oa]s?|parcia(?:l|is)|totais|total|cr[ôo]nic[oa]s?|agud[oa]s?|avan[çc]ad[oa]|inicial|"
               r"constantes?|intens[oa]s?|frequentes?|"
               r"terminal|maligna|maligno|benign[oa]|descompensad[oa]|persistente|refrat[áa]ri[oa]|"
               r"profund[oa]|bilateral|cong[êe]nit[oa]|heredit[áa]ri[oa]|remitente(?:[- ]recorrente)?|recorrente|"
@@ -298,23 +362,43 @@ _PARTE_DO_CORPO = (r"pr[óo]stata|mamas?|seios?|pulm[ãa]o|pulm[õo]es|f[íi]gad
                    r"vertebral))?|quadril|joelhos?|ombros?|f[êe]mur|t[íi]bia|pernas?|bra[çc]os?|p[ée]s?|m[ãa]os?|punhos?|"
                    r"tornozelos?|olhos?|retina|c[óo]rnea|cora[çc][ãa]o|bexiga|ves[íi]cula(?:\s+biliar)?|boca|garganta|"
                    r"laringe|es[ôo]fago|reto|ossos?|medula(?:\s+[óo]ssea)?|cabe[çc]a|cotovelos?|mand[íi]bula|ouvidos?|"
-                   r"pesco[çc]o|test[íi]culos?|cr[âa]nio|dedos?")
-_QUALIFICADOR = (r"(?:\s+(?:" + _GRAVIDADE + "|" + _TIPO_CLINICO + r"|(?:d[eoa]s?|n[oa]s?|em)\s+(?:" + _PARTE_DO_CORPO
-                 + r")))")
+                   r"pesco[çc]o|test[íi]culos?|cr[âa]nio|dedos?|superc[íi]lios?|sobrancelhas?|testa|face|rosto|nariz|"
+                   r"l[áa]bios?|orelhas?|nuca|t[óo]rax|abd[ôo]men|abdome|costas|antebra[çc]os?|coxas?|panturrilhas?|"
+                   r"calcanhar(?:es)?|costelas?|clav[íi]cula|n[áa]degas?|tronco|gengivas?|"
+                   r"membros?\s+(?:superiores|inferiores|superior|inferior)|regi[ãa]o\s+(?:orbit[áa]ria|orbital|malar|frontal|"
+                   r"occipital|temporal|parietal|lombar|cervical|tor[áa]cica|abdominal|inguinal|gl[úu]tea|sacral|perineal|"
+                   r"genital|palmar|plantar|dorsal|axilar|mandibular|nasal|zigom[áa]tica|epig[áa]strica|umbilical|escapular|"
+                   r"femoral|tibial|popl[íi]tea|cubital|deltoide[a]?)")
+#: Lado do corpo após a parte ("punho esquerdo", "membros inferiores bilateralmente").
+_LATERALIDADE = r"(?:\s+(?:(?:direit|esquerd)[oa]s?|bilateral(?:mente)?|[àa]\s+(?:direita|esquerda)))?"
+_QUALIFICADOR = (r"(?:\s+(?:" + _GRAVIDADE + "|" + _TIPO_CLINICO + r"|(?:d[eoa]s?|n[oa]s?|em)\s+(?:ambos\s+os\s+|ambas\s+as\s+|"
+                 r"dois\s+|duas\s+)?(?:" + _PARTE_DO_CORPO + r")" + _LATERALIDADE + r"))")
 #: Sigla entre parênteses logo após o nome ("esclerose lateral amiotrófica (ELA)").
 _SIGLA = r"(?:\s*\((?-i:[A-Z][A-Z0-9]{1,6}(?:[/-][A-Z0-9]{1,6})?)\))?"
 _DOENCA = r"(?:" + "|".join(DOENCAS) + r")" + _QUALIFICADOR + r"{0,3}" + _SIGLA
+#: Termo do léxico de saúde, para conferir achados do classificador treinado.
+_TERMO_SAUDE = re.compile(r"(?:" + "|".join(DOENCAS) + r")" + _QUALIFICADOR + r"{0,3}", re.IGNORECASE)
 #: Sal ou éster antes do nome do fármaco ("cloridrato de metformina", "carbonato de lítio").
 _SAL = (r"(?:(?:cloridrato|dicloridrato|sulfato|maleato|besilato|fumarato|hemifumarato|succinato|tartarato|citrato|"
         r"acetato|fosfato|carbonato|valerato|propionato|dipropionato|mesilato|bromidrato|oxalato|pamoato|decanoato|"
         r"furoato)\s+de\s+)?")
 #: Classes terapêuticas pelo sufixo da DCB: anticorpos monoclonais (-mabe), proteínas de fusão
-#: (-cepte), inibidores de quinase (-tinibe), gliflozinas, gliptinas, sartanas, estatinas, inibidores da
-#: bomba de prótons (-prazol), benzodiazepínicos (-azepam) e antidepressivos (-xetina).
-_SUFIXO_FARMACO = (r"[a-záéíóúâêôãõç]{3,}(?:mabe|cepte|tinibe|gliflozina|gliptina|sartana|statina|prazol|azepam|"
-                   r"xetina)")
-#: Sal ou forma após o nome ("losartana potássica", "dipirona sódica").
-_FORMA = r"(?:\s+(?:pot[áa]ssic[oa]|s[óo]dic[oa]|c[áa]lcic[oa]|magn[ée]sic[oa]|monoidratad[oa]|di-?hidratad[oa]))?"
+#: (-cepte), inibidores de quinase (-tinibe, -ciclibe), gliflozinas, gliptinas, sartanas, estatinas,
+#: inibidores da bomba de prótons (-prazol), benzodiazepínicos (-azepam, -zolam), antidepressivos
+#: (-xetina, -triptilina, -pramina), antipsicóticos (-peridona, -tiapina, -zapina, -piprazol),
+#: betabloqueadores (-olol), inibidores da ECA (-pril), di-hidropiridinas (-dipino), quinolonas
+#: (-floxacino), tetraciclinas (-ciclina), macrolídeos e aminoglicosídeos (-micina), penicilinas
+#: (-cilina), tiazídicos (-tiazida), heparinas (-parina), bisfosfonatos (-dronato), antieméticos
+#: (-setrona), antifúngicos (-conazol), anti-inflamatórios (-profeno) e antirretrovirais (-vudina,
+#: -navir, -tegravir, -previr, -asvir, -buvir).
+_SUFIXO_FARMACO = (r"[a-záéíóúâêôãõç]{3,}(?:mabe|cepte|tinibe|ciclibe|gliflozina|gliptina|sartana|statina|prazol|"
+                   r"azepam|zolam|xetina|triptilina|pramina|peridona|tiapina|zapina|piprazol|olol|pril|dipino|"
+                   r"floxacino|ciclina|micina|cilina|tiazida|parina|dronato|setrona|conazol|profeno|vudina|navir|"
+                   r"tegravir|previr|asvir|buvir)")
+#: Sal ou forma após o nome ("losartana potássica", "dipirona sódica") e forma de liberação ou de uso
+#: ("metilfenidato de liberação prolongada", "carbamazepina de uso contínuo").
+_FORMA = (r"(?:\s+(?:pot[áa]ssic[oa]|s[óo]dic[oa]|c[áa]lcic[oa]|magn[ée]sic[oa]|monoidratad[oa]|di-?hidratad[oa]))?"
+          r"(?:\s+de\s+(?:uso\s+cont[íi]nuo|libera[çc][ãa]o\s+(?:prolongada|controlada|modificada|imediata)))?")
 #: Dose após o nome ("500mg", "40 mg/dia", "10 UI").
 _DOSE = r"(?:\s*\d+(?:[.,]\d+)?\s*(?:mg|mcg|µg|g|ml|ui)(?:\s*/\s*(?:ml|dose|dia|kg))?)?"
 _MEDICAMENTO = _SAL + r"(?:" + _medicamentos() + "|" + _SUFIXO_FARMACO + r")" + _FORMA + _DOSE
@@ -332,7 +416,7 @@ SAUDE_SEMANTICA = [
     # Medicamento citado sem verbo de uso: "a falta de insulina glargina na rede" é de interesse
     # público; "minha filha precisa de insulina glargina" é dado de saúde (ver camada semântica).
     Padrao("SAUDE", r"\b" + _MEDICAMENTO + r"\b", 0.8, camada=SEMANTICA, nome="saude:medicamento"),
-    Padrao("SAUDE", r"\btratamentos?\s+" + _TRATAMENTO_NAO_SAUDE + r"(?:\w+\s+)?(?:de|para|contra|da|do)\s+"
+    Padrao("SAUDE", r"\btratamentos?[ \t]+" + _TRATAMENTO_NAO_SAUDE + r"(?:\w+[ \t]+)?(?:de|para|contra|da|do)[ \t]+"
            + _OBJETO_NAO_SAUDE + r"[^\n.;,()]{3,50}", 0.75, camada=SEMANTICA, nome="saude:tratamento-de"),
 ]
 # Termo de saúde precedido de verbo ou expressão que o atribui a alguém ("possui diabetes", "convive com
@@ -365,8 +449,663 @@ SAUDE_CONTEXTUAL.append(
     Padrao("SAUDE", r"(?<=\b(?:tomo|toma|tomam|tomando|tomava|fa[çz]o\s+uso\s+de|faz\s+uso\s+de|fazendo\s+uso\s+de|"
                     r"uso\s+cont[íi]nuo\s+de|receitou|prescreveu|prescrit[oa]s?|receitad[oa]s?)\s{1,3}(?:[oa]\s+)?)"
            + _MEDICAMENTO + r"\b", 0.9, camada=CONTEXTUAL, nome="saude:uso-medicamento"))
+# Lista de códigos da CID após rótulo de diagnóstico ("Diagnósticos de alta: E11.5; M86.1; Z89.4",
+# "HD: F10.2 / I10 / K70.0?", "CID-10 da causa básica: O72.1"): o rótulo atribui os códigos à pessoa
+# examinada. O código entra com o "?" de hipótese diagnóstica.
+_CODIGO_CID_LISTA = r"(?-i:[A-TV-Z]\d{2}(?:\.\d{1,2})?|[1-9][A-HJ-NP-Z][0-9A-HJ-NP-Z]{2}(?:\.[0-9A-HJ-NP-Z]{1,2})?)\??"
+SAUDE_CONTEXTUAL.append(
+    Padrao("SAUDE", r"\b(?:diagn[óo]sticos?(?:\s+(?:de\s+alta|principal|principais|secund[áa]rios?|definitivos?|finais?|de\s+base))?|"
+                    r"hip[óo]teses?\s+diagn[óo]sticas?|(?-i:HD|HDs)|(?-i:CID)(?:-1[01])?(?:\s+d[aoe]s?(?:\s+\w+){1,2})|"
+                    r"causas?\s+b[áa]sicas?)\s*:\s*(" + _CODIGO_CID_LISTA + r"(?:\s*(?:;|,|/|\be\b)\s*" + _CODIGO_CID_LISTA
+           + r")*)(?!\w)(?!\.\d)", 0.9, camada=CONTEXTUAL, grupo=1, nome="saude:cid-lista"))
+# Código da CID no início de linha seguido da descrição ("F33.2 – transtorno depressivo recorrente"),
+# forma de listagem de diagnósticos em laudos e prontuários.
+SAUDE_CONTEXTUAL.append(
+    Padrao("SAUDE", r"^[ \t]*(?:[-–•]\s*)?(?-i:[A-TV-Z]\d{2}\.\d{1,2}|[1-9][A-HJ-NP-Z][0-9A-HJ-NP-Z]{2}\.[0-9A-HJ-NP-Z]{1,2})"
+                    r"\s*[–—-]\s*[^\n;]{3,120}", 0.9, camada=CONTEXTUAL, nome="saude:cid-descricao"))
+
+# --------------------------------------------------------------------------- Saúde: registro clínico
+# Formas próprias do registro clínico e pericial de uma pessoa: resultado de exame, sinal vital e
+# medida, escala clínica, posologia, achado do exame físico ou psíquico, gestação e parto,
+# funcionalidade e restrições recomendadas por junta médica. Em normas, protocolos e boletins as mesmas
+# formas descrevem critérios ("glicemia de jejum acima de 126 mg/dL"), e não uma pessoa; por isso estes
+# achados só são considerados em documento centrado numa pessoa identificada (ver
+# :func:`contexto_documental`). A confiança (0,65) fica abaixo da dos termos de :data:`SAUDE_SEMANTICA`,
+# para que um achado mais longo não absorva, na remoção de duplicatas do Presidio, o termo que contém.
+
+#: Número de achados de saúde a partir do qual um documento centrado em pessoa é tratado como registro
+#: clínico, ainda que sem título ou seções de prontuário.
+ACHADOS_DE_REGISTRO_CLINICO = 8
+#: Prefixo da origem dos achados de registro clínico, descartados fora de documento centrado em pessoa.
+ORIGEM_CLINICA = "saude:clinico:"
+#: Prefixo dos achados que só valem dentro de registro clínico ou pericial (laudo, prontuário, ficha de
+#: notificação): nome de exame, campo de formulário clínico, achado do exame físico e termo pelo sufixo.
+#: Num ofício ou num boletim de ocorrência, "Natureza:" e "Procedimento:" não descrevem condição de saúde.
+ORIGEM_REGISTRO = ORIGEM_CLINICA + "registro:"
+_NUM = r"\d+(?:[.,]\d+)*"
+#: Unidades de exames laboratoriais, sinais vitais e funções orgânicas.
+_UNIDADE_CLINICA = (r"(?:(?:mg|g|ng|pg|µg|mcg|mEq|mmol|µmol|mU|mUI|µUI|UI|U|c[ée]lulas|c[ée]l)/(?:dL|L|mL|mm³|mm3|g|kg|24\s?h|min)"
+                    r"|/mm³|/mm3|/µL|mmHg|cmH2O|bpm|irpm|ipm|kg/m²|kg/m2|°C|ºC|dBNA|dB\s?NA|dB|fL|mL/min|L/min|mm/h)")
+#: Analitos de exames laboratoriais. As siglas diferenciam maiúsculas ("PCR", "TGO").
+_ANALITO = (r"(?:hemoglobina(?:\s+glicada)?|hemat[óo]crito|leuc[óo]citos|neutr[óo]filos|linf[óo]citos|eosin[óo]filos|plaquetas|"
+            r"glicemia(?:\s+(?:de\s+jejum|capilar|p[óo]s-prandial|casual))?|glicose|creatinina|ureia|s[óo]dio|pot[áa]ssio|"
+            r"magn[ée]sio|fosfatase\s+alcalina|bilirrubina(?:\s+(?:total|direta|indireta))?|albumina|prote[íi]nas\s+totais|"
+            r"prote[íi]na\s+C\s+reativa|ferritina|ferro\s+s[ée]rico|vitamina\s+(?:B12|D)|colesterol(?:\s+(?:total|LDL|HDL))?|"
+            r"triglic[ée]r[íi]deos|[áa]cido\s+[úu]rico|troponina|lactato|amilase|lipase|litemia|clearance(?:\s+de\s+creatinina)?|"
+            r"taxa\s+de\s+filtra[çc][ãa]o\s+glomerular|microalbumin[úu]ria|protein[úu]ria|elastase\s+fecal|cloreto|"
+            r"carga\s+viral(?:\s+d[oa]\s+[\w-]+)?|contagem\s+de\s+(?:CD4|linf[óo]citos\s+T\s+CD4)|"
+            r"(?-i:Hb|HbA1c|Ht|TGO|TGP|AST|ALT|GGT|INR|RNI|TAP|TTPA|PCR|VHS|TSH|T4|T4L|T4\s+livre|T3|LDL|HDL|CK|CK-MB|CPK|"
+            r"BNP|PSA|CD4|VCM|HCM|CHCM|RDW|TFG|beta-HCG|HBsAg|anti-HCV|anti-HIV|anti-HBs|VDRL|FTA-ABS))")
+_RESULTADO = (rf"(?:{_NUM}\s*(?:%|{_UNIDADE_CLINICA})?|(?:n[ãa]o\s+)?reagentes?|(?:n[ãa]o\s+)?detectad[oa]|"
+              r"(?:in)?detect[áa]vel|positiv[oa]|negativ[oa])")
+#: Sinais vitais e medidas antropométricas.
+_SINAL_VITAL = (r"(?:(?-i:PA|PAS|PAD|PAM|FC|FR|SpO2|SatO2|Tax|HGT|IMC|PIO|PC|CA)|press[ãa]o\s+arterial(?:\s+(?:sist[óo]lica|diast[óo]lica))?|"
+                r"frequ[êe]ncia\s+(?:card[íi]aca|respirat[óo]ria)|satura[çc][ãa]o(?:\s+(?:perif[ée]rica\s+)?(?:de\s+)?(?:O2|oxig[êe]nio))?|"
+                r"temperatura(?:\s+axilar)?|peso|altura|estatura|per[íi]metro\s+(?:cef[áa]lico|abdominal|bra[çc]o)|"
+                r"circunfer[êe]ncia\s+(?:abdominal|da\s+cintura|do\s+bra[çc]o))")
+#: Escalas e classificações clínicas, com o nome ("Glasgow 13", "Child-Pugh C").
+_ESCALA = (r"(?:Glasgow|Apgar|ECOG|MELD|Child-Pugh|PHQ-9|GAD-7|MEEM|Mini-?exame\s+do\s+Estado\s+Mental|Katz|Barthel|Lawton|"
+           r"Rankin|Braden|Fugl-Meyer|Tinetti|EuroSCORE(?:\s+II)?|Kellgren-Lawrence|TI-RADS|BI-RADS|Bethesda|Gleason|"
+           r"(?-i:CDR|ASIA|MRC|mMRC|FOIS|KDIGO|NYHA|SOFA|NIHSS|EDSS|CARS|SNAP-IV|M-CHAT|BPRS|ASA))")
+#: Via de administração e frequência que acompanham a dose ("400 mg EV de 12/12 h", "50 mg pela manhã").
+_VIA = (r"(?:(?-i:EV|IV|IM|VO|SC|SL)|endovenos[oa]|intravenos[oa]|intramuscular|subcut[âa]ne[oa]|via\s+oral|oral|inalat[óo]ri[oa]|"
+        r"t[óo]pic[oa]|sublingual)")
+_FREQUENCIA = (r"(?:(?:de\s+|a\s+cada\s+)?\d{1,2}\s*/\s*\d{1,2}\s*h(?:oras)?|a\s+cada\s+\d+\s+(?:horas|dias|semanas)|"
+               r"(?:uma|duas|tr[êe]s|quatro|\d)\s+vez(?:es)?\s+(?:ao|por|na)\s+(?:dia|semana|m[êe]s)|\d\s*x\s*/?\s*(?:ao\s+)?dia|"
+               r"ao\s+dia|por\s+dia|/dia|pela\s+manh[ãa]|[àa]\s+noite|[àa]\s+tarde|[àa]s\s+\d{1,2}\s*h|em\s+jejum|"
+               r"antes\s+d[oa]s?\s+\w+|ap[óo]s\s+(?:[oa]s?\s+)?\w+|se\s+(?:dor|febre|necess[áa]rio)|em\s+dose\s+[úu]nica|"
+               r"por\s+\d+\s+(?:dias|semanas|meses))")
+_DOSE_POSOLOGIA = rf"{_NUM}\s*(?:mg|mcg|µg|UI|U|g|mL|ml|gotas|cp|comprimidos?|c[áa]psulas?|ampolas?|jatos?)(?:\s*/\s*(?:kg|mL|dia|dose|m²))?"
+
+SAUDE_CLINICA = [
+    # Analito com resultado: "creatinina de 1,6 mg/dL", "anti-HCV reagente", "PCR | 96 mg/L".
+    Padrao("SAUDE", rf"\b{_ANALITO}(?:\s+(?:m[áa]xim[oa]|m[íi]nim[oa]|de\s+alta|de\s+admiss[ãa]o|inicial|final|basal|s[ée]ric[oa]))?"
+                    rf"(?:\s+de\s+controle)?\s*(?:de|:|=|\||\t)?\s*{_RESULTADO}", 0.65, camada=SEMANTICA,
+           nome=ORIGEM_CLINICA + "exame"),
+    # Sinal vital ou medida: "PA de 80 x 40 mmHg", "Peso: 31 kg", "IMC 34,1 kg/m²", "SpO2 mínima 86%".
+    Padrao("SAUDE", rf"\b{_SINAL_VITAL}(?:\s+(?:m[íi]nim[oa]|m[áa]xim[oa]|de\s+admiss[ãa]o|inicial|final|pr[ée]-gestacional)){{0,2}}"
+                    rf"(?:\s+(?:no|na|em|ao)\s+\w+)?\s*(?:de|:|=|\||\t)?\s*{_NUM}(?:\s*(?:x|X|/|por)\s*{_NUM})?"
+                    r"\s*(?:mmHg|bpm|irpm|ipm|%|°C|ºC|kg/m²|kg/m2|kg|g|cm|m|mg/dL)?(?!\w)", 0.65, camada=SEMANTICA,
+           nome=ORIGEM_CLINICA + "sinal-vital"),
+    # Peso da pessoa e sua variação: "pesando 16 kg", "perda de 7 kg em dois meses".
+    Padrao("SAUDE", rf"\b(?:pes(?:o|ando|ava|ou)\s*(?:de|:)?\s*{_NUM}\s*kg|(?:perda|ganho|redu[çc][ãa]o)\s+(?:de\s+)?(?:peso\s+(?:de\s+)?)?"
+                    rf"{_NUM}\s*kg(?:\s+em\s+\w+\s+(?:dias|semanas|meses|anos))?)\b", 0.65, camada=SEMANTICA,
+           nome=ORIGEM_CLINICA + "peso"),
+    # Escala clínica com pontuação, grau ou classe: "Glasgow 13", "ECOG 2", "Apgar 9/10", "Child-Pugh C".
+    Padrao("SAUDE", rf"\b{_ESCALA}(?:\s+(?:de|da|do)\s+\w+)?\s*(?:de|:|=)?\s*"
+                    r"(?:(?:grau|n[íi]vel|est[áa]gio|classe|escore|pontua[çc][ãa]o)\s+)?"
+                    r"(?:\d+(?:[.,]\d+)?(?:\s*/\s*\d+)?(?:\s*%|\s*pontos)?|(?-i:[A-E]|[IVX]{1,4})\b)(?:\s*\([^()\n]{1,40}\))?",
+           0.65, camada=SEMANTICA, nome=ORIGEM_CLINICA + "escala"),
+    # Dose com via ou frequência: "400 mg EV de 12/12 h", "20 UI antes do café", "0,5 mg à noite".
+    Padrao("SAUDE", rf"\b{_DOSE_POSOLOGIA}(?:\s*,?\s*(?:{_VIA}|{_FREQUENCIA})){{1,4}}", 0.65, camada=SEMANTICA,
+           nome=ORIGEM_CLINICA + "posologia"),
+    # Fórmula obstétrica ("G4 P3 (3 partos vaginais) A0") e idade gestacional com contexto de gestação.
+    Padrao("SAUDE", r"(?-i:\bG\s?\d{1,2}\s?P\s?\d{1,2}(?:\s*\([^()\n]{1,40}\))?\s?A\s?\d{1,2}\b)", 0.65, camada=SEMANTICA,
+           nome=ORIGEM_CLINICA + "obstetricia"),
+    Padrao("SAUDE", r"\b\d{1,2}\s+semanas(?:\s+e\s+\d\s+dias?)?(?:\s+de\s+(?:gesta[çc][ãa]o|gravidez|idade\s+gestacional))?",
+           0.65, camada=SEMANTICA, contexto=(r"gesta[çc][ãa]o", "gestante", r"gr[áa]vida", r"pr[ée]-natal", "parto", "IG",
+                                             r"obst[ée]tric[oa]"),
+           contexto_obrigatorio=True, janela=60, nome=ORIGEM_CLINICA + "idade-gestacional"),
+    # Funcionalidade e restrição laboral recomendada por junta médica.
+    Padrao("SAUDE", r"\b(?:(?:in)?dependente\s+para\s+(?:o\s+|a\s+|as\s+|os\s+)?(?:banho|vestir-se|alimentar-se|alimenta[çc][ãa]o|"
+                    r"higiene|locomo[çc][ãa]o|transfer[êe]ncias?|deambular|atividades\s+(?:b[áa]sicas|instrumentais|de\s+vida\s+di[áa]ria))"
+                    r"(?:\s*,\s*[\w-]+(?:\s+[\w-]+){0,3}|\s+e\s+[\w-]+(?:\s+(?:d[oa]s?|de)\s+[\w-]+)?){0,6}|"
+                    r"restri[çc][ãa]o\s+(?:ao|[àa]|para|de)\s+(?:porte\s+de\s+arma|esfor[çc]os?|carga|levantamento|atividades?|"
+                    r"trabalho|contato|exposi[çc][ãa]o|plant[õo]es|turno)[^.;\n]{0,80}|"
+                    r"readapta[çc][ãa]o(?:\s+(?:funcional|provis[óo]ria|definitiva))?)",
+           0.65, camada=SEMANTICA, nome=ORIGEM_CLINICA + "funcionalidade"),
+    # Achados do exame psíquico.
+    Padrao("SAUDE", r"\b(?:humor\s+(?:deprimido|depressivo|eut[íi]mico|ansioso|irrit[áa]vel|expansivo|elevado|l[áa]bil|disf[óo]rico)|"
+                    r"afeto\s+(?:hipomodulado|embotado|restrito|aplainado|l[áa]bil|incongruente|ansioso|hipermodulado)|"
+                    r"discurso\s+(?:lentificado|acelerado|desorganizado|empobrecido|prolixo)|"
+                    r"pensamento\s+(?:lentificado|acelerado|desorganizado|empobrecido|delirante|tangencial)|"
+                    r"psicomotricidade\s+\w+|agita[çc][ãa]o\s+psicomotora|anedonia|abulia|hipom[íi]mi(?:a|c[oa])|"
+                    r"alucina[çc](?:[ãa]o|[õo]es)(?:\s+(?:auditivas?|visuais?|t[áa]teis?|residua(?:l|is))){0,2}|"
+                    r"del[íi]rios?(?:\s+(?:persecut[óo]rios?|de\s+\w+))?|idea[çc][ãa]o\s+(?:suicida|de\s+morte|homicida)|"
+                    r"(?:auto|hetero)agressividade|autoles(?:[ãa]o|[õo]es)(?:\s+n[ãa]o\s+suicida)?|"
+                    r"preju[íi]zo\s+(?:de|da)\s+(?:mem[óo]ria|concentra[çc][ãa]o|aten[çc][ãa]o)(?:\s+recente)?|"
+                    r"desorienta[çc][ãa]o(?:\s+(?:no\s+tempo|temporal|espacial|no\s+espa[çc]o|e\s+no\s+espa[çc]o)){0,2}|"
+                    r"confus[ãa]o\s+mental|isolamento\s+social)",
+           0.65, camada=SEMANTICA, nome=ORIGEM_CLINICA + "exame-psiquico"),
+    # Achados do exame físico, mobilidade e cuidados: "crepitação à mobilização", "deambula com auxílio de
+    # andador", "transfere-se da cama para a cadeira", "curativo diário do coto".
+    Padrao("SAUDE", r"\b(?:crepita[çc][ãa]o|geno\s+(?:varo|valgo)|derrame\s+articular|flex[ãa]o\s+limitada|"
+                    r"amplitude\s+de\s+movimento|for[çc]a\s+muscular|aus[êe]ncia\s+de\s+(?:for[çc]a|sensibilidade|reflexos?|"
+                    r"movimentos?|controle)|perda\s+de\s+sensibilidade|diminui[çc][ãa]o\s+da\s+sensibilidade|"
+                    r"(?:n[ãa]o\s+)?deambula(?:[çc][ãa]o)?|marcha\s+\w+|transfere-se|n[ãa]o\s+consegue|"
+                    r"n[ãa]o\s+controla\s+esf[íi]ncteres|contato\s+visual|atraso\s+(?:de|do|no)\s+(?:fala|desenvolvimento|"
+                    r"linguagem)|n[óo]dulos?|caro[çc]os?|indolor|[úu]tero\s+\w+|curativos?|sondas?|andador|bengala|"
+                    r"muletas?|colete\s+\w+|[óo]rteses?|pr[óo]teses?|palmilhas?|cateterismo\s+vesical|"
+                    r"acolhimento\s+(?:diurno|noturno|integral)|grupo\s+(?:terap[êe]utico|de\s+preven[çc][ãa]o\s+de\s+"
+                    r"reca[íi]da|de\s+apoio)|projeto\s+terap[êe]utico\s+singular|reca[íi]das?|lapsos?|"
+                    r"(?:treino|treinamento|exerc[íi]cios|fortalecimento|alongamento|estimula[çc][ãa]o|manobras)\s+"
+                    r"(?:muscular|funcional|aer[óo]bicos?|respirat[óo]ri[oa]s?|de\s+\w+|t[áa]til|posturais|orofaciais)|"
+                    r"sess[õo]es\s+de\s+\w+|(?-i:HAS|DM|DM2|DPOC|ICC|IRC|DRC|AVC|AVE|IAM|TCE|ITU|IVAS|TEP|TVP|LRA|SDRA))\b",
+           0.65, camada=SEMANTICA, nome=ORIGEM_CLINICA + "exame-fisico"),
+]
+# Campo de formulário clínico cujo valor é a condição registrada ("Natureza: fratura dos ossos nasais",
+# "Tipo de violência: física", "Parte do corpo atingida: cabeça/face", "Evolução: incapacidade
+# temporária", "Forma: 1 – pulmonar"). O valor vai até o fim da linha.
+SAUDE_CLINICA.append(
+    Padrao("SAUDE", r"^[ \t]*(?:\d{1,2}[.)]\s*)?(?:natureza(?:\s+da\s+les[ãa]o)?|partes?\s+do\s+corpo(?:\s+atingidas?)?|"
+                    r"tipos?\s+de\s+viol[êe]ncia|meios?\s+de\s+agress[ãa]o|forma(?:\s+cl[íi]nica)?|agravos?\s+associados?|"
+                    r"tipo\s+de\s+entrada|procedimentos?(?:\s+realizados?)?|evolu[çc][ãa]o|"
+                    r"motivo(?:\s+d[ao]\s+(?:interna[çc][ãa]o|atendimento|encaminhamento|acolhimento|consulta))?|"
+                    r"queixa(?:\s+principal)?|quadro\s+cl[íi]nico|hip[óo]tese\s+diagn[óo]stica|conduta|tratamento(?:\s+atual)?|"
+                    r"medica[çc][ãa]o(?:\s+(?:atual|em\s+uso))?|medicamentos\s+em\s+uso|esquema|antecedentes|comorbidades|"
+                    r"les[ãa]o|les[õo]es|classifica[çc][ãa]o\s+final|causas?(?:\s+d[oa]\s+[óo]bito|\s+b[áa]sicas?)?|"
+                    r"situa[çc][ãa]o\s+(?:na\s+alta|vacinal|atual)|cuidados|reabilita[çc][ãa]o|linguagem(?:\s+\w+)?|"
+                    r"sa[úu]de|condi[çc][õo]es\s+de\s+sa[úu]de(?:\s+\w+){0,3}|"
+                    # Exame físico por aparelho ou região ("Marcha: claudicante", "Joelhos: crepitação")
+                    r"marcha|deambula[çc][ãa]o|pele(?:\s+e\s+mucosas)?|mucosas|aparelho\s+\w+|ausculta(?:\s+\w+)?|"
+                    r"extremidades|estado\s+geral|neurol[óo]gico|ps[íi]quico|" + _PARTE_DO_CORPO + r")"
+                    r"\s*(?:\([^()\n]{1,30}\))?\s*:[ \t]*"
+                    r"(?!(?:nenhum[a]?|n[ãa]o(?:\s+se\s+aplica)?|nega|ausente|sem\s+altera[çc][õo]es)\W*$)(\S[^\n]{1,200})$",
+           0.65, camada=SEMANTICA, grupo=1, nome=ORIGEM_REGISTRO + "campo"))
+# Exame identificado pelo nome ("Biomicroscopia do OE:", "eletroencefalograma de 20/01/2025",
+# "Cultura de escarro"): a classe dos exames de imagem e de função pelo radical e pelo sufixo, mais os
+# exames laboratoriais e microbiológicos.
+_EXAME = (r"(?:(?:eletro|eco|hemo|audio|lipido|coagulo|proteino|mielo|espermo|antibio|cardiotoco|uro|angio|tomo|cintilo|"
+          r"mamo|radio|ultrassono|histero|colangio|arterio|flebo|linfo|uretro|cisto|colpo|laringo|naso|endo|colono|"
+          r"retossigmoido|bronco|artro|laparo|video|fundo|biomicro|oftalmo|dermato|capilaro|tono|espiro|imitancio|campi|"
+          r"densito|polissono|oxi|capno|elasto|neuro|cranio|ressono|fluoro|videofluoro|ergo|termo)[a-zà-ú]*?"
+          r"(?:grafia|scopia|grama|metria)s?|tomografia|resson[âa]ncia(?:\s+magn[ée]tica)?|ultrassom|(?-i:USG|ECG|EEG|ENMG|PEATE|BERA|RX)|"
+          r"raios?[- ]x|radiografia|cultura\s+de\s+[\w-]+(?:\s+[\w-]+)?|sorologias?|baciloscopia|gota\s+espessa|bi[óo]psia|"
+          r"pun[çc][ãa]o\s+(?:aspirativa|lombar|biópsia)|anatomopatol[óo]gico|histopatol[óo]gico|imuno-?histoqu[íi]mica|"
+          r"genotipagem|cari[óo]tipo|teste\s+(?:r[áa]pido|do\s+(?:suor|pezinho|olhinho|orelhinha)|de\s+caminhada|ergom[ée]trico|"
+          r"molecular|para\s+[\w-]+)|triagem\s+(?:neonatal|auditiva)|exames?\s+(?:f[íi]sico|ps[íi]quico|cl[íi]nico|neurol[óo]gico|"
+          r"oftalmol[óo]gico|dermatol[óo]gico|complementares|laboratoriais|de\s+controle)|acuidade\s+visual|campo\s+visual)")
+_EXAME_RE = re.compile(r"\b" + _EXAME + r"(?!\w)", re.IGNORECASE)
+SAUDE_CLINICA.append(
+    Padrao("SAUDE", r"\b" + _EXAME + r"(?!\w)", 0.65, camada=SEMANTICA, nome=ORIGEM_CLINICA + "exame-nome"))
+# Termos clínicos pela forma: dor, dificuldade, alteração ou condição de uma parte do corpo ("dor à
+# palpação do arco costal", "dificuldade para dormir") e termos com sufixo de sinal, procedimento ou
+# afecção (-algia, -emia, -patia, -plegia, -megalia, -ectomia, -stomia, -plastia, -rrafia, -centese).
+_NAO_CLINICOS_SUFIXO = (r"(?!(?:nostalgia|academia|academias|epidemia|epidemias|pandemia|pandemias|endemia|endemias|bo[êe]mia|"
+                        r"blasf[êe]mia|alquimia|simpatia|empatia|antipatia|telepatia|homeopatia|naturopatia|anatomia|dicotomia|"
+                        r"autonomia|economia|astronomia|agronomia|gastronomia|taxonomia|ergonomia)\b)")
+SAUDE_CLINICA.append(
+    Padrao("SAUDE", r"\b" + _NAO_CLINICOS_SUFIXO + r"[a-zà-ú]{3,}(?:algia|emia|patia|plegia|paresia|megalia|ectomia|stomia|"
+                    r"tomia|plastia|pexia|rrafia|centese|fasia|lalia|fagia|pneia|cardia|[úu]ria)s?\b", 0.65, camada=SEMANTICA,
+           nome=ORIGEM_REGISTRO + "sufixo"))
+
+# --------------------------------------------------------------------------- Vínculo no nível do documento
+# Num documento centrado numa pessoa identificada (laudo, prontuário, atestado, perícia, relatório
+# social, avaliação de benefício, ficha de notificação individual), o dado de saúde se refere a essa
+# pessoa: não depende de pronome ou papel na mesma frase. O documento é reconhecido pela forma — campos
+# de identificação da pessoa ("Paciente:", "Periciando:", "Data de nascimento:", "Prontuário:"), fórmula
+# de atestação ("Atesto, para os devidos fins, que a Sra. …") — e o gênero clínico ou pericial, pelo
+# título e pelas seções do registro ("HISTÓRICO", "EXAME FÍSICO", "DIAGNÓSTICO", "CONDUTA"). Boletins,
+# notas técnicas, editais e comunicados, que tratam de grupos, não têm campos de identificação de pessoa.
+
+_ROTULO_TITULAR = (r"nome(?:\s+(?:completo|civil))?(?:\s+d[oa](?:\([ao]\))?\s+(?:paciente|periciand[oa]|periciad[oa]|usu[áa]ri[oa]|requerente|"
+                   r"benefici[áa]ri[oa]|segurad[oa]|servidor[a]?|crian[çc]a|adolescente|acolhid[oa]|assistid[oa]|interessad[oa]|"
+                   r"gestante|v[íi]tima|declarante|pessoa\s+atendida|pessoa\s+acolhida))?|paciente|periciand[oa]|periciad[oa]|"
+                   r"examinad[oa]|requerente|benefici[áa]ri[oa]|usu[áa]ri[oa]|segurad[oa]|servidor[a]?|crian[çc]a|adolescente|"
+                   r"acolhid[oa]|assistid[oa]|interessad[oa]|v[íi]tima|declarante|gestante|pu[ée]rpera|falecid[oa]|"
+                   r"reeducand[oa]|apenad[oa]|custodiad[oa]|internad[oa]|autuad[oa]|manifestante|titular|respons[áa]vel(?:\s+familiar)?|"
+                   r"indiciad[oa]|acusad[oa]|processad[oa]|sindicad[oa]|investigad[oa]|requerid[oa]|recorrente|"
+                   r"reclamante|denunciante|solicitante")
+_ROTULO_IDENTIFICACAO = (r"data\s+de\s+nascimento|nascimento|(?-i:DN)|idade|sexo|(?-i:CPF|RG|CNS|NIS|NB|SIAPE|MASP)|"
+                         r"cart[ãa]o\s+(?:nacional\s+de\s+sa[úu]de|SUS|do\s+SUS)|prontu[áa]rio(?:\s+\w+)?|registro(?:\s+hospitalar)?|"
+                         r"matr[íi]cula(?:\s+\w+)?|filia[çc][ãa]o|nome\s+da\s+m[ãa]e|m[ãa]e|naturalidade|estado\s+civil|ra[çc]a/cor|"
+                         r"escolaridade|leito|genitor[a]?|iniciais|resid[êe]ncia|endere[çc]o(?:\s+\w+)?|telefone(?:\s+\w+)?")
+#: Campo ou seção que identifica a pessoa de quem o documento trata.
+_CAMPO_TITULAR = re.compile(r"(?:^|\s{2,}|\||\t)[ \t]*(?:\d{1,2}[.)]\s*)?(?:" + _ROTULO_TITULAR + r")(?:\([ao]s?\))?\s*(?:n[º°o.]\s*)?:"
+                            r"|^[ \t]*(?:\d{1,2}[.)]\s*)?(?:identifica[çc][ãa]o(?:\s+d[oa]\s+(?:caso|paciente|usu[áa]ri[oa]|pessoa(?:\s+\w+)?|"
+                            r"crian[çc]a|adolescente|periciand[oa]|requerente|servidor[a]?|segurad[oa]|benefici[áa]ri[oa]|acolhid[oa]))?|"
+                            r"caso\s+[íi]ndice|dados\s+d[oa]\s+(?:paciente|pessoa\s+\w+|crian[çc]a|adolescente|usu[áa]ri[oa]|caso|"
+                            r"periciand[oa]|requerente|segurad[oa]|acolhid[oa]))[ \t]*$",
+                            re.IGNORECASE | re.MULTILINE)
+_CAMPO_IDENTIFICACAO = re.compile(r"(?:^|\s{2,}|\||\t)[ \t]*(?:\d{1,2}[.)]\s*)?(?P<rotulo>" + _ROTULO_IDENTIFICACAO
+                                  + r")\s*(?:n[º°o.]\s*)?:", re.IGNORECASE | re.MULTILINE)
+#: Fórmula de atestação ou declaração sobre uma pessoa ("Atesto … que a Sra. Fulana", "que YURI …").
+_ATESTACAO = re.compile(r"\b(?:atesto|declaro|certifico)\b[^.\n]{0,220}?\bque\s+(?:[oa]\s+)?(?:(?-i:Sr|Sra|Dr|Dra)\b|"
+                        r"paciente|servidor|menor|crian[çc]a|(?-i:[A-ZÀ-Ú][a-zà-ú]+\s+[A-ZÀ-Ú]|[A-ZÀ-Ú]{3,}\s+[A-ZÀ-Ú]{2,}))",
+                        re.IGNORECASE)
+#: Título de documento clínico ou pericial.
+_GENERO_CLINICO = re.compile(
+    r"\b(?:laudo|atestado|prontu[áa]rio|sum[áa]rio\s+de\s+alta|resumo\s+de\s+(?:alta|interna[çc][ãa]o|prontu[áa]rio)|"
+    r"relat[óo]rio\s+(?:m[ée]dico|cl[íi]nico|de\s+alta|multiprofissional|psicossocial|psicol[óo]gico|fonoaudiol[óo]gico|"
+    r"fisioterap[êe]utico|de\s+fisioterapia|odontol[óo]gico|de\s+enfermagem|de\s+investiga[çc][ãa]o)|"
+    r"parecer\s+(?:m[ée]dico|m[ée]dico-pericial|de\s+junta|da\s+junta)|junta\s+m[ée]dica|per[íi]cia\s+m[ée]dica|"
+    r"ficha\s+de\s+(?:notifica[çc][ãa]o|investiga[çc][ãa]o)|receitu[áa]rio|receita\s+m[ée]dica|encaminhamento|"
+    r"guia\s+de\s+refer[êe]ncia|contrarrefer[êe]ncia|avalia[çc][ãa]o\s+(?:m[ée]dica|biopsicossocial|da\s+defici[êe]ncia|"
+    r"funcional|neuropsicol[óo]gica|psicol[óo]gica)|exame\s+de\s+corpo\s+de\s+delito|investiga[çc][ãa]o\s+de\s+[óo]bito|"
+    r"ficha\s+(?:de\s+)?(?:atendimento|cl[íi]nica|ambulatorial)|boletim\s+de\s+atendimento|parecer\s+psicol[óo]gico|"
+    r"evolu[çc][ãa]o\s+(?:m[ée]dica|de\s+enfermagem|cl[íi]nica|multiprofissional)|declara[çc][ãa]o\s+de\s+comparecimento|"
+    r"(?:solicita[çc][ãa]o|requisi[çc][ãa]o)\s+de\s+(?:exames?|procedimento|medicamento|interna[çc][ãa]o)|"
+    r"relat[óo]rio\s+(?:nutricional|terap[êe]utico|de\s+terapia\s+ocupacional|neuropsicol[óo]gico|psiqui[áa]trico))\b",
+    re.IGNORECASE)
+#: Seção do registro clínico, em linha própria ou como rótulo.
+_SECAO_CLINICA = re.compile(
+    r"^[ \t]*(?:\d{1,2}[.)]\s*|[IVX]{1,4}\s*[–-]\s*)?(?:hist[óo]ric[oa](?:\s+cl[íi]nic[oa])?|hist[óo]ria(?:\s+(?:cl[íi]nica|da\s+doen[çc]a"
+    r"(?:\s+atual)?|reprodutiva(?:\s+e\s+pr[ée]-natal)?))?|anamnese|exames?(?:\s+(?:f[íi]sico|ps[íi]quico|cl[íi]nico|complementares|"
+    r"relevantes|laboratoriais))?|diagn[óo]sticos?(?:\s+\w+){0,2}|hip[óo]tese\s+diagn[óo]stica|evolu[çc][ãa]o|conduta|"
+    r"prescri[çc][ãa]o(?:\s+\w+){0,2}|tratamento(?:\s+\w+)?|medica[çc][ãa]o(?:\s+\w+)?|medicamentos\s+em\s+uso|antecedentes|"
+    r"comorbidades|quadro\s+cl[íi]nico|queixa(?:\s+principal)?|condi[çc][õo]es\s+de\s+sa[úu]de(?:\s+\w+){0,3}|dados\s+cl[íi]nicos"
+    r"(?:\s+e\s+laboratoriais)?|les[ãa]o|les[õo]es|procedimentos?(?:\s+\w+)?|interna[çc][ãa]o|alergias|reabilita[çc][ãa]o|"
+    r"situa[çc][ãa]o\s+vacinal|sa[úu]de|sinais\s+vitais|impress[ãa]o\s+diagn[óo]stica|progn[óo]stico|intercorr[êe]ncias|"
+    r"plano\s+terap[êe]utico|exame\s+do\s+estado\s+mental)\s*(?::|$)", re.IGNORECASE | re.MULTILINE)
+#: Licença, afastamento ou tratamento que enuncia o motivo de saúde.
+_MOTIVO_DE_LICENCA = re.compile(r"\b(?:licen[çc]a|afastamento|tratamento\s+d[ae]\s+(?:pr[óo]pria\s+)?sa[úu]de|"
+                                r"motivo\s+de\s+(?:doen[çc]a|sa[úu]de))", re.IGNORECASE)
+#: Linha de título: sem minúsculas, com ao menos duas palavras e sem ponto final no meio.
+_TITULO = re.compile(r"^[ \t]*(?:\d{1,2}[.)]\s*|[IVX]{1,4}\s*[–-]\s*)?(?=[^\n]*[A-ZÀ-Ú]{5}|[^\n]*[A-ZÀ-Ú]{3}[^\n]*\s[^\n]*"
+                     r"[A-ZÀ-Ú]{3})[^a-zà-ÿ\n.:?]{5,90}$", re.MULTILINE)
+
+#: Instituição, programa ou norma citados pelo nome próprio ("Hospital Universitário", "Programa de
+#: Atenção …", "Política Nacional de Saúde Bucal", "Consultório na Rua"): o termo de saúde que integra o
+#: nome não é dado de uma pessoa. As palavras seguintes começam por maiúscula, salvo os conectivos.
+_CABECA_INSTITUICAO = (r"Hospital|Policl[íi]nica|Cl[íi]nica|Centro|Unidade|Servi[çc]o|Consult[óo]rio|Ambulat[óo]rio|Instituto|"
+                       r"Laborat[óo]rio|Departamento|Divis[ãa]o|N[úu]cleo|Coordena[çc][ãa]o|Coordenadoria|Ger[êe]ncia|"
+                       r"Superintend[êe]ncia|Diretoria|Secretaria|Subsecretaria|Minist[ée]rio|Programa|Pol[íi]tica|Plano|Rede|"
+                       r"Sistema|Subsistema|Junta|Comiss[ãa]o|Comit[êe]|Conselho|Funda[çc][ãa]o|Associa[çc][ãa]o|Casa|Lar|Escola|"
+                       r"Universidade|Faculdade|Vara|Juizado|Tribunal|Defensoria|Promotoria|Procuradoria|Delegacia|Pol[íi]cia|"
+                       r"Guia|Protocolo|Diretrizes|Estatuto|C[óo]digo|Classifica[çc][ãa]o|Distrito|Ag[êe]ncia|Campanha|"
+                       r"Calend[áa]rio|Pr[êe]mio|Fundo|Terra|Reserva|Territ[óo]rio|Maternidade|Pronto-Socorro|Estrat[ée]gia|"
+                       r"Benef[íi]cio|Cadastro|Componente|Subse[çc][ãa]o|Se[çc][ãa]o|Central|Lei|Constitui[çc][ãa]o|Opera[çc][ãa]o|"
+                       r"Terminal|Tratamento\s+Fora")
+#: Palavra de nome próprio: inicial maiúscula, sigla ou ordinal ("10ª"); sigla de documento pessoal não.
+_PALAVRA_NOME = (r"(?!(?:CPF|RG|CNS|NIS|NB|PIS|CNH|CTPS|SIAPE|MASP|OAB|CRM)\b)(?:[A-ZÀ-Ú][\w-]*|[A-Z]{2,}[\w/-]*|"
+                 r"\d+[ªº°])")
+_CONECTIVO_NOME = r"(?:d[aoe]s?|e|em|para|por|na|no|nas|nos|[àa]|ao|aos|[àa]s|contra|sobre|com|–|-)"
+_NOME_INSTITUICAO = re.compile(r"(?-i:\b(?:" + _CABECA_INSTITUICAO + r"|" + _CABECA_INSTITUICAO.upper() + r"))(?:[ \t]+(?:"
+                               + _CONECTIVO_NOME + r"[ \t]+)?(?-i:" + _PALAVRA_NOME + r"))+", re.IGNORECASE)
+#: Programa, estratégia ou campanha com nome próprio após o substantivo comum ("estratégia Zero Morte
+#: Materna", "programa Bolsa Família").
+_NOME_PROGRAMA = re.compile(r"\b(?:estrat[ée]gia|programa|projeto|campanha|plano|pol[íi]tica|rede|sistema|protocolo|"
+                            r"diretrizes|guia)[ \t]+(?-i:[A-ZÀ-Ú][\w-]*)(?:[ \t]+(?:" + _CONECTIVO_NOME
+                            + r"[ \t]+)?(?-i:" + _PALAVRA_NOME + r"))*", re.IGNORECASE)
+#: Sequência de palavras com inicial maiúscula no meio da frase, ou sigla seguida delas ("Terminal
+#: Rodoviário de Ribeirão Preto", "SISVAN Indígena"): nome próprio que a extensão do trecho de saúde não
+#: atravessa. Não isenta o termo, que pode ser o próprio nome da doença ("Síndrome de Down").
+_NOME_PROPRIO = re.compile(r"(?<=[a-zà-ú,;)]\s|\b(?:d[aoe]s?|n[oa]s?|ao|aos|à|às|pel[oa]s?|para|em)\s)(?-i:[A-ZÀ-Ú][\w-]+|[A-Z]{2,})"
+                           r"(?:[ \t]+(?:" + _CONECTIVO_NOME + r"[ \t]+)?(?-i:[A-ZÀ-Ú][\w-]+|[A-Z]{2,}))+")
+#: Serviço designado pela especialidade ("ambulatório de pé diabético", "enfermaria de clínica cirúrgica",
+#: "leitos de UTI"): nomeia o serviço, não a condição da pessoa.
+_SERVICO_COMUM = re.compile(r"\b(?:ambulat[óo]rios?|enfermarias?|setor|leitos?|unidades?\s+de\s+(?:terapia|interna[çc][ãa]o|"
+                            r"cuidados)|servi[çc]os?\s+de\s+(?:refer[êe]ncia|aten[çc][ãa]o))\s+(?:de|da|do)\s+[\wà-ú-]+"
+                            r"(?:\s+(?:de|da|do|e)\s+[\wà-ú-]+)?(?:\s+(?:intensiva|adulto|pedi[áa]trica|neonatal))?",
+                            re.IGNORECASE)
+#: Siglas de serviços de saúde e assistência ("CAPS AD", "UBS", "CER II").
+_SIGLA_SERVICO = re.compile(r"(?-i:\b(?:CAPS(?:\s*(?:AD|i|ij|IJ|II|III|AD\s+III))?|CAPSi|UBSF?|UPA|USF|ESF|CER(?:\s+[IV]+)?|CREAS|CRAS|"
+                            r"SAMU|SAME|SIASS|LACEN(?:/\w+)?|CIEVS(?:-\w+)?|SINAN|INSS|NASF|CEO|SAE|CTA|IML|CTA)\b)")
+#: Referência a norma: "Lei nº 8.112/1990", "art. 202 da Lei …", "RDC ANVISA nº 502/2021".
+_NORMA = re.compile(r"\b(?:arts?\.\s*\d+[º°]?(?:[-–]?[A-Z])?(?:\s*,\s*(?:§|inc(?:iso)?\.?|al[íi]nea|caput|par[áa]grafo)[^,;.)\n]{0,20})*"
+                    r"(?:\s*,?\s+d[aoe]s?\s+(?=\w))?|(?:Lei(?:\s+Complementar|\s+Federal|\s+Estadual|\s+Municipal)?|Decreto(?:-Lei)?|"
+                    r"Portaria(?:\s+de\s+Consolida[çc][ãa]o)?|Resolu[çc][ãa]o|(?-i:RDC)|Instru[çc][ãa]o\s+Normativa|Medida\s+Provis[óo]ria|"
+                    r"Emenda\s+Constitucional|Nota\s+T[ée]cnica)(?:\s+[A-Z][\w/-]*){0,3}\s+n[º°o.]?\s*[\d./-]+\d(?:,\s+de\s+\d{1,2}\s+de\s+\w+"
+                    r"\s+de\s+\d{4})?)", re.IGNORECASE)
+#: Conectivos que introduzem fundamento normativo ou critério; a extensão do trecho de saúde para neles.
+_CONECTIVO_NORMATIVO = re.compile(r"\b(?:conforme|nos\s+termos\s+d[aoe]s?|de\s+acordo\s+com|segundo\s+(?:[oa]s?\s+)?(?=[A-Z])|"
+                                  r"previst[oa]s?\s+n[oa]s?|especificad[oa]s?\s+n[oa]s?|definid[oa]s?\s+n[oa]s?|"
+                                  r"com\s+fundamento\s+n[oa]s?|para\s+fins\s+d[eo])\b")
+#: Negação ou hipótese: "nega alergias", "sem sintomas psicóticos", "Não foram observados sinais de…",
+#: "procurar emergência em caso de febre".
+_NEGACAO_ANTES = re.compile(r"\b(?:nega(?:m|va|ndo)?|negou|sem|aus[êe]ncia\s+de|em\s+caso\s+de|na\s+presen[çc]a\s+de|"
+                            r"se\s+houver|n[ãa]o\s+(?:apresenta(?:va)?|h[áa]|houve|possui|"
+                            r"tem|refere|foram\s+(?:observad|identificad|constatad|encontrad)[oa]s|foi\s+(?:observad|identificad|"
+                            r"constatad|encontrad)[oa]|se\s+observ\w+)(?:\s+(?:sinais|ind[íi]cios|evid[êe]ncias|hist[óo]rico|"
+                            r"qualquer|nenhum[a]?|outr[oa]s?)(?:\s+de)?)?)\s+(?:\w+\s+){0,2}$", re.IGNORECASE)
+#: Pergunta ou campo de formulário respondido com "não" ("Possui deficiência? não", "Gestante: 5 – não").
+_NEGACAO_DEPOIS = re.compile(r"[^\n?:]{0,30}[?:]\s*(?:\d\s*[–-]\s*)?n[ãa]o\b", re.IGNORECASE)
+#: Rótulo de campo: o termo seguido de dois-pontos ("Internação: 03/06/2025", "Nome social: …"), no início da
+#: linha ou depois de numeração e marcador de opção ("2.", "[X]").
+_ROTULO_DEPOIS = re.compile(r"\s*(?:\([^()\n]{0,20}\)\s*)?:")
+_ANTES_DO_ROTULO = re.compile(r"[ \t\d.)•–-]*(?:\[[ xX]?\]|\([ xX]?\))?[ \t]*")
+#: Fronteiras do trecho estendido: quebra de linha (exceto a continuação recuada de uma prescrição),
+#: separador de campos ou de células, ponto e vírgula, ponto de interrogação ou exclamação e ponto final
+#: que não abrevia ("Dr.", "nº.", "P. falciparum") nem separa decimais.
+_FRONTEIRA = re.compile(r"\n(?![ \t]{2,}\S)|(?<=\S)[ \t]{3,}|\t|\s\|\s?|\|\s|;|[?!]|(?<![\s(][A-Za-z]|\b(?:Dr|Dra|Sr|Sra|Prof|Profa|"
+                        r"art|arts|n[º°o]|fls?|inc|al|p|pp|cap|ex|aprox|cf|obs|tel|vol|ed)|\.)\.(?=\s|$)")
+_MESES = r"(?:janeiro|fevereiro|mar[çc]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)"
+#: Atributo que integra a expressão da condição (convenção de extensão das diretrizes de anotação):
+#: tempo ("há 14 anos", "desde 2021", "em 12/03/2025"), estado do tratamento (", em tratamento desde…",
+#: ", com tratamento interrompido…"), frequência ("três vezes por semana") e causa ("em razão de
+#: paralisia cerebral").
+_ATRIBUTO = re.compile(
+    r",?\s+(?:desde|h[áa])\s+(?:\+\s+de\s+|mais\s+de\s+|cerca\s+de\s+)?(?:\d{4}|\d+\s+(?:anos?|meses|dias|semanas)|"
+    rf"{_MESES}(?:\s+de\s+\d{{4}})?|(?:um|uma|dois|duas|tr[êe]s|quatro|cinco|seis|sete|oito|nove|dez)\s+"
+    r"(?:anos?|meses|dias|semanas)|a\s+(?:adolesc[êe]ncia|inf[âa]ncia|juventude)|o\s+(?:ingresso|nascimento|diagn[óo]stico))"
+    rf"|,?\s+em\s+(?:\d{{1,2}}/\d{{1,2}}/\d{{2,4}}|\d{{4}}|{_MESES}\s+de\s+\d{{4}})"
+    r"|,?\s+(?:em|com|sem)\s+(?:tratamento|acompanhamento|terapia|abstin[êe]ncia|remiss[ãa]o|cirurgia)\b[^.;,\n()]{0,50}"
+    r"|\s+(?:(?:uma|duas|tr[êe]s|quatro|cinco|\d)\s+vez(?:es)?\s+(?:por|ao|na)\s+(?:dia|semana|m[êe]s)|di[áa]ri[oa]|semanal|mensal)"
+    r"|\s+(?:em\s+raz[ãa]o\s+d[eoa]|decorrente\s+de|secund[áa]ri[oa]\s+a)\s+[^.;,\n()]{3,60}"
+    r"|,?\s+sem\s+(?:les[õo]es|altera[çc][õo]es|sinais)\b[^.;,\n()]{0,30}"
+    r"|\s+com\s+(?:implante|coloca[çc][ãa]o)\s+de\s+[^.;,\n()]{2,40}",
+    re.IGNORECASE)
+#: Pontuação e palavras funcionais (artigos, preposições e conjunções) que não começam nem terminam o
+#: trecho estendido.
+_BORDA_FRACA = re.compile(r"^(?:[\s,.:;–—\-()\"“”']|(?:e|ou|o|a|os|as|de|do|da|dos|das|em|no|na|nos|nas|ao|aos|à|às|pelo|"
+                          r"pela|pelos|pelas|para|com|por|que|um|uma)\b)+", re.IGNORECASE)
+_BORDA_FRACA_FIM = re.compile(r"(?:[\s,.:;–—\-(\"“”']|\b(?:e|ou|o|a|os|as|de|do|da|dos|das|em|no|na|nos|nas|ao|aos|à|às|pelo|"
+                              r"pela|pelos|pelas|para|com|por|que|um|uma)\b)+$", re.IGNORECASE)
+#: Motivos de :meth:`ContextoDocumental.isencao`; o termo isento não é tarjado por coerência com outra
+#: ocorrência tarjada (ver :meth:`themis_lgpd.motor.Anonimizador._saude_consistente`).
+ISENCAO_NOME = "Termo em nome de instituição, programa ou norma"
+ISENCAO_NEGACAO = "Termo negado, hipotético ou campo respondido com \"não\""
+ISENCAO_TITULO = "Termo em título do documento"
+ISENCAO_ROTULO = "Rótulo de campo"
+ISENCAO_ASSINATURA = "Especialidade na linha de assinatura do profissional"
+ISENCAO_CLASSIFICACAO = "Classificação do caso no cabeçalho (classe, assunto, natureza)"
+ISENCAO_SIGLA = "Trecho em maiúsculas sem termo de saúde reconhecido"
+ISENCAO_PERGUNTA = "Termo em pergunta ou quesito de formulário"
+MOTIVOS_ISENCAO = frozenset({ISENCAO_NOME, ISENCAO_NEGACAO, ISENCAO_TITULO, ISENCAO_ROTULO, ISENCAO_ASSINATURA,
+                             ISENCAO_CLASSIFICACAO, ISENCAO_SIGLA, ISENCAO_PERGUNTA})
+#: Campo de cabeçalho com a classificação processual ou policial do caso ("Classe – Assunto: Medidas
+#: Protetivas de Urgência – Violência Doméstica", "Título: Injúria racial (art. …)"): tipifica o caso, não
+#: descreve a pessoa.
+_CAMPO_CLASSIFICACAO = re.compile(r"[ \t]*(?:classe(?:\s*[–-]\s*assunto)?|assunto|natureza|t[íi]tulo|tipifica[çc][ãa]o|"
+                                  r"incid[êe]ncia\s+penal)\s*:", re.IGNORECASE)
+#: Palavra com inicial maiúscula ou sigla imediatamente antes do termo.
+_NOME_ANTES = re.compile(r"(?-i:\b(?:[A-ZÀ-Ú][\w-]*|[A-Z]{2,}))[ \t]+$")
+#: Sinal, sintoma ou histórico que antecede a condição e integra o trecho ("sinais de depressão pós-parto").
+_PREFIXO_ACHADO = re.compile(r"\b(?:sinais|sintomas|hist[óo]rico|epis[óo]dios?|queixas?)\s+de\s+$", re.IGNORECASE)
+#: Restante da pergunta até o ponto de interrogação, na mesma linha, e resposta afirmativa.
+_PERGUNTA = re.compile(r"[^\n?.;]{0,120}\?")
+_RESPOSTA_SIM = re.compile(r"[ \t]*(?:\d\s*[–-]\s*)?sim\b", re.IGNORECASE)
+#: Termo de cor ou etnia que qualifica serviço, política ou território ("saúde indígena", "educação escolar
+#: indígena", "agente indígena de saúde", "comunidades quilombolas").
+_RACA_EM_SERVICO = re.compile(r"\b(?:sa[úu]de|educa[çc][ãa]o(?:\s+escolar)?|agente|terra|territ[óo]rio|distrito\s+sanit[áa]rio\s+"
+                              r"especial|pol[íi]tica|movimento|povos?|comunidades?|popula[çc][ãa]o|escolas?|aldeias?)\s+$",
+                              re.IGNORECASE)
+#: Prefixo da origem dos achados do classificador treinado (ver :mod:`themis_lgpd.reconhecedores.aprendido`).
+_ORIGEM_APRENDIDA = "aprendido:"
+#: Registro em conselho profissional, que marca a linha de assinatura ("Médica oftalmologista – CRM-PB …").
+_REGISTRO_PROFISSIONAL = re.compile(r"(?-i:\b(?:CRM|COREN|CRP|CREFITO|CRO|CRFa|CRN|CRESS|CRF|RQE|CRBM|CREF|CRBio)\b)")
+#: Fórmula que introduz o conteúdo do atestado ("Atesto, para os devidos fins, que"): fica fora do
+#: trecho estendido.
+_FORMULA_ATESTACAO = re.compile(r"\b(?:atesto|declaro|certifico|informo|informamos|declaramos)\b[^.;\n]{0,160}?\bque\b",
+                                re.IGNORECASE)
+#: Cabeçalho de tabela de registro clínico ("EXAME | RESULTADO | REFERÊNCIA", "MEDICAMENTO | DOSE").
+_CABECALHO_CLINICO = re.compile(r"\b(?:exames?|resultados?|refer[êe]ncia|medicamentos?|doses?|posologia|achados?|conduta|"
+                                r"par[âa]metros?|dom[íi]nios?|qualificador|acuidade|dentes?|inicial|final|(?-i:VR))\b",
+                                re.IGNORECASE)
+
+
+class ContextoDocumental:
+    """Características do documento que decidem o vínculo dos dados sensíveis com uma pessoa.
+
+    Cada característica é calculada na primeira consulta: a maior parte dos textos não tem dado sensível,
+    e neles o documento não precisa ser classificado.
+
+    Args:
+        texto: Texto analisado.
+        documento: Classificação do documento inteiro, quando o texto é uma de suas partes (página,
+            parágrafo): os campos de identificação da primeira página valem para as seguintes.
+        achados_saude: Número de achados de saúde no texto (ver :data:`ACHADOS_DE_REGISTRO_CLINICO`).
+
+    Attributes:
+        centrado: O documento trata de uma pessoa identificada (campos de identificação ou fórmula de
+            atestação).
+        clinico: Além de centrado, é registro clínico ou pericial (título ou seções do registro).
+        protegidos: Trechos de nome de instituição, programa ou norma, que permanecem legíveis.
+        titulos: Linhas de título (sem minúsculas) em documento de caixa mista.
+        linhas_clinicas: Linhas de corpo de tabela de registro clínico (exames, medicamentos, achados),
+            tarjadas por inteiro em documento clínico.
+        linhas_pessoais: Linhas de tabela com uma pessoa por linha (coluna "Nome", "Candidato"): o dado
+            sensível de uma célula se refere à pessoa da linha.
+        nomes_proprios: Sequências de palavras com inicial maiúscula no meio da frase, que a extensão do
+            trecho de saúde não atravessa.
+    """
+
+    def __init__(self, texto: str, documento: ContextoDocumental | None = None, achados_saude: int = 0):
+        self.texto = texto
+        self._documento = documento
+        self.achados_saude = achados_saude
+
+    @cached_property
+    def _classificacao(self) -> tuple[bool, bool]:
+        texto = self.texto
+        titulares = len(_CAMPO_TITULAR.findall(texto))
+        rotulos = {dobrar(" ".join(m.group("rotulo").split())) for m in _CAMPO_IDENTIFICACAO.finditer(texto)}
+        genero = any(_GENERO_CLINICO.search(linha) for linha in texto[:1500].splitlines()
+                     if 0 < len(linha.strip()) <= 110 and ":" not in linha and not linha.rstrip().endswith("."))
+        centrado = ((titulares >= 1 and len(rotulos) >= 1) or len(rotulos) >= 3
+                    or (genero and bool(titulares or rotulos or _ATESTACAO.search(texto))))
+        # Documento centrado em pessoa com muitos achados de saúde é registro clínico mesmo sem título ou
+        # seção reconhecidos (relatório em prosa, carta de encaminhamento).
+        clinico = centrado and (genero or len(_SECAO_CLINICA.findall(texto)) >= 2
+                                or self.achados_saude >= ACHADOS_DE_REGISTRO_CLINICO)
+        if self._documento is not None:
+            centrado, clinico = centrado or self._documento.centrado, clinico or self._documento.clinico
+        return centrado, clinico
+
+    @property
+    def centrado(self) -> bool:
+        return self._classificacao[0]
+
+    @property
+    def clinico(self) -> bool:
+        return self._classificacao[1]
+
+    @cached_property
+    def protegidos(self) -> list[tuple[int, int]]:
+        return [m.span() for r in (_NOME_INSTITUICAO, _NOME_PROGRAMA, _SIGLA_SERVICO, _NORMA, _SERVICO_COMUM)
+                for m in r.finditer(self.texto)]
+
+    @cached_property
+    def nomes_proprios(self) -> list[tuple[int, int]]:
+        return [m.span() for m in _NOME_PROPRIO.finditer(self.texto)]
+
+    @cached_property
+    def titulos(self) -> list[tuple[int, int]]:
+        texto = self.texto
+        if sum(c.islower() for c in texto) <= 0.3 * sum(c.isalpha() for c in texto):
+            return []
+        return [m.span() for m in _TITULO.finditer(texto)]
+
+    @cached_property
+    def _tabelas(self) -> tuple[list[tuple[int, int]], list[tuple[int, int]]]:
+        clinicas, pessoais = [], []
+        for cabecalho, linhas in _tabelas(self.texto):
+            if self.clinico and (_CABECALHO_CLINICO.search(cabecalho) or _EXAME_RE.search(cabecalho)):
+                clinicas += linhas
+            if _COLUNA_PESSOA.search(cabecalho):
+                pessoais += linhas
+        return clinicas, pessoais
+
+    @property
+    def linhas_clinicas(self) -> list[tuple[int, int]]:
+        return self._tabelas[0]
+
+    @property
+    def linhas_pessoais(self) -> list[tuple[int, int]]:
+        return self._tabelas[1]
+
+    def em(self, intervalos: list, ini: int, fim: int) -> bool:
+        """Indica se o trecho está contido em algum dos intervalos."""
+        return any(a <= ini and fim <= b for a, b in intervalos)
+
+    def isencao(self, texto: str, ini: int, fim: int, camada: str, origem: str = "", tipo: str = "") -> str:
+        """Motivo para não vincular o termo sensível a uma pessoa, ou ``""``.
+
+        Nome de instituição, programa ou norma e negação valem para qualquer camada; título, linha de
+        assinatura e rótulo de campo, só para termos isolados (camada semântica). O nome de exame
+        seguido de dois-pontos ("Campo visual (OD): sem alterações") não é rótulo: abre o resultado.
+        """
+        if self.em(self.protegidos, ini, fim):
+            return ISENCAO_NOME
+        inicio_linha = texto.rfind("\n", 0, ini) + 1
+        if tipo in ("VIOLENCIA", "ORIGEM_RACIAL", "DADO_DE_MENOR") and _CAMPO_CLASSIFICACAO.match(texto, inicio_linha):
+            return ISENCAO_CLASSIFICACAO
+        # Termo de cor ou etnia com inicial maiúscula após palavra com inicial maiúscula ou sigla integra nome
+        # próprio ("Terra Indígena …", "Ribeirão Preto", "SISVAN Indígena").
+        if tipo == "ORIGEM_RACIAL" and (texto[ini:ini + 1].isupper() and _NOME_ANTES.search(texto, max(0, ini - 40), ini)
+                                         or _RACA_EM_SERVICO.search(texto, max(0, ini - 40), ini)):
+            return ISENCAO_NOME
+        # Trecho em maiúsculas do classificador treinado sem termo do léxico ("DGDP", "DECLARACAO DE"): sigla
+        # ou título. O trecho com dígitos continua tarjado, pois pode ser identificador sem outra regra.
+        trecho = texto[ini:fim]
+        if (origem.startswith(_ORIGEM_APRENDIDA) and trecho.isupper() and not any(c.isdigit() for c in trecho)
+                and not _TERMO_SAUDE.search(texto, ini, fim)):
+            return ISENCAO_SIGLA
+        # Negação de registro ("nega alergias", "sem sintomas psicóticos", "Possui deficiência? não"); num
+        # pedido, "negou o tratamento" é recusa de terceiro, e não ausência da condição.
+        if self.centrado and (_NEGACAO_ANTES.search(texto[max(inicio_linha, ini - 60):ini])
+                              or _NEGACAO_DEPOIS.match(texto, fim)):
+            return ISENCAO_NEGACAO
+        # Título ou seção ("LAUDO MÉDICO PARA COMPROVAÇÃO DE DEFICIÊNCIA", "MOTIVO DA INTERNAÇÃO"). O título
+        # que enuncia o motivo de saúde de uma licença ou afastamento ("LICENÇA PARA TRATAMENTO DE SAÚDE") e
+        # o trecho que traz o número do registro nomeiam o registro de uma pessoa e não são isentos.
+        if (self.em(self.titulos, ini, fim) and not _MOTIVO_DE_LICENCA.search(texto, ini, fim)
+                and not any(c.isdigit() for c in texto[ini:fim])):
+            return ISENCAO_TITULO
+        if camada != SEMANTICA:
+            return ""
+        # Quesito ou pergunta de formulário não respondida com "sim" ("A doença o incapacita para o
+        # trabalho? …"): o texto da pergunta é padrão.
+        if self.centrado and (q := _PERGUNTA.match(texto, fim)) is not None and not _RESPOSTA_SIM.match(texto, q.end()):
+            return ISENCAO_PERGUNTA
+        fim_linha = texto.find("\n", fim)
+        fim_linha = len(texto) if fim_linha < 0 else fim_linha
+        linha = texto[inicio_linha:fim_linha].rstrip()
+        if len(linha) <= 100 and not linha.endswith((".", ";", ":")) and _REGISTRO_PROFISSIONAL.search(linha):
+            return ISENCAO_ASSINATURA
+        if (_ROTULO_DEPOIS.match(texto, fim) and _ANTES_DO_ROTULO.fullmatch(texto, inicio_linha, ini)
+                and not origem.startswith(ORIGEM_CLINICA)):
+            return ISENCAO_ROTULO
+        return ""
+
+    def estender(self, texto: str, ini: int, fim: int, ancoras: list, limites: list = ()) -> tuple[int, int]:
+        """Trecho do dado de saúde estendido até a fronteira da frase ou da célula.
+
+        Num documento clínico, a frase que contém o achado descreve a condição da pessoa: o trecho vai
+        até as fronteiras de :data:`_FRONTEIRA`, sem atravessar nome de instituição ou norma nem
+        conectivo normativo ("conforme a Política…"). O rótulo da linha ("Diagnóstico:") fica visível,
+        salvo quando ele mesmo nomeia um exame ("Biomicroscopia do OE: …"). Fora de documento clínico,
+        só a célula de tabela é completada.
+
+        Args:
+            texto: Texto analisado.
+            ini: Início do achado.
+            fim: Fim do achado.
+            ancoras: Intervalos dos demais achados de saúde do texto.
+            limites: Outros trechos que a extensão não atravessa (municípios citados, por exemplo).
+        """
+        inicio_linha = texto.rfind("\n", 0, ini) + 1
+        fim_linha = texto.find("\n", fim)
+        fim_linha = len(texto) if fim_linha < 0 else fim_linha
+        if not self.clinico:
+            # Atributos da condição: tempo, estado do tratamento, lateralidade, frequência e causa.
+            if (p := _PREFIXO_ACHADO.search(texto, max(inicio_linha, ini - 20), ini)) is not None:
+                ini = p.start()
+            b = fim
+            while (m := _ATRIBUTO.match(texto, b, fim_linha)) is not None and m.end() > b:
+                b = m.end()
+            for x, _ in [*self.protegidos, *self.nomes_proprios, *limites]:
+                if fim <= x < b:
+                    b = x
+            linha = texto[inicio_linha:fim_linha]
+            if "|" not in linha and "\t" not in linha.strip():
+                return self._aparar(texto, ini, b, ini, fim)
+            a = max(texto.rfind("|", inicio_linha, ini), texto.rfind("\t", inicio_linha, ini)) + 1 or inicio_linha
+            a = max(a, inicio_linha)
+            bs = [p for p in (texto.find("|", fim, fim_linha), texto.find("\t", fim, fim_linha)) if p >= 0]
+            b = max(b, min(bs) if bs else fim_linha)
+            return self._aparar(texto, min(a, ini), max(b, fim), ini, fim)
+        a = max((m.end() for m in _FRONTEIRA.finditer(texto, max(0, ini - 600), ini)), default=max(0, ini - 600))
+        m = _FRONTEIRA.search(texto, fim, min(len(texto), fim + 600))
+        b = m.start() if m else min(len(texto), fim + 600)
+        # Rótulo da linha antes de dois-pontos: fica fora, salvo se contiver achado de saúde.
+        dois_pontos = texto.find(":", a, ini)
+        if dois_pontos >= 0 and dois_pontos - a <= 60 and not any(a <= x < dois_pontos for x, _ in ancoras):
+            a = dois_pontos + 1
+        for x, y in [*self.protegidos, *self.nomes_proprios, *limites]:
+            if a < y <= ini:
+                a = y
+            if fim <= x < b:
+                b = x
+        n = _CONECTIVO_NORMATIVO.search(texto, fim, b)
+        if n:
+            b = n.start()
+        formulas = list(_FORMULA_ATESTACAO.finditer(texto, a, ini))
+        if formulas:
+            a = formulas[-1].end()
+        return self._aparar(texto, a, b, ini, fim)
+
+    def recortar(self, texto: str, ini: int, fim: int) -> list[tuple[int, int]]:
+        """Partes do trecho tarjado fora dos nomes de instituição, programa ou norma que ele contém.
+
+        O valor de um campo clínico ("Conduta: encaminhamento ao Núcleo Ampliado de Saúde da Família …")
+        pode citar o serviço, que permanece legível.
+        """
+        pecas = [(ini, fim)]
+        for x, y in self.protegidos:
+            if y <= ini or x >= fim:
+                continue
+            novas = []
+            for a, b in pecas:
+                if y <= a or x >= b:
+                    novas.append((a, b))
+                    continue
+                if a < x:
+                    novas.append((a, x))
+                if y < b:
+                    novas.append((y, b))
+            pecas = novas
+        saida = []
+        for a, b in pecas:
+            # Só as bordas criadas pelo recorte perdem pontuação e palavras funcionais.
+            if a != ini and (m := _BORDA_FRACA.match(texto, a, b)):
+                a = m.end()
+            if b != fim and (m := _BORDA_FRACA_FIM.search(texto, a, b)):
+                b = m.start()
+            if any(c.isalnum() for c in texto[a:b]):
+                saida.append((a, b))
+        return saida
+
+    @staticmethod
+    def _aparar(texto: str, a: int, b: int, ini: int, fim: int) -> tuple[int, int]:
+        """Retira das bordas do trecho estendido pontuação, espaços e palavras funcionais."""
+        if a < ini:
+            m = _BORDA_FRACA.match(texto, a, ini)
+            a = m.end() if m else a
+        if b > fim:
+            m = _BORDA_FRACA_FIM.search(texto, fim, b)
+            b = m.start() if m and m.start() >= fim else b
+        return min(a, ini), max(b, fim)
+
+
+def contexto_documental(texto: str, documento: ContextoDocumental | None = None,
+                        achados_saude: int = 0) -> ContextoDocumental:
+    """Contexto documental do texto (ver :class:`ContextoDocumental`)."""
+    return ContextoDocumental(texto, documento, achados_saude)
+
+
+def _tabelas(texto: str) -> list[tuple[str, list[tuple[int, int]]]]:
+    """Tabelas do texto: o cabeçalho (primeira linha) e os intervalos das linhas do corpo.
+
+    Tabela é a sequência de ao menos duas linhas com separador de célula (``|`` ou tabulação).
+    """
+    tabelas: list[tuple[str, list[tuple[int, int]]]] = []
+    bloco: list[tuple[int, int]] = []
+    pos = 0
+    for linha in [*texto.split("\n"), ""]:
+        if "|" in linha or "\t" in linha.strip():
+            bloco.append((pos + len(linha) - len(linha.lstrip()), pos + len(linha)))
+        else:
+            if len(bloco) >= 2:
+                a, b = bloco[0]
+                tabelas.append((texto[a:b], [x for x in bloco[1:] if texto[x[0]:x[1]].strip(" |\t-")]))
+            bloco = []
+        pos += len(linha) + 1
+    return tabelas
+
+
+#: Coluna de tabela que identifica pessoa ("INSCRIÇÃO | NOME | CARGO | DEFICIÊNCIA").
+_COLUNA_PESSOA = re.compile(r"\b(?:nome|candidat[oa]|servidor[a]?|paciente|alun[oa]|benefici[áa]ri[oa]|requerente|"
+                            r"interessad[oa]|usu[áa]ri[oa])\b", re.IGNORECASE)
+
 
 # --------------------------------------------------------------------------- Outros sensíveis
+#: Templo ou comunidade religiosa e o nome que o segue ("Igreja Adventista do Sétimo Dia", "Renovação
+#: Carismática Católica", "Terreiro Ilê Axé …").
+_TEMPLO = (r"(?:Igreja|Comunidade\s+(?:Evang[ée]lica|Cat[óo]lica|Luterana|Batista|Presbiteriana|Metodista|Crist[ãa])|Par[óo]quia|"
+           r"Congrega[çc][ãa]o|Assembleia\s+de\s+Deus|Terreiro|Centro\s+Esp[íi]rita|Tenda|Renova[çc][ãa]o\s+Carism[áa]tica|"
+           r"Templo|Sinagoga|Mesquita)")
+_NOME_TEMPLO = r"(?:\s+(?:d[aoe]s?\s+|e\s+)?(?-i:[A-ZÀ-Ú][\w-]*))*"
 #: Termos das demais categorias de dado sensível do art. 5º, II, da LGPD.
 SENSIVEIS_SEMANTICA = [
     Padrao("RELIGIAO", _termos(
@@ -374,10 +1113,22 @@ SENSIVEIS_SEMANTICA = [
         r"candombl[ée]", r"candomblecista", r"judeu|judia|judaica?", r"mu[çc]ulman[oa]s?", r"isl[âa]mic[oa]",
         r"budista", r"hindu[íi]sta", r"ateu|ateia", r"agn[óo]stic[oa]", r"testemunhas?\s+de\s+jeov[áa]",
         r"adventista", r"pentecostal", r"presbiterian[oa]", r"batista", r"m[óo]rmon", r"protestante",
-        r"minha\s+(?:religi[ãa]o|f[ée]|cren[çc]a)", r"pr[áa]tica\s+religiosa", r"pai\s+de\s+santo", r"m[ãa]e\s+de\s+santo",
-        r"convic[çc][ãa]o\s+religiosa", r"religi[ãa]o\s+de\s+matriz\s+africana"), 0.8, camada=SEMANTICA),
+        r"minha\s+(?:religi[ãa]o|f[ée]|cren[çc]a)", r"pr[áa]tica\s+religiosa", r"convic[çc][ãa]o\s+religiosa",
+        r"religi[ãa]o\s+de\s+matriz\s+africana", r"luteran[oa]s?", r"anglican[oa]s?", r"metodistas?", r"kardecistas?",
+        r"messi[âa]nic[oa]s?",
+        # Vínculo com terreiro ou igreja, com o nome do templo ("filha de santo do Terreiro …", "membro da
+        # Igreja …", "frequenta os cultos da Comunidade Evangélica …")
+        r"(?:filh[oa]|pai|m[ãa]e)\s+de\s+santo(?:\s+(?:d[oe]|em|n[oa])\s+(?:um\s+)?terreiro(?:\s+de\s+\w+|"
+        + _NOME_TEMPLO + r")?)?",
+        r"iniciad[oa]\s+n[oa]\s+(?:candombl[ée]|umbanda|batuque|jurema)(?:\s+(?:em|h[áa])\s+[^.;,\n]{2,30}?(?=[.;,\n]|$))?",
+        r"(?:membro|fiel|frequentador[a]?|di[áa]cono|presb[íi]tero|obreir[oa])\s+d[aoe]\s+" + _TEMPLO + _NOME_TEMPLO,
+        r"(?:cultos|missas|celebra[çc][õo]es|giras|reuni[õo]es)\s+d[aoe]\s+" + _TEMPLO + _NOME_TEMPLO + r"(?:\s+do\s+bairro\s+"
+        r"(?-i:[A-ZÀ-Ú][\w-]*)(?:\s+(?-i:[A-ZÀ-Ú][\w-]*))*)?",
+        r"grupos?\s+de\s+ora[çc][ãa]o(?:\s+d[aoe]\s+" + _TEMPLO + _NOME_TEMPLO + r")?"), 0.8, camada=SEMANTICA),
     Padrao("OPINIAO_POLITICA", _termos(
-        r"filiad[oa]\s+(?:ao|à)\s+(?:partido\s+)?[A-Z][\w-]+", r"militante\s+(?:do|da|de)\s+\w+", r"bolsonarista",
+        r"filiad[oa]\s+(?:ao|à)\s+(?:partido\s+)?[A-Z][\w-]+(?:\s+(?-i:[A-ZÀ-Ú][\w-]*))*(?:\s*\((?-i:[A-Z]{2,}[\w-]*)\))?"
+        r"(?:\s+e\s+membro\s+d[eo]\s+(?:seu\s+)?diret[óo]rio(?:\s+(?:municipal|estadual|nacional|zonal))?)?",
+        r"membro\s+d[eo]\s+(?:seu\s+)?diret[óo]rio\s+(?:municipal|estadual|nacional|zonal)", r"militante\s+(?:do|da|de)\s+\w+", r"bolsonarista",
         r"lulista", r"petista", r"tucan[oa]", r"comunista", r"socialista", r"anarquista", r"eleitor(?:a)?\s+(?:do|da|de)\s+\w+",
         r"vot(?:ei|ou|amos|aram)\s+(?:em|no|na)\s+\w+", r"meu\s+voto", r"simpatizante\s+(?:do|da|de)\s+\w+",
         r"opini[ãa]o\s+pol[íi]tica", r"persegui[çc][ãa]o\s+pol[íi]tica", r"posicionamento\s+pol[íi]tico",
@@ -387,7 +1138,10 @@ SENSIVEIS_SEMANTICA = [
         r"fui\s+candidat[oa](?:\s+a\s+\w+)?", r"membro\s+d[aoe]\s+partido(?:\s+\w+)?"),
         0.8, camada=SEMANTICA),
     Padrao("FILIACAO_SINDICAL", _termos(
-        r"sindicalizad[oa]", r"sindicalista", r"filiad[oa]\s+(?:ao|à)\s+sindicato(?:\s+\w+)?",
+        r"sindicalizad[oa]", r"sindicalista",
+        r"(?:des)?filiad[oa]\s+(?:ao|à|do|da)\s+sindicato(?:\s+(?:d[aoe]s?\s+|e\s+|em\s+|n[oa]\s+)?(?-i:[A-ZÀ-Ú][\w-]*))*"
+        r"(?:\s*\((?-i:[A-Z]{2,}[\w/-]*)(?=\)))?",
+        r"mensalidades?\s+sindica(?:l|is)(?:\s*[–-]\s*(?-i:[A-Z]{2,}[\w/-]*))?",
         r"membro\s+do\s+sindicato(?:\s+\w+)?", r"associad[oa]\s+(?:ao|à)\s+sindicato(?:\s+\w+)?",
         r"dirigente\s+sindical", r"representante\s+sindical", r"delegad[oa]\s+sindical", r"ma[çc]om",
         r"ma[çc]onaria", r"filia[çc][ãa]o\s+sindical", r"membro\s+d[ao]\s+(?:CUT|CTB|UGT|CSP-Conlutas|For[çc]a\s+Sindical)",
@@ -399,7 +1153,9 @@ SENSIVEIS_SEMANTICA = [
         r"transexual", r"transg[êe]ner[oa]", r"travesti", r"pessoas?\s+trans", r"mulher(?:es)?\s+trans",
         r"home(?:m|ns)\s+trans", r"trans", r"processo\s+transexualizador", r"hormoniza[çc][ãa]o", r"terapia\s+hormonal",
         r"n[ãa]o[- ]bin[áa]ri[oa]", r"intersexo", r"lgbt\w*\+?", r"orienta[çc][ãa]o\s+sexual", r"identidade\s+de\s+g[êe]nero",
-        r"nome\s+social", r"vida\s+sexual", r"rela[çc][ãa]o\s+homoafetiva", r"homoafetiv[oa]", r"companheir[oa]\s+do\s+mesmo\s+sexo"),
+        r"nome\s+social", r"vida\s+sexual", r"(?:rela[çc][ãa]o|relacionamento|uni[ãa]o|casamento)\s+homoafetiv[oa]",
+        r"homoafetiv[oa]", r"companheir[oa]\s+do\s+mesmo\s+sexo", r"(?:homem|mulher)\s+(?:cis(?:g[êe]nero)?|trans(?:g[êe]nero)?)",
+        r"cisg[êe]ner[oa]", r"(?:homo|lesbo|bi|trans)fobia(?:\s*/\s*(?:homo|lesbo|bi|trans)fobia)*", r"lgbt\w*fobia"),
         0.85, camada=SEMANTICA),
     Padrao("GENETICO_BIOMETRICO", _termos(
         r"exame\s+de\s+dna", r"teste\s+(?:de\s+)?(?:dna|gen[ée]tico)", r"perfil\s+gen[ée]tico", r"doen[çc]a\s+gen[ée]tica",
@@ -407,24 +1163,30 @@ SENSIVEIS_SEMANTICA = [
         r"impress[õo]es\s+digitais", r"reconhecimento\s+facial", r"leitura\s+de\s+[íi]ris", r"dados?\s+gen[ée]ticos?"),
         0.85, camada=SEMANTICA),
     Padrao("ORIGEM_RACIAL", _termos(
-        r"negr[oa]s?", r"pret[oa]s?", r"pard[oa]s?", r"ind[íi]gena", r"quilombola", r"afrodescendentes?",
+        r"negr[oa]s?", r"pret[oa]s?", r"pard[oa]s?", r"ind[íi]gena(?:\s+d[ao]\s+(?:etnia|povo)\s+[\w-]+)?", r"quilombola",
+        r"remanescentes?\s+de\s+quilombos?", r"afrodescendentes?",
         r"afro-?brasileir[oa]s?", r"autodeclarad[oa]\s+\w+", r"cor\s+da\s+pele", r"origem\s+(?:[ée]tnica|racial)",
         r"etnia\s+\w+", r"ra[çc]a\s+\w+", r"cotista\s+racial", r"racismo", r"inj[úu]ria\s+racial",
         r"comunidade\s+(?:quilombola|ind[íi]gena|cigana)"), 0.75, camada=SEMANTICA),
+    # Campo de cor ou raça de ficha ou cadastro ("Raça/cor: parda", "Raça/cor: Indígena (etnia …)").
+    Padrao("ORIGEM_RACIAL", r"\b(?:ra[çc]a\s*/\s*cor|cor\s*/\s*ra[çc]a|cor\s+(?:da\s+pele|ou\s+ra[çc]a)|ra[çc]a(?:\s+ou\s+cor)?|etnia)\s*:\s*"
+                            r"(branc[oa]|pret[oa]|pard[oa]|amarel[oa]|ind[íi]gena(?:\s*\([^()\n]{1,30}\))?)(?!\w)",
+           0.9, camada=CONTEXTUAL, grupo=1, nome="sensivel:raca-cor"),
 ]
 
 # --------------------------------------------------------------------------- Intimidade e risco (LAI art. 31)
 #: Relatos de violência e de situação de risco. A divulgação pode expor a vítima a nova violência;
 #: por isso a confiança é alta e a camada é contextual.
+_TIPO_VIOLENCIA = (r"viol[êe]ncia\s+(?:dom[ée]stica|familiar|sexual|f[íi]sica|psicol[óo]gica|patrimonial|obst[ée]trica|"
+                   r"contra\s+a\s+mulher)|abuso\s+(?:sexual|f[íi]sico|psicol[óo]gico)|estupro(?:\s+de\s+vulner[áa]vel)?|"
+                   r"ass[ée]dio\s+(?:moral|sexual)|amea[çc]as?\s+de\s+morte|c[áa]rcere\s+privado|"
+                   r"tentativa\s+de\s+(?:homic[íi]dio|feminic[íi]dio|suic[íi]dio)|feminic[íi]dio|explora[çc][ãa]o\s+sexual|"
+                   r"tr[áa]fico\s+de\s+pessoas|inj[úu]ria\s+racial")
 INTIMIDADE_CONTEXTUAL = [
-    # Tipos de violência, com o enquadramento opcional ("vítima de", "medo de").
-    Padrao("VIOLENCIA",
-           r"\b(?:(?:medo|v[íi]tima|situa[çc][ãa]o|sofr(?:e|o|i|endo|eu)|alvo)\s+de\s+)?(?:viol[êe]ncia\s+"
-           r"(?:dom[ée]stica|familiar|sexual|f[íi]sica|psicol[óo]gica|patrimonial|obst[ée]trica|contra\s+a\s+mulher)|"
-           r"abuso\s+(?:sexual|f[íi]sico|psicol[óo]gico)|estupro(?:\s+de\s+vulner[áa]vel)?|ass[ée]dio\s+(?:moral|sexual)|"
-           r"medida\s+protetiva(?:\s+de\s+urg[êe]ncia)?|"
-           r"amea[çc]as?\s+de\s+morte|c[áa]rcere\s+privado|tentativa\s+de\s+(?:homic[íi]dio|feminic[íi]dio|suic[íi]dio)|"
-           r"feminic[íi]dio|explora[çc][ãa]o\s+sexual|tr[áa]fico\s+de\s+pessoas|inj[úu]ria\s+racial)",
+    # Tipo de violência atribuído a alguém ("vítima de", "sofreu", "medo de", "alvo de"). O tipo citado
+    # sem enquadramento ("o canal recebe denúncias de assédio moral") é termo isolado (ver
+    # :data:`INTIMIDADE_SEMANTICA`).
+    Padrao("VIOLENCIA", r"\b(?:medo|v[íi]tima|sofr(?:e|o|i|endo|eu|ia)|alvo)\s+de\s+(?:" + _TIPO_VIOLENCIA + r")",
            0.95, camada=CONTEXTUAL, nome="intimidade:violencia"),
     # Relatos em primeira pessoa de ameaça, agressão, fuga ou risco à vida.
     Padrao("VIOLENCIA",
@@ -434,7 +1196,7 @@ INTIMIDADE_CONTEXTUAL = [
            r"me\s+espanc\w+|me\s+humilh\w+|marcas\s+no\s+corpo|quebrou\s+a\s+medida|agredid[oa]\s+(?:pel[oa]|por)\s+\w+|"
            r"sofr(?:o|i)\s+(?:agress[õo]es|amea[çc]as|viol[êe]ncia)|recebi\s+amea[çc]as|tentou\s+me\s+\w+|"
            r"medo\s+de\s+(?:sofrer\s+)?(?:viol[êe]ncia|apanhar|agress[ãa]o|morrer|ser\s+morta?)|"
-           r"situa[çc][ãa]o\s+de\s+(?:risco|viol[êe]ncia|vulnerabilidade)|me\s+vigia|controla\s+tudo|"
+           r"me\s+vigia|controla\s+tudo|"
            r"fugi\s+de\s+casa|amea[çc]a\s+levar\s+(?:meus|minhas|os|as)\s+filh[oa]s|apanh(?:ar|ei|o)\s+(?:de|do|da|novamente)|"
            r"tentativa\s+de\s+suic[íi]dio|pensamentos\s+suicidas|idea[çc][ãa]o\s+suicida|automutila[çc][ãa]o)",
            0.95, camada=CONTEXTUAL, nome="intimidade:risco"),
@@ -444,10 +1206,15 @@ INTIMIDADE_SEMANTICA = [
     Padrao("VIOLENCIA", _termos(r"agress[ãa]o", r"agress[õo]es", r"viol[êe]ncia", r"medo\s+de\s+retalia[çc][ãa]o",
                                 r"agredid[oa]", r"amea[çc]ad[oa]", r"espancad[oa]", r"abusad[oa]",
                                 r"violentad[oa]", r"suic[íi]dio", r"trai[çc][ãa]o", r"div[óo]rcio", r"separa[çc][ãa]o\s+"
-                                r"(?:conjugal|judicial)", r"pens[ãa]o\s+aliment[íi]cia", r"guarda\s+(?:dos?\s+filhos?|"
+                                r"(?:conjugal|judicial)", r"guarda\s+(?:dos?\s+filhos?|"
                                 r"compartilhada|unilateral)", r"usu[áa]ri[oa]\s+de\s+drogas", r"presidi[áa]ri[oa]",
                                 r"egress[oa]\s+do\s+sistema\s+prisional", r"antecedentes\s+criminais", r"condenad[oa]"),
             0.75, camada=SEMANTICA, nome="intimidade:termo"),
+    # Tipo de violência sem enquadramento, medida protetiva e situação de risco ou de vulnerabilidade:
+    # tarjados quando a frase se refere a pessoa determinada ("estou em situação de risco").
+    Padrao("VIOLENCIA", r"\b(?:" + _TIPO_VIOLENCIA + r"|medida\s+protetiva(?:\s+de\s+urg[êe]ncia)?|"
+                        r"situa[çc][ãa]o\s+de\s+(?:risco|viol[êe]ncia|vulnerabilidade))\b",
+           0.85, camada=SEMANTICA, nome="intimidade:tipo"),
 ]
 
 # --------------------------------------------------------------------------- Menores (LGPD art. 14)
@@ -455,18 +1222,29 @@ INTIMIDADE_SEMANTICA = [
 MENOR_CONTEXTUAL = [
     # Criança ou adolescente com a idade ("meu filho de 8 anos"): a idade, combinada ao vínculo
     # familiar do requerente, identifica o menor.
+    # Faixas e limites de idade ("crianças de 6 meses a menores de 9 anos", "menores de 15 anos") são
+    # critério de norma ou de estatística e ficam legíveis; o plural sem determinante designa um grupo.
     Padrao("DADO_DE_MENOR",
-           r"\b(?:(?:minhas?|meus?|suas?|seus?|as?|os?)\s+)?(?:crian[çc]as?|beb[êe]s?|adolescentes?|filh[oa]s?|net[oa]s?|"
-           r"entead[oa]s?|menin[oa]s?|menor(?:es)?|dependentes?)\s+(?:de|com)\s+\d{1,2}\s+(?:anos?|meses)"
-           r"(?:\s+de\s+idade)?", 0.9, camada=CONTEXTUAL, nome="menor:idade"),
+           r"\b(?:(?:minhas?|meus?|suas?|seus?|as?|os?)\s+(?:crian[çc]as|beb[êe]s|adolescentes|filh[oa]s|net[oa]s|entead[oa]s|"
+           r"menin[oa]s|dependentes)|(?:(?:minha|meu|sua|seu|a|o)\s+)?(?:crian[çc]a|beb[êe]|adolescente|filh[oa]|net[oa]|"
+           r"entead[oa]|menin[oa]|dependente))\s+(?:de|com)\s+\d{1,2}\s+(?:anos?|meses)(?:\s+de\s+idade)?"
+           r"(?!\s*(?:a|e|at[ée])\s+(?:menores\s+de\s+)?\d)", 0.9, camada=CONTEXTUAL, nome="menor:idade"),
     # Medidas e procedimentos do ECA cuja divulgação é vedada (arts. 17 e 143).
     Padrao("DADO_DE_MENOR",
-           r"\b(?:conselho\s+tutelar|medida\s+socioeducativa|ato\s+infracional|acolhimento\s+institucional|"
+           r"\b(?:medida\s+socioeducativa|ato\s+infracional|"
            r"abrigo\s+de\s+menores|guarda\s+provis[óo]ria|destitui[çc][ãa]o\s+do\s+poder\s+familiar|"
            r"processo\s+de\s+ado[çc][ãa]o|menor\s+infrator(?:a)?|menor\s+sob\s+guarda|menor\s+de\s+idade\s+sob\s+\w+\s+"
            r"(?:responsabilidade|guarda|tutela)|menor\s+[óo]rf[ãa]o?|sob\s+tutela(?:\s+do\s+estado)?|"
            r"crian[çc]a\s+em\s+situa[çc][ãa]o\s+de\s+(?:abrigo|rua|risco|acolhimento))", 0.85, camada=CONTEXTUAL,
            nome="menor:situacao"),
+]
+#: Órgão e serviço de proteção citados sem a criança ("o conselho tutelar do bairro", "vagas de
+#: acolhimento institucional"): tarjados quando a frase se refere a pessoa determinada. O acolhimento de
+#: adultos e de idosos não é medida do ECA.
+MENOR_SEMANTICA = [
+    Padrao("DADO_DE_MENOR", r"\b(?:conselho\s+tutelar|acolhimento\s+institucional(?!\s+(?:para\s+)?(?:de\s+)?(?:adultos|"
+                            r"idosos|pessoas\s+idosas|fam[íi]lias|mulheres)))\b",
+           0.85, camada=SEMANTICA, nome="menor:servico"),
 ]
 
 # --------------------------------------------------------------------------- Quase-identificadores
@@ -696,9 +1474,9 @@ QUASE_IDENTIFICADORES = [
 def reconhecedores():
     """Reconhecedores deste módulo, na forma esperada por :mod:`themis_lgpd.analisador`."""
     return [
-        ReconhecedorPadroes("saude", SAUDE_CONTEXTUAL + SAUDE_SEMANTICA),
+        ReconhecedorPadroes("saude", SAUDE_CONTEXTUAL + SAUDE_SEMANTICA + SAUDE_CLINICA),
         ReconhecedorPadroes("sensiveis", SENSIVEIS_SEMANTICA),
         ReconhecedorPadroes("intimidade", INTIMIDADE_CONTEXTUAL + INTIMIDADE_SEMANTICA),
-        ReconhecedorPadroes("menores", MENOR_CONTEXTUAL),
+        ReconhecedorPadroes("menores", MENOR_CONTEXTUAL + MENOR_SEMANTICA),
         ReconhecedorPadroes("quase_identificadores", QUASE_IDENTIFICADORES),
     ]

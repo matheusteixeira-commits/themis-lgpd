@@ -109,15 +109,15 @@ coluna **Validação** indica o que é conferido além do formato.
 
 | Código | Nome | Etiqueta | Categoria | Exemplos de achado |
 |---|---|---|---|---|
-| `SAUDE` | Dado de saúde | `[DADO DE SAÚDE]` | `SENSIVEL` | CID F32.1, F41.1 e G40; C.I.D. 6A70.1; "diagnosticado com depressão"; "asma"; "faço uso de fluoxetina 20mg"; "laqueadura" |
-| `RELIGIAO` | Convicção religiosa | `[CONVICÇÃO RELIGIOSA]` | `SENSIVEL` | "sou católico" |
-| `OPINIAO_POLITICA` | Opinião política | `[OPINIÃO POLÍTICA]` | `SENSIVEL` | filiação partidária |
-| `FILIACAO_SINDICAL` | Filiação sindical ou associativa | `[FILIAÇÃO]` | `SENSIVEL` | "sou sindicalizado" |
-| `VIDA_SEXUAL` | Vida sexual / orientação sexual | `[VIDA SEXUAL]` | `SENSIVEL` | |
+| `SAUDE` | Dado de saúde | `[DADO DE SAÚDE]` | `SENSIVEL` | CID F32.1, F41.1 e G40; C.I.D. 6A70.1; "Diagnósticos de alta: E11.5; M86.1"; "diagnosticado com depressão"; "asma"; "faço uso de fluoxetina 20mg"; "creatinina de 1,6 mg/dL"; "PA 150 x 95 mmHg"; "Glasgow 13"; "licença para tratamento de saúde" |
+| `RELIGIAO` | Convicção religiosa | `[CONVICÇÃO RELIGIOSA]` | `SENSIVEL` | "sou católico"; "membro da Igreja …"; "filha de santo do Terreiro …" |
+| `OPINIAO_POLITICA` | Opinião política | `[OPINIÃO POLÍTICA]` | `SENSIVEL` | "filiado ao Partido … (sigla) e membro de seu diretório municipal" |
+| `FILIACAO_SINDICAL` | Filiação sindical ou associativa | `[FILIAÇÃO]` | `SENSIVEL` | "sou sindicalizado"; "mensalidade sindical"; "desfiliado do Sindicato … (sigla)" |
+| `VIDA_SEXUAL` | Vida sexual / orientação sexual | `[VIDA SEXUAL]` | `SENSIVEL` | "relacionamento homoafetivo"; "homem cisgênero" |
 | `GENETICO_BIOMETRICO` | Dado genético ou biométrico | `[DADO BIOMÉTRICO]` | `SENSIVEL` | exame de DNA, impressão digital |
-| `ORIGEM_RACIAL` | Origem racial ou étnica | `[ORIGEM RACIAL]` | `SENSIVEL` | |
-| `VIOLENCIA` | Situação de violência ou risco | `[SITUAÇÃO DE VIOLÊNCIA]` | `INTIMIDADE` | "vítima de violência doméstica"; "medida protetiva" |
-| `DADO_DE_MENOR` | Dado de criança ou adolescente | `[DADO DE MENOR]` | `MENOR` | "meu filho de 9 anos" |
+| `ORIGEM_RACIAL` | Origem racial ou étnica | `[ORIGEM RACIAL]` | `SENSIVEL` | "Raça/cor: parda"; "indígena da etnia …"; "remanescente de quilombo" |
+| `VIOLENCIA` | Situação de violência ou risco | `[SITUAÇÃO DE VIOLÊNCIA]` | `INTIMIDADE` | "vítima de violência doméstica"; "medida protetiva" (com vínculo) |
+| `DADO_DE_MENOR` | Dado de criança ou adolescente | `[DADO DE MENOR]` | `MENOR` | "meu filho de 9 anos"; "medida socioeducativa" |
 
 Os dados de saúde são reconhecidos por códigos da CID-10 e da CID-11 (inclusive listas), frases de
 diagnóstico e tratamento, um vocabulário de cerca de 500 expressões — doenças e condições por
@@ -130,6 +130,52 @@ condição: gravidade, tipo, localização anatômica e sigla entre parênteses 
 alguém ("estou com suspeita de…", "sofri uma fratura…"), registros clínicos ("laudo de…",
 "prontuário referente à…") e campos de formulário ("Condição clínica: …") são contextuais.
 As demais categorias sensíveis usam vocabulário próprio.
+
+O tipo de violência só é contextual com o enquadramento que o atribui a alguém ("vítima de", "sofreu",
+"medo de"); citado sem enquadramento ("denúncias de assédio moral"), assim como "situação de risco" ou
+"de vulnerabilidade", é termo isolado e depende de vínculo. "Conselho tutelar" e "acolhimento
+institucional" também dependem de vínculo, e faixas e limites de idade ("crianças de 6 meses a menores
+de 9 anos", "menores de 15 anos") não são dado de menor.
+
+#### Registro clínico e documento centrado em pessoa
+
+Num documento centrado numa pessoa identificada — campos de identificação no início de linha
+("Paciente:", "Periciando:", "Usuário:", "Requerente:", "Data de nascimento:", "Prontuário:", "CPF:"),
+seção de identificação ou fórmula de atestação ("Atesto, para os devidos fins, que a Sra. …") —, o dado
+sensível se refere a essa pessoa, e o termo isolado é tarjado sem marcador na frase (motivo "Dado
+sensível em documento centrado em pessoa identificada"), salvo quando a frase, fora de registro clínico,
+trata de grupo ou estatística. Boletins, notas técnicas, editais e comunicados não têm esses campos e
+seguem a regra da frase.
+
+O documento centrado é **registro clínico ou pericial** quando o título indica o gênero (laudo, atestado,
+prontuário, sumário de alta, parecer de junta médica, ficha de notificação, receituário,
+encaminhamento, avaliação biopsicossocial…), quando há ao menos duas seções do registro ("HISTÓRICO",
+"EXAME FÍSICO", "DIAGNÓSTICO", "CONDUTA"…) ou quando o texto tem muitos achados de saúde. Nele:
+
+- são reconhecidas também as formas próprias do registro: analito com resultado ("creatinina de 1,6
+  mg/dL", "anti-HCV reagente"), sinal vital e medida, escala clínica ("ECOG 2", "Child-Pugh C"),
+  posologia ("400 mg EV de 12/12 h"), fórmula obstétrica e idade gestacional, achados do exame físico e
+  psíquico, nome de exame, termos pelo sufixo (-algia, -ectomia, -plastia…) e o valor de campos clínicos
+  ("Natureza:", "Tipo de violência:", "Evolução:", "Marcha:");
+- o trecho tarjado vai até a fronteira da frase (ponto final, ponto e vírgula, quebra de linha, célula),
+  sem atravessar nome de instituição, programa ou norma, conectivo normativo ("conforme a Política…"),
+  município ou nome próprio; o rótulo da linha ("Diagnóstico:") fica legível, salvo quando nomeia exame;
+- as linhas do corpo de tabela de exames, prescrição ou achados ("EXAME | RESULTADO | REFERÊNCIA") são
+  tarjadas inteiras, com o cabeçalho legível.
+
+Fora do registro clínico, o trecho de saúde tarjado inclui os atributos da condição: tempo ("há 14
+anos", "desde 2021"), estado do tratamento (", em tratamento desde…"), frequência ("três vezes por
+semana"), causa ("em razão de paralisia cerebral") e a célula de tabela. Numa tabela com uma pessoa por
+linha (coluna "Nome", "Candidato"), o dado sensível da célula se refere à pessoa da linha.
+
+Não são vinculados a pessoa, e viram alerta, o termo sensível dentro de nome de instituição, programa,
+norma ou serviço ("Departamento de Controle da Hanseníase", "Vara de Violência Doméstica",
+"ambulatório de pé diabético"), em título do documento (salvo título que enuncia o motivo de uma licença),
+na linha de assinatura do profissional, em rótulo de campo ("Internação:", "Nome social:"), em
+classificação do caso no cabeçalho ("Assunto:", "Natureza:"), negado ou hipotético ("nega alergias",
+"em caso de febre", "Possui deficiência? não"), em quesito padrão não respondido com "sim", o termo de
+cor ou etnia que integra nome próprio ou qualifica serviço ("Terra Indígena …", "saúde indígena") e o
+trecho em maiúsculas do classificador treinado sem termo do léxico.
 
 ### Nomes de pessoas
 
