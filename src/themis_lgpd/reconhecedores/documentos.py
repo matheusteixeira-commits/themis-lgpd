@@ -16,6 +16,7 @@ import regex as re
 
 from .. import validadores as v
 from .base import ANTES_NUM, CONTEXTUAL, DEPOIS_NUM, Deteccao, Padrao
+from .pessoais import DATA_POR_EXTENSO, MES_ROMANO, MESES, NASCEU_SEM_PESSOA
 
 #: Indicação opcional de número entre a palavra-chave e o valor: "nº", "n.", "número", "de número".
 _NUM = r"(?:(?:de\s+)?n(?:[º°o]|úm(?:ero)?|um(?:ero)?)?\.?\s*)?"
@@ -194,20 +195,28 @@ PADROES: list[Padrao | ColunasIdentificadoras] = [
            ignorar_caixa=False, nome="registro:numero-sigla"),
     # ---------------- Data de nascimento: só a data precedida de expressão de nascimento; datas
     # isoladas são frequentes em documentos públicos e não são dado pessoal por si. Formatos: numérico
-    # ("12/03/1987", "12.03.87", "1987-03-12"), por extenso ("1º de março de 1987", "12 de mar. de
-    # 1987"), com mês abreviado ("12/mar/1987") e a fórmula de registro civil ("aos 12 dias do mês de
-    # março de 1987"). A idade da pessoa é reconhecida em :mod:`themis_lgpd.reconhecedores.pessoais`.
+    # ("12/03/1987", "12.03.87", "1987-03-12", "1987.03.12", "12 03 1987"), com o mês em algarismos
+    # romanos ("12/III/1987") ou abreviado ("12/mar/1987"), por extenso ("1º de março de 1987", "12 de
+    # mar. de 1987", "12 de marzo de 1987", "12 marzo 1987"), a fórmula de registro civil ("aos 12 dias
+    # do mês de março de 1987") e a data toda por extenso dos proclamas e assentos. As expressões de
+    # nascimento incluem as de documentos de estrangeiros ("nacida el", "nato a … il", "née le"); "nasceu"
+    # com sujeito que é programa, entidade ou lugar indica data de criação. A idade da pessoa é
+    # reconhecida em :mod:`themis_lgpd.reconhecedores.pessoais`.
     Padrao("DATA_NASCIMENTO",
-           r"(?:\bnascid[oa]s?|\bnascimento|\bnasc\b\.?|\bD\.?N\.?(?=\s*[:\-]|\s+\d)|\bdata de nasc\.?|\bnasceu|\bnasci|"
-           r"\bnaci|\bnascida|\banivers[áa]rio|\bniver|\bdt\.?\s*nasc\.?)"
-           r"[^\d\n]{0,30}?(?P<v>\d{1,2}\s*[/.\-]\s*\d{1,2}\s*[/.\-]\s*(?:19|20)?\d{2}(?!\d)|(?:19|20)\d{2}-\d{2}-\d{2}(?!\d)|"
+           r"(?:\bnascid[oa]s?|\bnascimento|\bnasc\b\.?|\bD\.?N\.?(?=\s*[:\-]|\s+\d)|\bdata de nasc\.?|"
+           r"\bnasce(?:u|ram)\b(?<!" + NASCEU_SEM_PESSOA + r"nasce(?:u|ram))|\bnasci|"
+           r"\bnaci|\bnascida|\bnascit[ao]\b|\bnat[oa]\b(?=[^\d\n]{1,30}?\bil\s+\d)|\bn[ée]e?\s+le\b|"
+           r"\banivers[áa]rio|\bniver|\bdt\.?\s*nasc\.?)"
+           r"[^\d\n]{0,30}?(?P<v>\d{1,2}\s*[/.\-]\s*(?:\d{1,2}|" + MES_ROMANO + r")\s*[/.\-]\s*(?:19|20)?\d{2}(?!\d)|"
+           r"(?:19|20)\d{2}[-./]\d{2}[-./]\d{2}(?!\d)|\d{2}\s\d{2}\s(?:19|20)\d{2}(?!\d)|"
            r"\d{1,2}[/.\-\s](?:jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)[a-zç]*\.?[/.\-\s](?:19|20)?\d{2}(?!\d)|"
-           r"\d{1,2}[º°]?\s+(?:dias\s+do\s+m[êe]s\s+)?de\s+(?:janeiro|fevereiro|mar[çc]o|abril|maio|junho|julho|agosto|"
-           r"setembro|outubro|novembro|dezembro|jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\.?\s+"
-           r"(?:do\s+ano\s+)?de\s+\d{4})", 0.9, camada=CONTEXTUAL, grupo="v"),
+           r"\d{1,2}[º°]?\s+(?:dias\s+do\s+m[êe]s\s+)?(?:de\s+)?" + MESES + r"\.?\s+(?:(?:do\s+ano\s+)?de\s+|del\s+)?\d{4}|" +
+           DATA_POR_EXTENSO + r")", 0.9, camada=CONTEXTUAL, grupo="v"),
     # Só o ano, logo após "nascido em" ou "ano de nascimento" (no singular: "nascidos em 2023" é
-    # contagem de registros).
-    Padrao("DATA_NASCIMENTO", r"(?:\bnascid[oa]\s+em|\bano\s+de\s+nascimento\s*[:\-]?)\s*(?P<v>(?:19|20)\d{2})(?![\d/.\-])",
+    # contagem de registros), inclusive o ano presumido de quem não tem registro.
+    Padrao("DATA_NASCIMENTO",
+           r"(?:\bnascid[oa]\s+em|\bano\s+de\s+nascimento(?:\s+(?:presumido|prov[áa]vel|declarado|informado|"
+           r"aproximado|estimado))?\s*[:\-]?)\s*(?P<v>(?:19|20)\d{2})(?![\d/.\-])",
            0.85, camada=CONTEXTUAL, grupo="v", nome="nascimento:ano"),
     # ---------------- Identificadores de cliente ou contribuinte (água, energia, IPTU, inscrições):
     # número com dígito após hífen, perto de uma expressão que indica o cadastro.
