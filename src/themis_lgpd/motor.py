@@ -38,20 +38,50 @@ from .texto import TextoNormalizado, dobrar, normalizar
 # "minha"), possessivos e papéis ("o requerente", "a paciente"). Usados para decidir se um termo
 # sensível isolado ("asma", "católico") deve ser tarjado ou apenas sinalizado para revisão.
 _VINCULO = re.compile(
-    r"\b(?:eu|meu|minha|meus|minhas|me|mim|comigo|sou|estou|estive|tenho|tive|fui|sofro|sofri|"
+    r"\b(?:eu|meu|minha|meus|minhas|me|mim|comigo|sou|estou|estive|tive|fui|sofro|sofri|"
+    # "tenho interesse", "tenho as seguintes dúvidas": fórmulas do pedido, não situação pessoal.
+    r"tenho(?!\s+(?:(?:as|algumas|alguns|umas?|seguintes|outras?|muitas?)\s+)*(?:interesse|d[úu]vidas?|perguntas|"
+    r"quest[õo]es|curiosidade|conhecimento|ci[êe]ncia)\b)|"
     r"trato|tratei|tomo|tomei|uso|sinto|senti|convivo|enfrento|enfrentei|descobri|fa[çc]o|fiz|fiquei|passei|"
     r"nasci|moro|recebi|realizei|internei|operei|preciso\s+de\s+(?:tratamento|rem[ée]dio|medica[çc][ãa]o|cirurgia)|"
+    r"possuo|utilizo|dependo|realizo|perdi|desenvolvi|contra[íi]|pude|dei\s+entrada|"
     r"t[ôo]|tava|(?!solicitei|requisitei|pedi)\w{3,}ei|perten[çc]o|participo|frequento|"
     r"seu|sua|seus|suas|dele|dela|deles|delas|ele|ela|"
+    r"(?:um|uma)\s+(?:familiar|parente)|"
     r"(?:o|a|do|da|ao|à|pel[oa])\s+(?:servidor|servidora|requerente|paciente|cidad[ãa]o|cidad[ãa]|interessad[oa]|"
     r"denunciante|v[íi]tima|solicitante|alun[oa]|estudante|funcion[áa]ri[oa]|empregad[oa]|segurad[oa]|"
     r"benefici[áa]ri[oa]|filh[oa]|espos[oa]|marido|mulher|companheir[oa]|m[ãa]e|pai|irm[ãa]o?|vizinh[oa]|colega|"
-    r"chefe|menor|crian[çc]a|adolescente|idos[oa]|titular|candidat[oa]|reclamante|usu[áa]ri[oa]))\b",
+    r"chefe|menor|crian[çc]a|adolescente|idos[oa]|titular|candidat[oa]|reclamante|usu[áa]ri[oa]|"
+    r"net[oa]|ti[oa]|av[ôóo]|sobrinh[oa]|prim[oa]|sogr[oa]|cunhad[oa]|entead[oa]|beb[êe]|detent[oa]|pres[oa]|"
+    r"internad[oa]|client[ea]|assistid[oa]|dependente|familiar))\b",
     re.IGNORECASE,
 )
 
 # Fronteiras de frase usadas para delimitar a janela da regra de vínculo.
 _FIM_FRASE = re.compile(r"[.!?;]\s|\n\s*\n|\n(?=\s*[-•*\d])")
+
+# Dado de saúde (LGPD, art. 5º, II): o pedido costuma nomear a condição numa frase e dizer de quem é
+# na seguinte ("…o fornecimento de insulina glargina. Minha filha tem diabetes…"). Por isso, para o tipo
+# SAUDE, o vínculo também é procurado nas frases vizinhas — exceto quando a frase do termo trata de um
+# grupo ou de estatística ("o número de casos de dengue", "a campanha de vacinação", "pacientes com
+# diabetes"), conteúdo de interesse público que deve permanecer legível (LAI, art. 3º, I).
+_COLETIVO = re.compile(
+    r"\b(?:quantitativos?|quantidades?|n[úu]mero|total\s+d[eoa]s?|totais|[íi]ndices?|taxas?|incid[êe]ncia|preval[êe]ncia|casos|"
+    r"percentua(?:l|is)|propor[çc][ãa]o|m[ée]dia|planejamento|mutir[õo]es|"
+    r"notifica[çc](?:[ãa]o|[õo]es)|s[ée]ries?\s+hist[óo]ricas?|estat[íi]stic\w*|relat[óo]rios?|levantamentos?|"
+    r"campanhas?|pol[íi]ticas?|programas?|cobertura|preven[çc][ãa]o|combate|conscientiza[çc][ãa]o|epidemi\w*|"
+    r"pandemia|endemia|surtos?|focos|popula[çc][ãa]o|pacientes|pessoas|usu[áa]rios|alunos|estudantes|servidores|"
+    r"crian[çc]as|portadores|munic[íi]pios|or[çc]amentos?|gastos|licita[çc](?:[ãa]o|[õo]es)|aquisi[çc](?:[ãa]o|[õo]es)|"
+    r"distribu[íi](?:[çc][ãa]o|dos?|das?))\b",
+    re.IGNORECASE,
+)
+# Fórmulas de contato e de pedido de resposta ("meu e-mail é…", "me enviem…"): numa frase vizinha, não
+# indicam que o termo de saúde se refere ao requerente.
+_FORMULA_CONTATO = re.compile(
+    r"\b(?:(?:meu|minha|meus|minhas)\s+(?:e-?mails?|endere[çc]os?\s+eletr[ôo]nicos?|telefones?|celular(?:es)?|"
+    r"whats\w*|zap|contatos?)|me\s+(?:envi|respond|retorn|encaminh|mand|inform|pass|liga|contat)\w*)\b",
+    re.IGNORECASE,
+)
 
 # Cargos públicos que, com a opção ``preservar_agentes_publicos``, mantêm o nome visível
 # (transparência ativa sobre agentes no exercício da função).
@@ -372,6 +402,13 @@ class Anonimizador:
             saida += [m.span() for m in re.finditer(r"(?<!\w)" + alvo + r"(?!\w)", dobrado)]
         return saida
 
+    @staticmethod
+    def _frase(texto: str, ini: int, fim: int) -> tuple[int, int]:
+        """Limites da frase que contém o trecho: pontuação final ou parágrafo, até 400 caracteres de cada lado."""
+        a = max((m.end() for m in _FIM_FRASE.finditer(texto, max(0, ini - 400), ini)), default=max(0, ini - 400))
+        m = _FIM_FRASE.search(texto, fim, min(len(texto), fim + 400))
+        return a, m.start() + 1 if m else min(len(texto), fim + 400)
+
     def _vinculado(self, texto: str, ini: int, fim: int, ancoras: list[tuple[int, int]]) -> bool:
         """Indica se a frase que contém o trecho se refere a uma pessoa determinada.
 
@@ -379,12 +416,37 @@ class Anonimizador:
         lado). Há vínculo quando ela contém um marcador de :data:`_VINCULO` ou um identificador
         pessoal já detectado (``ancoras``).
         """
-        a = max((m.end() for m in _FIM_FRASE.finditer(texto, max(0, ini - 400), ini)), default=max(0, ini - 400))
-        m = _FIM_FRASE.search(texto, fim, min(len(texto), fim + 400))
-        b = m.start() + 1 if m else min(len(texto), fim + 400)
+        a, b = self._frase(texto, ini, fim)
         if _VINCULO.search(texto, a, b):
             return True
         return any(a <= x < b or a < y <= b for x, y in ancoras)
+
+    def _vinculado_vizinhas(self, texto: str, ini: int, fim: int) -> bool:
+        """Indica se a frase anterior ou a seguinte se refere a uma pessoa determinada (ver :data:`_COLETIVO`).
+
+        Só se aplica quando a frase do próprio trecho não trata de grupo ou estatística. Nas vizinhas,
+        valem os marcadores de :data:`_VINCULO`, exceto os de fórmulas de contato ("meu e-mail é…");
+        identificadores detectados não bastam, pois uma assinatura não liga a pessoa ao termo.
+        """
+        a, b = self._frase(texto, ini, fim)
+        if _COLETIVO.search(texto, a, b):
+            return False
+        vizinhas = []
+        p = a - 1
+        while p > 0 and texto[p].isspace():
+            p -= 1
+        if p > 0:
+            vizinhas.append(self._frase(texto, p, p))
+        q = b
+        while q < len(texto) and texto[q].isspace():
+            q += 1
+        if q < len(texto):
+            vizinhas.append(self._frase(texto, q, q))
+        for x, y in vizinhas:
+            formulas = [m.span() for m in _FORMULA_CONTATO.finditer(texto, x, y)]
+            if any(not any(f <= m.start() and m.end() <= g for f, g in formulas) for m in _VINCULO.finditer(texto, x, y)):
+                return True
+        return False
 
     def _agente_publico(self, texto: str, ini: int, fim: int) -> bool:
         """Indica se o nome está junto a um cargo público ("Secretária de Estado de Saúde, Fulana")."""
@@ -423,6 +485,8 @@ class Anonimizador:
                     acao = P.TARJAR
                 elif self._vinculado(texto, d.inicio, d.fim, ancoras):
                     acao, motivo = P.TARJAR, "Termo sensível em frase que se refere a pessoa"
+                elif d.tipo == "SAUDE" and self._vinculado_vizinhas(texto, d.inicio, d.fim):
+                    acao, motivo = P.TARJAR, "Dado de saúde em relato sobre pessoa determinada (frase vizinha)"
                 else:
                     acao, motivo = P.ALERTAR, "Termo sensível sem vínculo claro com pessoa — revisar"
             else:
@@ -433,7 +497,24 @@ class Anonimizador:
             ini, fim = norm.para_original(d.inicio, d.fim)
             entidades.append(Entidade(ini, fim, d.tipo, norm.original[ini:fim], d.score, d.origem, d.camada,
                                       d.validado, acao, motivo))
+        self._saude_consistente(entidades)
         return self._consolidar(norm.original, entidades)
+
+    @staticmethod
+    def _saude_consistente(entidades: list[Entidade]) -> None:
+        """Tarja as demais ocorrências de um dado de saúde já tarjado no mesmo texto.
+
+        Em "tive complicações por diabetes tipo 2 … o afastamento para tratamento de diabetes tipo 2
+        interrompe o interstício?", a segunda menção revelaria a condição protegida na primeira. Só se
+        aplica a ocorrências com o mesmo termo (sem distinção de caixa, acentos e espaços).
+        """
+        def chave(e: Entidade) -> str:
+            return " ".join(dobrar(e.valor).split())
+
+        tarjadas = {chave(e) for e in entidades if e.tipo == "SAUDE" and e.acao == P.TARJAR}
+        for e in entidades:
+            if e.tipo == "SAUDE" and e.acao == P.ALERTAR and chave(e) in tarjadas:
+                e.acao, e.motivo = P.TARJAR, "Mesmo dado de saúde já tarjado no texto"
 
     @staticmethod
     def _enumeracoes(original: str, entidades: list[Entidade]) -> None:
