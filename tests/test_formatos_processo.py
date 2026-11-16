@@ -349,6 +349,7 @@ def _soffice() -> str:
 
 
 def _converter_para(soffice: str, dados: bytes, origem: str, destino: str, pasta: Path) -> bytes:
+    pasta.mkdir(parents=True)
     entrada = pasta / f"entrada.{origem}"
     entrada.write_bytes(dados)
     subprocess.run([soffice, f"-env:UserInstallation={(pasta / 'perfil').as_uri()}", "--headless",  # noqa: S603
