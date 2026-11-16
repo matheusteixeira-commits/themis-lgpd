@@ -103,6 +103,11 @@ LEGIVEIS = [
     ("Foi ouvido o Sargento PM Gildásio Moura Teles.", "PM"),
     # Cargo e classe funcional antes da matrícula
     ("ocupante do cargo de Assistente Social, Classe C, Padrão III, matrícula nº 0023597-1", "Padrão III"),
+    ("ocupante do cargo de Operador de Máquinas, matrícula nº 4455661", "Operador de Máquinas"),
+    # Tabela de materiais com código numérico
+    ("Item | Descrição | Código\n03 | FEIJÃO CARIOCA | 456789\n04 | CANETA AZUL | 456790", "FEIJÃO CARIOCA"),
+    # Rótulo seguido de órgão
+    ("Membro: Comissão Permanente de Licitação", "Comissão Permanente de Licitação"),
 ]
 
 

@@ -885,7 +885,13 @@ def _aceitar_nome(texto: str, toks, a: int, b: int, titulo_aceito: bool) -> bool
     if minusculas and any(len(toks[k][2]) > 1 and toks[k][2].isupper() and dobrar(toks[k][2]) not in CONECTORES
                           for k in range(a, b + 1)):
         return False
+    if not (conhecida or caixa_alta) and any(dobrar(toks[k][2]).endswith(_SUFIXOS_OFICIO) for k in range(a, b + 1)):
+        return False  # "Operador de Máquinas, matrícula": nome de cargo, não de pessoa
     return not contexto_nao_pessoal(texto, toks[a][0]) and not _empresa_depois(texto, toks[b][1])
+
+
+#: Terminações de nomes de ofício ("Operador", "Eletricista", "Cozinheira", "Servente").
+_SUFIXOS_OFICIO = ("dor", "dora", "dores", "doras", "ista", "istas", "eiro", "eira", "eiros", "eiras", "ente", "entes")
 
 
 def _nome_antes(texto: str, toks, fins: list[int], fim: int) -> tuple[int, int] | None:
@@ -1054,6 +1060,7 @@ class ReconhecedorNomesContexto:
         célula ao lado é o nome do titular. Com CPF na linha, nomes com iniciais maiúsculas também são
         aceitos.
         """
+        pn, sn = prenomes(), sobrenomes()
         saida: list[Deteccao] = []
         inicios = {t[0]: k for k, t in enumerate(toks)}
         fins = {t[1]: k for k, t in enumerate(toks)}
@@ -1078,7 +1085,10 @@ class ReconhecedorNomesContexto:
                               or (_inicial(texto, toks[x])
                                   and re.fullmatch(r"\.[ \t]{0,2}", texto[toks[x][1]:toks[x + 1][0]]))
                               for x in range(k, f))
-                if ligados and _aceitar_nome(texto, toks, k, f, titulo_aceito=cpf):
+                # Sem CPF na linha, o código pode ser de material ou serviço ("FEIJÃO CARIOCA | 456789"):
+                # exige-se prenome ou sobrenome conhecido.
+                conhecida = cpf or any(dobrar(toks[x][2]) in pn or dobrar(toks[x][2]) in sn for x in range(k, f + 1))
+                if ligados and conhecida and _aceitar_nome(texto, toks, k, f, titulo_aceito=cpf):
                     saida.append(Deteccao(toks[k][0], toks[f][1], "NOME", 0.85, "nomes:tabela", CONTEXTUAL))
         return saida
 
