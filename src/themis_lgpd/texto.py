@@ -7,8 +7,14 @@ usadas — intencionalmente ou não — para escapar de reconhecedores:
 * remoção de caracteres invisíveis (espaço de largura zero, marcas de direção de texto);
 * espaços especiais convertidos em espaço comum;
 * homóglifos: letras cirílicas e gregas idênticas às latinas ("Мaria" com M cirílico);
-* hifenização de fim de linha desfeita ("Apa-\\nrecida" → "Aparecida");
-* letras confundidas com dígitos pelo OCR, apenas em trechos majoritariamente numéricos.
+* hifenização de fim de linha desfeita ("Apa-\\nrecida" → "Aparecida"), também em caixa alta
+  ("PE-\\nREIRA"), com "¬" ou hífen condicional e com espaço depois do hífen ("Bor- \\nges");
+* número partido depois do hífen reunido, com o hífen ("027-\\n09" → "027-09");
+* campos de formulário em quadrícula, com um caractere por casa ("M A R I A   D E" → "MARIA DE");
+* espaço depois de rótulo colado ao valor ("Nome:FULANO" → "Nome: FULANO");
+* letras confundidas com dígitos pelo OCR, apenas em trechos majoritariamente numéricos; o zero no
+  lugar da letra O dentro de palavra ("C0STA"); "rn" lido no lugar de "m" em nomes e rótulos de campo
+  ("Sarnuel", "norne").
 
 A substituição, porém, é sempre aplicada sobre o texto **original**: o mapa de posições traduz cada
 achado de volta, e o documento publicado só muda nos trechos tarjados.
@@ -19,6 +25,7 @@ from __future__ import annotations
 import re
 import unicodedata
 from dataclasses import dataclass, field
+from functools import lru_cache
 
 try:  # dependência declarada; a importação opcional mantém o motor funcional sem ela
     import ftfy
@@ -103,6 +110,213 @@ def _eh_letra(c: str) -> bool:
     return c.isalpha()
 
 
+#: Marcas de hifenização explícitas: "¬" (comum em textos extraídos de PDF e de OCR) e hífen
+#: condicional. Entre letras, no fim da linha, sempre indicam palavra partida.
+_MARCAS_HIFENIZACAO = frozenset({"\u00ac", "\u00ad"})
+#: Hífens tipográficos que, no fim da linha, podem partir uma palavra ou um número.
+_HIFENS = frozenset({"-", "\u2010"})
+
+#: Siglas das unidades da federação: depois do hífen no fim da linha, completam um registro
+#: ("COREN-\nAM", "SES-\nDF") e não continuam uma palavra.
+_UFS = frozenset({
+    "ac", "al", "ap", "am", "ba", "ce", "df", "es", "go", "ma", "mt", "ms", "mg", "pa", "pb", "pr", "pe", "pi",
+    "rj", "rn", "rs", "ro", "rr", "sc", "sp", "se", "to"
+})
+#: Primeiros elementos de palavras compostas e prefixos que se ligam por hífen ("VICE-\nPREFEITO",
+#: "SEGUNDA-\nFEIRA"): em caixa alta, o hífen no fim da linha é mantido.
+_PRIMEIROS_ELEMENTOS = frozenset({
+    "ex", "vice", "vizo", "pre", "pro", "pos", "recem", "sem", "alem", "aquem", "bem", "mal", "auto", "anti",
+    "contra", "extra", "infra", "intra", "neo", "proto", "pseudo", "semi", "supra", "ultra", "sub", "super",
+    "hiper", "inter", "circum", "pan", "mega", "micro", "mini", "multi", "co", "guarda", "porta", "segunda",
+    "terca", "quarta", "quinta", "sexta", "meio", "meia", "norte", "sul", "nordeste", "noroeste", "sudeste",
+    "sudoeste", "leste", "oeste", "centro", "luso", "afro", "latino", "franco", "anglo", "italo", "nipo", "sino",
+    "teuto", "greco", "euro", "ibero", "indo", "socio", "medico", "tecnico", "politico", "economico", "juridico",
+    "fisico", "quimico", "psico", "agro", "sao", "santa", "santo"
+})
+#: Segundos elementos frequentes de palavras compostas ("DIRETOR-\nGERAL", "TÉCNICO-\nADMINISTRATIVO").
+_SEGUNDOS_ELEMENTOS = frozenset({
+    "feira", "geral", "gerais", "chefe", "chefes", "adjunto", "adjunta", "executivo", "executiva", "presidente",
+    "mor", "mirim", "acu", "guacu", "assistente", "substituto", "substituta", "relator", "relatora", "membro",
+    "membros", "administrativo", "administrativa", "pedagogico", "pedagogica", "cientifico", "cientifica",
+    "financeiro", "financeira", "social", "sociais", "legista"
+})
+
+
+def _fragmento_anterior(saida: list[str], fim: int | None = None) -> str:
+    """Letras já emitidas que terminam em ``fim`` (padrão: o fim da saída), até o primeiro caractere
+    que não é letra."""
+    k = f = len(saida) if fim is None else fim
+    while k > 0 and saida[k - 1].isalpha():
+        k -= 1
+    return "".join(saida[k:f])
+
+
+def _fragmento_seguinte(texto: str, k: int) -> str:
+    """Letras do texto a partir da posição ``k``, até o primeiro caractere que não é letra."""
+    f = k
+    while f < len(texto) and texto[f].isalpha():
+        f += 1
+    return texto[k:f]
+
+
+def _sem_acento(palavra: str) -> str:
+    return "".join(c for c in unicodedata.normalize("NFD", palavra.lower()) if not unicodedata.combining(c))
+
+
+def _continuacao_de_linha(texto: str, j: int) -> int:
+    """Posição do primeiro caractere da linha seguinte quando ``j`` está no fim da linha (admitidos
+    espaços antes da quebra); -1 se houver outro conteúdo antes da quebra ou se a linha seguinte
+    estiver vazia."""
+    n = len(texto)
+    k = j
+    while k < n and texto[k] in " \t":
+        k += 1
+    if k < n and texto[k] == "\r":
+        k += 1
+    if k >= n or texto[k] != "\n":
+        return -1
+    k += 1
+    while k < n and texto[k] in " \t":
+        k += 1
+    return k if k < n and not texto[k].isspace() else -1
+
+
+def _hifenizacao(saida: list[str], texto: str, c: str, k: int) -> str:
+    """Decide o tratamento de um hífen no fim da linha.
+
+    Args:
+        saida: Caracteres já emitidos (o último precede o hífen).
+        texto: Texto original.
+        c: O hífen ou a marca de hifenização.
+        k: Início da linha seguinte (ver :func:`_continuacao_de_linha`).
+
+    Returns:
+        ``"palavra"`` quando o hífen parte uma palavra e deve sair junto com a quebra de linha,
+        ``"numero"`` quando parte um número (só a quebra sai: "027-\\n09" → "027-09") e ``""``
+        quando o hífen é legítimo e a linha permanece como está.
+    """
+    anterior, seguinte = saida[-1], texto[k]
+    if c in _MARCAS_HIFENIZACAO:
+        return "palavra" if anterior.isalpha() and seguinte.isalpha() else ""
+    if anterior.isalpha() and seguinte.islower():
+        return "palavra"
+    if anterior.isalnum() and seguinte.isdigit():
+        return "numero"
+    if anterior.isalpha() and anterior.isupper() and seguinte.isupper():
+        # Palavra em caixa alta partida pela translineação ("PE-\nREIRA"). Não há minúscula que
+        # distinga a sílaba de um composto; preservam-se os compostos e prefixos usuais, as siglas
+        # de UF e os fragmentos de uma só letra.
+        esquerda, direita = _fragmento_anterior(saida), _fragmento_seguinte(texto, k)
+        if len(esquerda) < 2 or len(direita) < 2 or not esquerda.isupper() or not direita.isupper():
+            return ""
+        e, d = _sem_acento(esquerda), _sem_acento(direita)
+        if (len(d) == 2 and d in _UFS) or e in _PRIMEIROS_ELEMENTOS or d in _SEGUNDOS_ELEMENTOS:
+            return ""
+        return "palavra"
+    return ""
+
+
+#: Campo em quadrícula: caracteres isolados separados por um a três espaços ("M A R I A   D E").
+_QUADRICULA = re.compile(r"(?<!\S)\S(?!\S)(?: {1,3}\S(?!\S))+")
+
+
+def _espacos_de_quadricula(texto: str) -> set[int]:
+    """Posições de espaços a descartar nos campos em quadrícula.
+
+    Formulários impressos com uma casa por caractere chegam ao texto com cada letra separada por
+    espaço e cada palavra por casas vazias. Num campo com ao menos quatro caracteres seguidos
+    separados por espaço simples, majoritariamente letras e algarismos, o espaço entre caracteres
+    é descartado e o intervalo entre palavras (dois ou três espaços) é reduzido a um espaço.
+    Intervalos maiores separam colunas e são mantidos.
+    """
+    if "  " not in texto and not re.search(r"\S \S \S \S", texto):
+        return set()
+    descartar: set[int] = set()
+    for m in _QUADRICULA.finditer(texto):
+        trecho = m.group()
+        if not re.search(r"\S \S \S \S", trecho):
+            continue
+        caracteres = [ch for ch in trecho if not ch.isspace()]
+        if sum(ch.isalnum() for ch in caracteres) * 2 < len(caracteres):
+            continue
+        p = m.start()
+        while p < m.end():
+            if texto[p] != " ":
+                p += 1
+                continue
+            q = p
+            while q < m.end() and texto[q] == " ":
+                q += 1
+            # Espaço simples: entre caracteres da mesma palavra; dois ou três: entre palavras.
+            descartar.update(range(p, q) if q - p == 1 else range(p + 1, q))
+            p = q
+    return descartar
+
+
+#: Rótulos de campo que o OCR costuma ler com "rn" no lugar de "m" ("norne", "rnãe").
+_ROTULOS_OCR = frozenset({
+    "matricula", "nome", "numero", "mae", "mes", "municipio", "nascimento", "nascido", "nascida", "menor",
+    "medico", "medica",
+})
+#: Palavra com "rn".
+_PALAVRA_RN = re.compile(r"(?<![\w])[^\W\d_]*[rR][nN][^\W\d_]*(?![\w])")
+
+
+@lru_cache(maxsize=1)
+def _lexico_ocr() -> frozenset[str]:
+    """Prenomes, sobrenomes e rótulos de campo, sem acentos e em minúsculas."""
+    # Importação tardia: o módulo de nomes depende deste.
+    from .reconhecedores.nomes import prenomes, sobrenomes
+
+    return prenomes() | sobrenomes() | _ROTULOS_OCR
+
+
+def _rn_lido_como_m(texto: str) -> dict[int, str]:
+    """Posições de "rn" que o OCR leu no lugar de "m" e a letra correspondente.
+
+    A troca só é feita quando a palavra não existe nas listas de prenomes, sobrenomes e rótulos de
+    campo e passa a existir com "m" ("Sarnuel" → "Samuel", "norne" → "nome"). Palavras com
+    "rn" legítimo ("Bernardo", "governo", "turno") não mudam.
+    """
+    if "rn" not in texto and "RN" not in texto and "rN" not in texto and "Rn" not in texto:
+        return {}
+    lexico = _lexico_ocr()
+    trocas: dict[int, str] = {}
+    for m in _PALAVRA_RN.finditer(texto):
+        palavra = m.group()
+        base = _sem_acento(palavra)
+        if base in lexico:
+            continue
+        corrigida = base.replace("rn", "m")
+        if len(corrigida) < 3 or corrigida not in lexico:
+            continue
+        for k in range(len(palavra) - 1):
+            if palavra[k] in "rR" and palavra[k + 1] in "nN":
+                trocas[m.start() + k] = "M" if palavra[k].isupper() else "m"
+    return trocas
+
+
+#: Esquemas de endereço de internet, cujos dois-pontos não separam rótulo e valor.
+_ESQUEMAS = frozenset({"http", "https", "ftp", "mailto", "file", "urn", "data", "sip"})
+
+
+def _rotulo_colado(saida: list[str], texto: str, j: int) -> bool:
+    """Indica se os dois-pontos recém-emitidos separam um rótulo do valor colado a ele.
+
+    Em "Aluno(a):FULANO" e "Dt.Nasc.:07/02/2016", o espaço que falta depois dos dois-pontos impede
+    que reconhecedores baseados em rótulo e no início da palavra encontrem o valor. Não se aplica a
+    horas, endereços de internet e sequências com vários dois-pontos (IPv6, endereço MAC).
+    """
+    if len(saida) < 2 or j >= len(texto):
+        return False
+    antes, depois = saida[-2], texto[j]
+    if not (antes.isalpha() or antes in ").") or not (depois.isalnum() or depois == "("):
+        return False
+    if ":" in texto[max(0, j - 7):j - 1] or ":" in texto[j:j + 6]:
+        return False
+    return _sem_acento(_fragmento_anterior(saida, len(saida) - 1)) not in _ESQUEMAS
+
+
 def normalizar(texto: str) -> TextoNormalizado:
     """Gera o texto de detecção e o mapa de posições.
 
@@ -118,19 +332,35 @@ def normalizar(texto: str) -> TextoNormalizado:
     ini: list[int] = []
     fim: list[int] = []
     n = len(original)
+    descartar = _espacos_de_quadricula(original)
+    rn_m = _rn_lido_como_m(original)
     i = 0
     while i < n:
         c = original[i]
+        if i in descartar:
+            i += 1
+            continue
+        if i in rn_m:
+            saida.append(rn_m[i])
+            ini.append(i)
+            fim.append(i + 2)
+            i += 2
+            continue
         j = i + 1
         while j < n and unicodedata.combining(original[j]):
             j += 1
-        # Hifenização de fim de linha entre letras: só é desfeita quando a linha seguinte continua
+        # Hifenização de fim de linha: em caixa mista, só é desfeita quando a linha seguinte continua
         # em minúscula, o que preserva hífens legítimos em fim de linha ("Rio-\nGrande").
-        if c == "-" and j < n and original[j] == "\n" and saida and _eh_letra(saida[-1]):
-            k = j + 1
-            while k < n and original[k] in " \t":
-                k += 1
-            if k < n and original[k].islower():
+        if (c in _HIFENS or c in _MARCAS_HIFENIZACAO) and saida and saida[-1].isalnum():
+            k = _continuacao_de_linha(original, j)
+            tratamento = _hifenizacao(saida, original, c, k) if k > 0 else ""
+            if tratamento == "palavra":
+                i = k
+                continue
+            if tratamento == "numero":
+                saida.append("-")
+                ini.append(i)
+                fim.append(j)
                 i = k
                 continue
         if c in INVISIVEIS:
@@ -147,8 +377,13 @@ def normalizar(texto: str) -> TextoNormalizado:
             saida.append(ch)
             ini.append(i)
             fim.append(j)
+        if c == ":" and _rotulo_colado(saida, original, j):
+            saida.append(" ")
+            ini.append(i)
+            fim.append(j)
         i = j
-    return TextoNormalizado(original, _corrigir_ocr_numerico("".join(saida)), ini, fim, corrigido)
+    texto_norm = _corrigir_ocr_palavras(_corrigir_ocr_numerico("".join(saida)))
+    return TextoNormalizado(original, texto_norm, ini, fim, corrigido)
 
 
 #: Letras que o OCR costuma confundir com dígitos ("1Z3.456.789-OO") e o dígito correspondente.
@@ -176,6 +411,30 @@ def _corrigir_ocr_numerico(texto: str) -> str:
         return s
 
     return _RUN_NUMERICO.sub(troca, texto)
+
+
+#: Palavra com o algarismo zero entre letras ("C0STA", "WELLINGT0N").
+_ZERO_EM_PALAVRA = re.compile(r"(?<![\w])[^\W\d_]+(?:0[^\W\d_]+){1,2}(?![\w])")
+
+
+def _corrigir_ocr_palavras(texto: str) -> str:
+    """Troca o zero confundido com a letra O dentro de palavras, preservando o comprimento.
+
+    Só se aplica a palavras de caixa uniforme, com ao menos quatro letras, em que o zero está entre
+    letras e é o único algarismo: códigos alfanuméricos (placas, lotes, protocolos) têm outros
+    algarismos ou o zero na borda.
+    """
+    if "0" not in texto:
+        return texto
+
+    def troca(m: re.Match) -> str:
+        s = m.group()
+        letras = s.replace("0", "")
+        if len(letras) < 4 or not (letras.isupper() or letras.islower()):
+            return s
+        return s.replace("0", "O" if letras.isupper() else "o")
+
+    return _ZERO_EM_PALAVRA.sub(troca, texto)
 
 
 def dobrar(texto: str) -> str:

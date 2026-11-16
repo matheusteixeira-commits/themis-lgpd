@@ -53,7 +53,13 @@ correspondente no original. As transformações são:
 | Unicode NFKC e substituição de homóglifos | letras cirílicas idênticas às latinas | Evasão por homóglifos |
 | Espaços especiais convertidos em espaço comum | espaço não separável | Consistência dos padrões |
 | Hifenização de fim de linha desfeita | `Apa-\nrecida` → `Aparecida` | Nomes quebrados entre linhas |
+| Hifenização em caixa alta, com `¬` ou hífen condicional e com espaço depois do hífen (compostos, prefixos e siglas de UF preservados) | `PE-\nREIRA` → `PEREIRA`; `Fon¬\ntes` → `Fontes` | Nomes quebrados entre linhas |
+| Número partido depois do hífen reunido, com o hífen | `027-\n09` → `027-09` | Documentos e telefones quebrados entre linhas |
+| Campos em quadrícula reunidos (um caractere por casa) | `M A R I A   D E` → `MARIA DE` | Formulários impressos e digitalizados |
+| Espaço depois de rótulo colado ao valor | `Nome:FULANO` → `Nome: FULANO` | Campos de formulário sem espaço |
 | Correção de letras confundidas pelo OCR em sequências numéricas | `1Z3.456.789-OO` → `123.456.789-00` | Documentos digitalizados |
+| Zero no lugar da letra O dentro de palavra de caixa uniforme | `C0STA` → `COSTA` | Documentos digitalizados |
+| "rn" lido no lugar de "m" quando só a palavra com "m" é prenome, sobrenome ou rótulo de campo | `norne` → `nome` | Documentos digitalizados |
 
 O texto de saída é sempre construído a partir do original (com a codificação corrigida, quando for o
 caso). Fora dos trechos tarjados, o documento permanece idêntico.
@@ -81,6 +87,7 @@ Presidio configurado para o idioma `pt`:
   | `BR_Veiculos` | PLACA, RENAVAM | |
   | `BR_Processos` | PROCESSO_JUDICIAL, PROCESSO_ADMINISTRATIVO, PROTOCOLO | Módulo 97 no padrão CNJ |
   | `BR_Nomes_Lista`, `BR_Nomes_Gatilho`, `BR_Nomes_Modelo` | NOME | Lista de nomes, gatilhos de contexto e entidades do spaCy |
+  | `BR_Tabelas` | NOME, documentos, matrícula, registro profissional, data de nascimento, idade, valor, conta, contato, endereço, veículo, protocolo, saúde, origem racial, religião | Coluna tipificada pelo cabeçalho em tabelas de pessoas (separador, alinhamento por espaços, colunas em bloco) e campo de formulário com o rótulo em outra linha |
   | `BR_Saude`, `BR_Sensiveis`, `BR_Intimidade`, `BR_Menores`, `BR_Quase_Identificadores` | tipos sensíveis e quase-identificadores | |
   | `Presidio_Telefone_BR` (`PhoneRecognizer`) | TELEFONE | Biblioteca phonenumbers, região BR |
   | `Presidio_IP` (`IpRecognizer`) | IP | |
@@ -296,6 +303,7 @@ src/themis_lgpd/
 │   ├── localizacao.py   Endereços, CEP, municípios do IBGE e regiões administrativas do DF
 │   ├── financeiro.py    Dados bancários, cartões, PIX, veículos, processos e protocolos
 │   ├── nomes.py         Nomes: lista, gatilhos, filtro das entidades do spaCy, carregamento do modelo
+│   ├── tabelas.py       Tabelas, listas e formulários: colunas e campos tipificados pelo rótulo
 │   └── sensiveis.py     Saúde, convicções, intimidade, menores, quase-identificadores
 ├── formatos/
 │   ├── __init__.py      Detecção de formato, limites, anonimizar_arquivo, exceções

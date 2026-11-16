@@ -29,9 +29,11 @@ de imagens. Todas as partes de um arquivo são tratadas como um único documento
 
 A detecção ocorre sobre uma cópia preparada do texto, para que truques de formatação não escondam
 dados: caracteres invisíveis são removidos, letras de outros alfabetos idênticas às latinas são
-convertidas, palavras hifenizadas no fim da linha são reunidas e letras confundidas pelo OCR dentro de
-números são corrigidas (`1Z3.456.789-OO` → `123.456.789-00`). O documento final só muda nos trechos
-tarjados.
+convertidas, palavras hifenizadas no fim da linha são reunidas (inclusive em caixa alta e com `¬`),
+números partidos depois do hífen são reunidos, campos de formulário em quadrícula (`M A R I A`) viram
+palavras, rótulos colados ao valor (`Nome:FULANO`) ganham o espaço que falta e letras confundidas pelo
+OCR dentro de números são corrigidas (`1Z3.456.789-OO` → `123.456.789-00`). O documento final só muda
+nos trechos tarjados.
 
 ## 3. Detecção
 
@@ -41,6 +43,7 @@ tarjados.
 | Padrões com palavra de contexto | RG, passaporte, CTPS, matrícula, OAB/CRM, data de nascimento, conta bancária, PIX, placa, RENAVAM, protocolos |
 | Contato e localização | E-mail (inclusive formas como "joao arroba gmail ponto com"), telefone, perfil em rede social, IP, CEP, endereço (inclusive SQS, QNM, SHIS e demais endereços do DF) |
 | Nomes | Modelo de linguagem em português, lista de nomes brasileiros e expressões como "meu nome é", "requerente:" e "Atenciosamente," |
+| Tabelas e formulários | Em tabelas de pessoas (com coluna de nome ou de identificador pessoal), cada coluna é tipificada pelo cabeçalho — matrícula, registro profissional, data de nascimento, agência e conta, valor pago —, inclusive em colunas alinhadas por espaços, em arquivos CSV e em colunas extraídas uma depois da outra; nos formulários, o valor é ligado ao rótulo que está em outra linha |
 | Dados sensíveis | Saúde (CID, diagnósticos, cerca de 150 condições), religião, opinião política, filiação sindical, vida sexual, dado genético ou biométrico, origem racial; violência e situação de risco; dados de crianças |
 
 A detecção usa o Microsoft Presidio, com reconhecedores desenvolvidos para documentos brasileiros.

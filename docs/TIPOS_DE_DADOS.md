@@ -101,6 +101,7 @@ coluna **Validação** indica o que é conferido além do formato.
 | `CONTATO_INSTITUCIONAL` | Telefone ou e-mail de órgão ou setor | `[CONTATO INSTITUCIONAL]` | 20 | Ver [Contatos, endereços e veículos do órgão](#contatos-endereços-e-veículos-do-órgão) |
 | `ENDERECO_INSTITUCIONAL` | Endereço de sede ou unidade de órgão | `[ENDEREÇO INSTITUCIONAL]` | 20 | "na sede da Secretaria, situada na Rua…"; cabeçalho do documento |
 | `PLACA_OFICIAL` | Placa de veículo da frota oficial | `[PLACA OFICIAL]` | 20 | "veículos oficiais de placas …"; tabela de unidades e placas em documento sobre a frota |
+| `UNIDADE_INSTITUCIONAL` | Nome de órgão, unidade, estabelecimento ou empresa | `[UNIDADE]` | 20 | Nome de pessoa reconhecido dentro de célula de coluna de unidade ("Escola / Lotação", "Unidade de saúde", "Órgão de origem", "Empresa") numa tabela de pessoas: integra o nome da unidade ("EE Professora Fulana"). Na coluna de lugar ("Município", "Destino", "Naturalidade"), o nome vira `LOCALIDADE` |
 | `QUASE_IDENTIFICADOR` | Quase-identificador | `[QUASE-IDENTIFICADOR]` | 15 | Função, local e turno ("atendente do guichê 4 na tarde de ontem"); função ou condição precedida de "único" ("única professora surda da escola", "o único apenado da galeria que atua como monitor"); aposto que descreve a pessoa ("o escrivão do plantão, um senhor grisalho de bigode"); descrição física com marca distintiva ("o mais alto, com tatuagem no pescoço") |
 | `NUMERO_NAO_IDENTIFICADO` | Número longo não identificado | `[NÚMERO]` | 10 | Reservado; não é produzido pelos reconhecedores padrão |
 | `MANUAL` | Trecho tarjado manualmente | `[TARJADO]` | 110 | Lista de bloqueio e tarjas manuais da revisão |
@@ -204,6 +205,38 @@ O classificador de trechos treinado também propõe nomes (`BR_Sensivel_Aprendid
 o mesmo critério de lugares, instituições e normas, descarta o nome que encerra o nome próprio de uma
 unidade ou honraria ("Unidade Básica de Saúde Dr. …", "Prêmio … Fulano de Tal") e o que é, por inteiro,
 nome de município, e retira pronomes de tratamento do início.
+
+### Tabelas, listas e formulários
+
+Relações de servidores, folhas de pagamento e de bolsas, editais de resultado, escalas, listas de
+presença, relações de beneficiários e de diárias e fichas cadastrais trazem o dado pessoal numa célula
+cujo rótulo está só no cabeçalho da coluna ou num bloco separado. O reconhecedor `BR_Tabelas`
+(`reconhecedores/tabelas.py`) reconhece a estrutura e tipifica cada coluna pelo cabeçalho; o valor só é
+atribuído quando tem a forma do tipo (nome, número de documento, data, valor em reais, agência e conta,
+telefone, endereço):
+
+| Forma | Exemplo fictício |
+|---|---|
+| Colunas separadas por barra vertical, tabulação ou ponto e vírgula (CSV), com aspas | `SEQ;BOLSISTA;CPF;VALOR;AG.;C/C` |
+| Colunas alinhadas por espaços, com valores alinhados à direita, rótulos de duas linhas, célula partida em duas linhas (continuação sem a primeira coluna) e registro em duas linhas com dois cabeçalhos de recuos diferentes | `MATR.   NOME   FUNÇÃO   VENC.   LÍQUIDO` |
+| Formulário em grade: rótulos numa linha e valores na de baixo, na mesma ordem, inclusive com um rótulo por linha | `CPF        NASCIMENTO` sobre o CPF e a data |
+| Colunas em bloco: o rótulo de cada coluna seguido dos seus valores, um por linha, com o mesmo número de valores em todas | `NOME` / nomes / `NIS` / números / `VALOR` / valores |
+| Formulário em bloco: rótulos de campo (`Nome:`, `CPF:`) em sequência e, adiante, os valores na mesma ordem e em igual número | extração de formulário eletrônico |
+
+Só são examinadas tabelas de pessoas: com coluna de nome ("Nome", "Servidor(a)", "Beneficiário",
+"Bolsista", "Profissional"…) ou de identificador pessoal (CPF, RG, matrícula, registro profissional,
+NIS, CNS, inscrição, data de nascimento). Tabelas de itens, de empresas (coluna de CNPJ ou razão
+social sem CPF), de unidades, de orçamento e de estatística ficam como estão; numa tabela de pessoas,
+as linhas de totais e as de pessoa jurídica (CNPJ, razão social) são ignoradas. As colunas de valor,
+conta, contato, endereço, protocolo, nota de empenho e ordem bancária, saúde (diagnóstico, CID, vacina,
+medicamento), cor ou raça e religião só são tipificadas em tabela de pessoas. Rótulos com ano
+("Matrícula 2025", contagem de alunos), opções de formulário ("( ) SERVIDOR") e linhas com rótulo e
+valor na mesma célula ("Raça/cor: parda") não são cabeçalhos.
+
+O nome de pessoa reconhecido por outro reconhecedor dentro de célula de coluna de unidade ou de lugar
+de uma tabela de pessoas é nome da unidade ou do município e passa a `UNIDADE_INSTITUCIONAL` ou
+`LOCALIDADE`, sinalizados para revisão e protegidos da propagação do sobrenome de uma pessoa tarjada
+em outra linha.
 
 ## Perfis
 

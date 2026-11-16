@@ -65,6 +65,7 @@ from .reconhecedores import (
     nomes,
     pessoais,
     sensiveis,
+    tabelas,
 )
 from .reconhecedores import base as B
 from .reconhecedores.institucional import reclassificar as reclassificar_institucionais
@@ -277,6 +278,7 @@ def reconhecedores_brasileiros(com_modelo: bool = True) -> list[EntityRecognizer
         ReconhecedorThemis(pessoais.ReconhecedorValores(), ["VALOR_PESSOAL"], "BR_Valores"),
         ReconhecedorThemis(nomes.ReconhecedorNomesLista(), ["NOME"], "BR_Nomes_Lista"),
         ReconhecedorThemis(nomes.ReconhecedorNomesContexto(), ["NOME"], "BR_Nomes_Gatilho"),
+        ReconhecedorThemis(tabelas.ReconhecedorTabelas(), tabelas.TIPOS, "BR_Tabelas"),
         PhoneRecognizer(supported_language=IDIOMA, supported_entity="TELEFONE", supported_regions=("BR",),
                         context=CONTEXTO["contatos"], name="Presidio_Telefone_BR"),
         IpRecognizer(supported_language=IDIOMA, supported_entity="IP", context=["ip", "acesso", "endereço"],
@@ -373,4 +375,6 @@ def analisar_textos(textos: Sequence[str], modelo: str | None, extras: Sequence[
     # Contatos, endereços e placas do próprio órgão, reconhecidos pelo contexto do texto inteiro.
     for texto, dets in zip(textos, saida):
         reclassificar_institucionais(texto, dets)
+        # Nome de pessoa em célula de coluna de unidade ou lugar ("Lotação", "Destino"): nome da unidade.
+        tabelas.preservar_unidades(texto, dets)
     return saida
