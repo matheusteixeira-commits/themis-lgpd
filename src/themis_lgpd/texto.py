@@ -307,7 +307,7 @@ _ESQUEMAS = frozenset({"http", "https", "ftp", "mailto", "file", "urn", "data", 
 def _rotulo_colado(saida: list[str], texto: str, j: int) -> bool:
     """Indica se os dois-pontos recém-emitidos separam um rótulo do valor colado a ele.
 
-    Em "Aluno(a):FULANO" e "Dt.Nasc.:07/02/2016", o espaço que falta depois dos dois-pontos impede
+    Em "Aluno(a):FULANO" e "Dt.Nasc.:19/08/2015", o espaço que falta depois dos dois-pontos impede
     que reconhecedores baseados em rótulo e no início da palavra encontrem o valor. Não se aplica a
     horas, endereços de internet e sequências com vários dois-pontos (IPv6, endereço MAC).
     """

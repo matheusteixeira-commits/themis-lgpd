@@ -424,9 +424,9 @@ def _municipio_vizinho(texto: str, inicio: int, fim: int) -> bool:
 def _municipio_em_contexto(texto: str, inicio: int) -> bool:
     """Indica se em ``inicio`` começa o nome de um município citado como lugar.
 
-    Vale para a linha de local e data ("João Pessoa, 3 de outubro de 2025"), o município seguido da
+    Vale para a linha de local e data ("João Pessoa, 27 de fevereiro de 2026"), o município seguido da
     UF, após "em" ou rótulo ("Município: Pedro Afonso"), após unidade administrativa ("Superintendência
-    Regional de Ensino de Teófilo Otoni"), após o nome de uma instituição e um travessão ("EE Dona
+    Regional de Ensino de Carlos Chagas"), após o nome de uma instituição e um travessão ("EE Dona
     Fulana – Francisco Sá") e em enumerações ou colunas de municípios.
     """
     from .localizacao import municipio_em
@@ -816,7 +816,7 @@ def _desconhecida_no_nome(texto: str, toks, j: int, pn: frozenset[str], sn: froz
     Integra quando fica entre palavras de nome ("RAIMUNDA NONATA BEZERRA", "WELLINGTON JHONATAN DE
     SOUZA") ou quando, sozinha ou com até duas outras palavras desconhecidas, fecha o nome: a sequência
     vem seguida de pontuação, quebra de linha, fim do texto, palavra em minúsculas ou palavra
-    gramatical ("BENEDITA FERREIRA LINS,", "MARLENE TESCH RAMLOW, matrícula", "JOSÉ DA SILVA TAVORA
+    gramatical ("SEBASTIANA ROCHA LEDO,", "ROSANE TESSMANN BRAATZ, matrícula", "JOSÉ DA SILVA TAVORA
     FOI"). Sobrenomes de imigrantes e indígenas raramente estão nas listas e costumam vir juntos. Não
     integra se for palavra gramatical ou comum. Palavra com terminação típica de verbo ou substantivo
     ("INFORMOU", "SOLICITAR"), que também ocorre em sobrenomes ("RIBAMAR", "YAMADA"), só integra a
@@ -851,7 +851,7 @@ def _desconhecida_no_nome(texto: str, toks, j: int, pn: frozenset[str], sn: froz
 
 
 #: Partes finais do nome que indicam geração ou parentesco e podem ir para a linha seguinte numa
-#: célula estreita ("FRANCISCO DAS CHAGAS ARAGÃO\nFILHO").
+#: célula estreita ("RAIMUNDO DOS ANJOS PAIVA\nFILHO").
 _SUFIXOS_FAMILIA = frozenset({"filho", "filha", "neto", "neta", "junior", "jr", "sobrinho", "sobrinha"})
 #: Quebra de linha simples (não separa parágrafos), com espaços ou tabulações em volta.
 _QUEBRA_SIMPLES = re.compile(r"[ \t]*\n[ \t]*")
@@ -862,18 +862,18 @@ _INICIO_DE_CELULA = re.compile(r"(?:^|[|\t])[ \t]*$", re.MULTILINE)
 
 
 def _inicial(texto: str, tok: tuple[int, int, str]) -> bool:
-    """Indica se a palavra é a inicial de um nome ("B." em "Graziela B. Assunção")."""
+    """Indica se a palavra é a inicial de um nome ("T." em "Rosângela T. Medeiros")."""
     return len(tok[2]) == 1 and tok[2].isupper() and texto[tok[1]:tok[1] + 1] == "."
 
 
 def _ligacao(texto: str, toks, i: int, j: int, pendentes: int, modo_caixa: bool) -> bool:
     """Indica se o token ``j`` pode continuar o nome que vai de ``i`` a ``j - 1``.
 
-    Além do espaço simples, admite o ponto de uma inicial ("B. Assunção") e uma quebra de linha
+    Além do espaço simples, admite o ponto de uma inicial ("T. Medeiros") e uma quebra de linha
     simples quando o nome continua com certeza na linha seguinte: a linha termina em conector
     ("FERRAZ DE\\nLIMA"), a linha seguinte começa por "Filho", "Neto" ou "Júnior", ou o nome ocupa a
     célula até o fim da linha e o restante dele fecha a célula na linha seguinte ("ANDREIA
-    CRISTINA\\nBATALHA DE SOUZA | 864.694-5", "| Fulano Beltrano\\nde Tal | 5130749").
+    CRISTINA\\nBATALHA DE SOUZA | 864.694-5", "| Fulano Beltrano\\nde Tal | 6283517").
     """
     a, b = toks[j - 1][1], toks[j][0]
     if _so_espaco(texto, a, b):
@@ -898,11 +898,11 @@ def _estender(texto: str, toks, i: int, modo_caixa: bool) -> int:
     """Estende um nome a partir do token ``i``, já aceito como início.
 
     Acrescenta palavras enquanto forem prenomes ou sobrenomes conhecidos — ou, com ``modo_caixa``,
-    palavras capitalizadas e iniciais ("Graziela B. Assunção") — admitindo até dois conectores
+    palavras capitalizadas e iniciais ("Rosângela T. Medeiros") — admitindo até dois conectores
     seguidos e no máximo nove palavras. Em texto todo em CAIXA ALTA, em que qualquer palavra parece
     nome próprio, uma palavra fora das listas só é aceita nas condições de :func:`_desconhecida_no_nome`.
     Prenomes que também são palavras comuns ("Dores", "Glória", "Luz") integram o nome quando
-    escritos com inicial maiúscula ("MARIA DAS DORES FERREIRA"). O nome pode continuar na linha
+    escritos com inicial maiúscula ("MARIA DA GLÓRIA BASTOS"). O nome pode continuar na linha
     seguinte nas condições de :func:`_ligacao`.
 
     Returns:
@@ -946,7 +946,7 @@ def _estender(texto: str, toks, i: int, modo_caixa: bool) -> int:
 
 def _estender_contexto(texto: str, toks, i: int) -> int:
     """Estende, num contexto que já indica pessoa (rótulo de campo, papel), um nome com palavras fora
-    das listas ("Nome: TAKESHI HAMADA OKUMURA").
+    das listas ("Nome: KENJI MORISHITA ODAGIRI").
 
     Segue enquanto as palavras mantiverem a caixa da primeira (CAIXA ALTA ou inicial maiúscula) e
     tiverem forma de nome (ver :func:`_forma_de_nome`), além de conectores e iniciais.
@@ -981,7 +981,7 @@ def contexto_nao_pessoal(texto: str, inicio: int) -> bool:
 
     Exemplos: "São Paulo", "Rua Paulo Freire", "Rua Professora Maria Clara", "Escola Maria Souza", "Lei
     Maria da Penha", "Prefeitura Municipal de Dom Eliseu", "Unidade Básica de Saúde Doutor Fulano",
-    "João Pessoa, 3 de outubro de 2025". A regra é a mesma no reconhecimento de nomes, na propagação
+    "João Pessoa, 27 de fevereiro de 2026". A regra é a mesma no reconhecimento de nomes, na propagação
     de valores tarjados e na verificação final.
 
     Também integram nome de lugar ou entidade: a palavra que é ela própria o núcleo ("Praça Vereador
@@ -1196,15 +1196,15 @@ _TITULO_ASSINATURA = re.compile(r"[ \t]*(?:(?:sr|sra|dr|dra|prof|profa|enf|enfa|
 _CELULA = re.compile(r"[^|\t]+")
 #: Célula de tabela alinhada por espaços: palavras separadas por um espaço; dois ou mais separam células.
 _CELULA_ALINHADA = re.compile(r"\S+(?: \S+)*")
-#: CPF, inclusive mascarado ("***.938.044-**"), como conteúdo de uma célula.
+#: CPF, inclusive mascarado ("***.471.629-**"), como conteúdo de uma célula.
 _CPF_EM_CELULA = re.compile(r"(?:\d{3}|\*{3})\.(?:\d{3}|\*{3})\.(?:\d{3}|\*{3})-(?:\d{2}|\*{2})|\d{11}"
                             r"|\d{3}\.\d{5}\.\d{2}-\d|[12789]\d{14}|[12789]\d{2}[ \t]\d{4}[ \t]\d{4}[ \t]\d{4}")
 #: Identificador de pessoa como conteúdo de uma célula: CPF, matrícula com dígito verificador
-#: ("864.694-5", "357760-1 A") ou número com seis dígitos ou mais.
+#: ("864.694-5", "482915-3 A") ou número com seis dígitos ou mais.
 _IDENTIFICADOR_EM_CELULA = re.compile(
     r"(?:\d{3}|\*{3})\.(?:\d{3}|\*{3})\.(?:\d{3}|\*{3})-(?:\d{2}|\*{2})|[\d.]*\d-[ \t]?[\dXx](?:[ \t]?[A-Z])?|\d{6,}")
 
-#: Iniciais de pessoa ("K.C.P.", "M. E. S. C.", "J.V.S.C."): de duas a cinco letras maiúsculas, cada
+#: Iniciais de pessoa ("K.C.P.", "R. A. T. L.", "J.V.S.C."): de duas a cinco letras maiúsculas, cada
 #: uma seguida de ponto.
 _INICIAIS = re.compile(r"(?<![\p{L}\d.])\p{Lu}\.(?:[ \t]?\p{Lu}\.){1,4}(?![\p{L}\d])")
 #: Siglas que também se escrevem com pontos ("S.A.", "D.O.U.", "C.P.F.") e não são iniciais de pessoa.
@@ -1426,7 +1426,7 @@ class ReconhecedorNomesContexto:
       :data:`GATILHOS_PAPEL`) e antes de identificador ou cargo ("FULANO, matrícula", "FULANO –
       Membro"): nomes de imigrantes e indígenas, fora das listas, são aceitos em CAIXA ALTA.
     * No bloco de assinatura: linha só com o nome, logo acima da linha do cargo ou do registro.
-    * Iniciais de pessoa ("K.C.P.", "M. E. S. C."), comuns para crianças e adolescentes.
+    * Iniciais de pessoa ("K.C.P.", "R. A. T. L."), comuns para crianças e adolescentes.
     * Apelidos ("vulgo “Fulano”", "conhecido apenas como Fulano").
     """
 
@@ -1605,8 +1605,8 @@ class ReconhecedorNomesContexto:
     def _celulas(self, texto: str, toks) -> list[Deteccao]:
         """Célula de tabela só com o nome, em linha que traz um identificador da pessoa.
 
-        Em listas de nomeação, escalas e relações de servidores ("15º | FULANO DE TAL | ***.938.044-**",
-        "10254601 | FULANO DE TAL | Agente Administrativo"), a linha com CPF ou matrícula indica que a
+        Em listas de nomeação, escalas e relações de servidores ("15º | FULANO DE TAL | ***.471.629-**",
+        "30718264 | FULANO DE TAL | Agente Administrativo"), a linha com CPF ou matrícula indica que a
         célula ao lado é o nome do titular. Com CPF na linha, nomes com iniciais maiúsculas também são
         aceitos. Sem barra vertical nem tabulação, as células de tabela alinhada por espaços são separadas
         por dois espaços ou mais ("01   FULANO DE TAL      000.000.000-00   0000000-0").
@@ -2066,7 +2066,7 @@ def _nome_do_segmento(texto: str, tokens: list, pessoa: bool, score: float) -> D
         return None
     if tokens and all(t.text.isupper() for t in tokens):
         # Em CAIXA ALTA, o nome vai até a primeira palavra que não pode integrá-lo; palavras fora das
-        # listas ("EDGARD TOURINHO VIANA") só valem ao lado de um prenome ou sobrenome conhecido.
+        # listas ("ODILON TAVEIRA LUCENA") só valem ao lado de um prenome ou sobrenome conhecido.
         corte, conhecidas = 0, 0
         for k, t in enumerate(tokens):
             d = dobrar(t.text)

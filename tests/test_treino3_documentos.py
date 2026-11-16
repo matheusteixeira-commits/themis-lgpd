@@ -33,8 +33,8 @@ VAZAMENTOS = [
      "TÉC. ENF. BELTRANO           456.321-TE   F  M  T  F\n",
      ["123.987", "456.321"]),
     # Planilha exportada em CSV: agência e conta de cada bolsista.
-    ("Nº;NOME;CPF;VALOR;BANCO;AGENCIA;CONTA\n1;\"FULANA DE TAL\";***.111.222-**;300,00;001;4321-0;77889-1\n",
-     ["4321-0", "77889-1"]),
+    ("Nº;NOME;CPF;VALOR;BANCO;AGENCIA;CONTA\n1;\"FULANA DE TAL\";***.111.222-**;300,00;001;2706-8;77889-1\n",
+     ["2706-8", "77889-1"]),
     # Tabela alinhada com agência e conta, inclusive a operação separada por espaço.
     ("Nº  BOLSISTA            MATR.       AG.     CONTA          VALOR\n"
      "01  FULANO DE TAL       202611223   3344    013 556677-8   500,00\n",
@@ -51,7 +51,7 @@ VAZAMENTOS = [
     ("PROCESSO ADMINISTRATIVO N 77123 2026\nCERTIDAO DE TEMPO DE CONTRIBUICAO N 0456 2026", ["77123", "0456"]),
     # Documentos de estrangeiros com o país entre a designação e o número.
     ("Requerente: FULANO, passaporte peruano nº AB1234567, NIF haitiano: 001-234-567-8.", ["AB1234567", "234-567"]),
-    ("Portadora da cédula V-12.345.678 e da cédula de identidad boliviana nº 7.123.456 LP.",
+    ("Portadora da cédula V-12.345.678; apresentou também cédula de identidad da Bolívia nº 7.123.456 LP.",
      ["12.345.678", "7.123.456"]),
     ("Apresentou carta d'identità elettronica nº XY12345ZW e o DPRNM nº 2026.0101.555.", ["XY12345ZW", "0101.555"]),
     ("Codice fiscale BNCLCU75C12F205G; documento de identidade chinês: 33010619880315123X",
@@ -61,8 +61,8 @@ VAZAMENTOS = [
     ("pacto antenupcial lavrado no Livro 91, fls. 23, do Tabelionato de Notas", ["91", "23"]),
     ("apresentou partida de nacimiento, acta nº 55, tomo 3, folio 9, do registro civil", ["55", "3, folio 9"]),
     # Carteiras e registros sem formato nacional.
-    ("CIPTEA nº 2026-TO-7654321; pescador com RGP PA-00123456; técnica com registro MTE PI/001122.3",
-     ["7654321", "00123456", "001122"]),
+    ("CIPTEA nº 2026-TO-3180457; pescador com RGP PA-00123456; técnica com registro MTE PI/001122.3",
+     ["3180457", "00123456", "001122"]),
     # Registros em sistemas de saúde e acadêmicos.
     ("Registro SIASI: 3.210.987\nR.A.: 123.456.789-0\nProntuário na unidade: 7788",
      ["3.210.987", "456.789", "7788"]),
@@ -71,8 +71,9 @@ VAZAMENTOS = [
     ("RELATÓRIO DE REAVALIAÇÃO – PIA nº 321/2026-XYZ", ["321/2026"]),
     ("FICHA DE ACOLHIMENTO Nº 0912/2026\nProcedência: rodoviária", ["0912/2026"]),
     ("FICHA DE MATRÍCULA – ANO LETIVO 2026 – Nº 2026/001234", ["001234"]),
-    ("PARECER DE ACOMPANHAMENTO CLÍNICO INDIVIDUAL Nº 33/2026\nPaciente: FULANO", ["33/2026"]),
-    ("PARECER TÉCNICO Nº 044/2026-CTX\n\nFinalidade: instruir pedido de progressão para o regime semiaberto",
+    ("PARECER DE ACOMPANHAMENTO TERAPÊUTICO SEMANAL Nº 33/2026\nPaciente: FULANO", ["33/2026"]),
+    ("PARECER TÉCNICO Nº 044/2026-CTX\n\nAssunto: avaliação do apenado para fins de progressão ao regime "
+     "semiaberto",
      ["044/2026"]),
     ("COMUNICADO À FAMÍLIA Nº 21/2026\n\nSenhores responsáveis pelo estudante", ["21/2026"]),
 ]
@@ -89,26 +90,27 @@ PUBLICOS = [
     # (texto, trechos que DEVEM permanecer legíveis)
     # Processo citado junto ao número da contratação ou do repasse.
     ("EXTRATO DO CONTRATO Nº 015/2026\nProcesso Administrativo nº 0101/2026 – Pregão Eletrônico nº 07/2026. "
-     "CONTRATADA: Empresa Exemplo Ltda., CNPJ 12.345.678/0001-95; pela contratada, o sócio FULANO, "
+     "CONTRATADA: Empresa Exemplo Ltda., CNPJ 63.918.402/0001-90; pela contratada, o sócio FULANO, "
      "CPF 526.018.159-06.", ["0101/2026"]),
     ("Contrato: Contrato nº 33/2026/DER – Processo SEI nº 00000.000123/2026-11.\nContratada: Construtora Alfa Ltda.",
      ["00000.000123/2026-11"]),
-    ("equipamento adquirido com recursos da Proposta FNS nº 36000.000777/2026-00, entregue em março.",
+    ("a ambulância foi comprada pela Proposta FNS nº 36000.000777/2026-00 e chegou em abril.",
      ["36000.000777/2026-00"]),
-    ("O acordo encerra a Ação Civil Pública nº 0716202-44.2008.8.07.8769, movida contra o Município.",
+    ("O Município firmou acordo na Ação Civil Pública nº 0716202-44.2008.8.07.8769, ajuizada pelo MP.",
      ["0716202-44.2008.8.07.8769"]),
-    ("nos termos do art. 318 do Código de Processo Penal e do Habeas Corpus coletivo nº 123.456/XX.", ["123.456"]),
+    ("nos termos do art. 318 do Código de Processo Penal, como decidido no Habeas Corpus coletivo nº 123.456/XX.",
+     ["123.456"]),
     # Notificação, auto e laudo dirigidos a pessoa jurídica ou sobre obra.
     ("Foi lavrada a Notificação nº 9/2026 contra a Construtora Beta Ltda., com prazo de dez dias.", ["9/2026"]),
     ("A medição atrasou, apesar da Notificação nº 31/2026. Por isso, a Pavimentadora Gama Ltda. foi multada.",
      ["31/2026"]),
-    ("o Laudo de Ensaio de Compressão nº EC-12/2026 indicou resistência do concreto acima do projeto.", ["12/2026"]),
+    ("o Laudo de Ensaio de Tração nº ET-12/2026 aprovou as barras de aço usadas na obra.", ["12/2026"]),
     # Sigla de conselho seguida do número de um ato ou do registro de pessoa jurídica.
     ("conforme o Ofício OAB/TO nº 12/2026 e o Parecer Técnico CREA-PI nº 5/2026.", ["12/2026", "5/2026"]),
-    ("apresentou certidão de registro de pessoa jurídica no CRA-AC nº 1.234/2020.", ["1.234/2020"]),
+    ("juntou o comprovante de registro da pessoa jurídica no CRA-AC nº 1.234/2020.", ["1.234/2020"]),
     # Numeração de itens e códigos com forma de endereço IP.
-    ("conforme o subitem 9.2.1.3 do Termo de Referência e a cláusula 12.4.1.2 do contrato; COBRADE 1.2.3.4.5",
-     ["9.2.1.3", "12.4.1.2", "1.2.3.4.5"]),
+    ("conforme o subitem 7.4.2.5 do Termo de Referência e a cláusula 12.4.1.2 do contrato; COBRADE 1.2.3.4.5",
+     ["7.4.2.5", "12.4.1.2", "1.2.3.4.5"]),
     # Ano e contagem junto a palavras-chave de identificador.
     ("A matrícula de 2026 é de 1.234 estudantes.\nUnidade | Matrícula 2026 | Turmas\nEscola Alfa | 812 | 20\n"
      "Cidade Exemplo, 5 de maio de 2026.", ["2026", "5 de maio de 2026"]),
@@ -122,16 +124,16 @@ PUBLICOS = [
     ("NF-e nº 1.234, chave de acesso 1234 5678 9012 3456 7890 1234 5678 9012 3456 7890 1234.", ["9012 3456 7890"]),
     # Protocolo de publicação no diário oficial e código de autenticação do documento.
     ("DIÁRIO OFICIAL DO MUNICÍPIO DE EXEMPLO\nPORTARIA Nº 12, DE 2 DE MARÇO DE 2026\nNomear o servidor.\n"
-     "Protocolo 7654321", ["7654321"]),
+     "Protocolo 5830172", ["5830172"]),
     ("A autenticidade pode ser conferida informando o código verificador 1234567 e o código CRC 1A2B3C4D.",
      ["1A2B3C4D"]),
     # Data do próprio ato após "registro".
-    ("Data do registro: 10/02/2026\nNatureza: reclamação", ["10/02/2026"]),
+    ("Data do registro: 23/11/2026\nNatureza: reclamação", ["23/11/2026"]),
     # Órgão emissor e UF do documento ficam visíveis; o número não.
     ("RG 1.234.567 SSP/TO e COREN-TO 123.456", ["SSP/TO", "COREN-TO"]),
     # Linha de pessoa jurídica numa tabela de notificados.
     ("PLACA     AIT         PROPRIETÁRIO                  VALOR\n"
-     "ABC1D23   X1234567    TRANSPORTES ALFA LTDA         130,16\n", ["X1234567"]),
+     "ABC1D23   X1234567    TRANSPORTES ALFA LTDA         152,38\n", ["X1234567"]),
 ]
 
 
@@ -145,15 +147,15 @@ def test_trecho_publico_continua_legivel(anon, texto, legiveis):
 def test_tabela_de_pessoa_natural_tarja_ait(anon):
     """Na mesma tabela, o auto de infração do proprietário pessoa natural é tarjado."""
     texto = ("PLACA     AIT         PROPRIETÁRIO                  VALOR\n"
-             "ABC1D23   X7654321    FULANO DE TAL                 130,16\n")
+             "ABC1D23   X7654321    FULANO DE TAL                 152,38\n")
     assert "X7654321" not in anon.anonimizar(texto).texto
 
 
 def test_conta_pessoal_continua_tarjada_perto_de_empresa(anon):
     """A conta da pessoa é tarjada mesmo quando a frase menciona uma empresa ou um órgão."""
-    texto = "A empresa contratada não pagou; meus dados para depósito são agência 1122-3 e conta 44556-7."
+    texto = "A empresa contratada não pagou; para o depósito, informo agência 1122-3 e conta 60318-2."
     saida = anon.anonimizar(texto).texto
-    assert "1122-3" not in saida and "44556-7" not in saida, saida
+    assert "1122-3" not in saida and "60318-2" not in saida, saida
 
 
 def test_contrato_com_pessoa_natural_tarja_processo(anon):
@@ -167,7 +169,7 @@ def test_contrato_com_pessoa_natural_tarja_processo(anon):
     ("Gostaria de cópia do auto de infração nº 2026/0099 lavrado contra a empresa Delta Ltda.", "2026/0099"),
     ("Solicito o andamento do processo nº 4321/2026 – Pregão Eletrônico nº 3/2026, em que sou interessado.",
      "4321/2026"),
-    ("Preciso validar o documento: código verificador 7654321.", "7654321"),
+    ("Preciso validar o documento: código verificador 4093716.", "4093716"),
 ])
 def test_pedido_em_primeira_pessoa_mantem_tarja(anon, texto, numero):
     """No pedido redigido em primeira pessoa, o número citado pelo autor continua tarjado, ainda que

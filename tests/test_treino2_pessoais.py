@@ -56,17 +56,17 @@ def test_idade_de_pessoa_identificavel(texto, idade):
 
 
 @pytest.mark.parametrize("texto", [
-    "Vacinação de crianças de 6 meses a menores de 5 anos e de idosos a partir de 60 anos.",
-    "Ter idade mínima de 18 anos na data da posse. Idade limite: 65 anos.",
-    "Podem participar pessoas com 18 anos ou mais, residentes no município.",
+    "Público da campanha: crianças de 9 meses até menores de 4 anos e idosos a partir de 65 anos.",
+    "Exige-se idade mínima de 21 anos na data da nomeação. Idade limite: 70 anos.",
+    "Poderão se inscrever pessoas com 16 anos ou mais que morem no bairro.",
     "O programa atende jovens de 15 a 29 anos há 10 anos.",
     "Hipertensa há 10 anos; iniciou o uso de álcool aos 14 anos.",
-    "Fixo a pena definitiva em 6 anos e 2 meses de reclusão.",
+    "Torno a pena definitiva em 3 anos e 11 meses de detenção.",
     "O servidor conta com 28 anos de serviço e 3 meses de licença não usufruídos.",
-    "Afastamento pelo prazo de 2 (dois) anos. Tempo na função: 12 anos e 3 meses.",
+    "Cessão concedida pelo prazo de 4 (quatro) anos. Tempo no cargo: 14 anos e 5 meses.",
     "A escola tem 50 anos de história e a obra tem prazo de 12 meses.",
     "Art. 3º O servidor com 75 anos de idade será aposentado compulsoriamente.",
-    "Reexaminar os contatos anualmente por 5 anos.",
+    "Reavaliar os comunicantes uma vez por ano durante 4 anos.",
     "Faixa etária | Casos\n0 a 4 anos | 120\n60 anos ou mais | 98",
 ])
 def test_idade_em_faixa_requisito_duracao_ou_norma_fica_legivel(texto):
@@ -75,10 +75,10 @@ def test_idade_em_faixa_requisito_duracao_ou_norma_fica_legivel(texto):
 
 def test_tabela_de_composicao_familiar():
     texto = ("NOME | PARENTESCO | IDADE | RENDA\n"
-             "Ana Souza | responsável | 40 anos | R$ 900,00 (Bolsa Família)\n"
+             "Ana Souza | responsável | 40 anos | R$ 735,00 (Bolsa Família)\n"
              "Davi Souza | filho | 9 anos | —")
     assert _trechos(ReconhecedorIdades(), texto, "IDADE") == ["40 anos", "9 anos"]
-    assert _trechos(ReconhecedorValores(), texto, "VALOR_PESSOAL") == ["R$ 900,00"]
+    assert _trechos(ReconhecedorValores(), texto, "VALOR_PESSOAL") == ["R$ 735,00"]
 
 
 def test_idade_tarjada_no_perfil_lai(anon):
@@ -114,20 +114,20 @@ def test_datas_de_atos_e_nascidos_em_contagem_ficam_legiveis(anon):
 
 # --------------------------------------------------------------------------- valores
 @pytest.mark.parametrize("texto,valor", [
-    ("A requerente recebe aposentadoria de R$ 1.600,00 e paga aluguel de R$ 500,00.", "R$ 500,00"),
-    ("com remuneração bruta de R$ 7.100,20 e descontos obrigatórios de R$ 1.300,00", "R$ 7.100,20"),
+    ("A requerente recebe aposentadoria de R$ 1.870,00 e paga aluguel de R$ 585,00.", "R$ 585,00"),
+    ("com remuneração bruta de R$ 7.100,20 e descontos obrigatórios de R$ 1.415,00", "R$ 7.100,20"),
     ("A renda familiar per capita declarada é de R$ 230,00.", "R$ 230,00"),
     ("Informou dívida de R$ 1.240,50 com o mercado do bairro.", "R$ 1.240,50"),
-    ("contribuição previdenciária do servidor, atualmente de R$ 980,15 mensais", "R$ 980,15"),
+    ("contribuição previdenciária retida da servidora, hoje de R$ 980,15 ao mês", "R$ 980,15"),
     ("VALOR DA MULTA: R$ 880,41", "R$ 880,41"),
-    ("subtraiu a quantia de R$ 640,00 e um celular avaliado em R$ 1.200,00", "R$ 1.200,00"),
+    ("subtraiu a quantia de R$ 587,40 e um celular avaliado em R$ 1.362,90", "R$ 1.362,90"),
     ("A declarante estima o prejuízo em R$ 2.700,00.", "R$ 2.700,00"),
-    ("recebe pensão por morte de um salário mínimo", "um salário mínimo"),
-    ("o desconto corresponderá a R$ 410,00 (quatrocentos e dez reais)", "R$ 410,00 (quatrocentos e dez reais)"),
+    ("vive da pensão por morte deixada pelo marido, equivalente a um salário mínimo", "um salário mínimo"),
+    ("o desconto corresponderá a R$ 370,00 (trezentos e setenta reais)", "R$ 370,00 (trezentos e setenta reais)"),
     ("Foi arbitrada fiança de R$ 3.000,00 ao autuado.", "R$ 3.000,00"),
-    ("O reclamante ganhava R$ 2.300,00 por mês como vigilante.", "R$ 2.300,00"),
-    ("Afirmou ter comprado a bicicleta de um vizinho por R$ 450,00.", "R$ 450,00"),
-    ("desconto a título de pensão alimentícia de 30% (trinta por cento) dos rendimentos líquidos",
+    ("O reclamante ganhava R$ 2.480,00 por mês como vigilante.", "R$ 2.480,00"),
+    ("Afirmou ter comprado a bicicleta de um vizinho por R$ 415,00.", "R$ 415,00"),
+    ("pensão alimentícia descontada em folha, à razão de 30% (trinta por cento) dos rendimentos líquidos",
      "30% (trinta por cento)"),
 ])
 def test_valor_de_pessoa_natural(texto, valor):
@@ -137,27 +137,27 @@ def test_valor_de_pessoa_natural(texto, valor):
 @pytest.mark.parametrize("texto", [
     "Valor do contrato: R$ 1.200.000,00. A empresa contratada apresentou proposta de R$ 980.000,00.",
     "O edital prevê bolsa mensal de R$ 2.100,00 para cada residente.",
-    "Fica fixado o subsídio do cargo de Prefeito em R$ 18.000,00.",
-    "O servidor fará jus a diárias no valor de R$ 300,00 por dia de deslocamento.",
-    "Aplica-se multa de R$ 500,00 por dia de atraso, devida pela contratada.",
+    "Fica fixado o subsídio do cargo de Prefeito em R$ 19.500,00.",
+    "O servidor fará jus a diárias no valor de R$ 340,00 por dia de deslocamento.",
+    "Aplica-se multa de R$ 478,30 por dia de atraso, devida pela contratada.",
     "A renda média das famílias atendidas pelo programa é de R$ 812,00.",
-    "O auxílio será pago no valor de R$ 600,00 por família beneficiária.",
-    "Remuneração inicial: R$ 4.200,00 para jornada de 40 horas semanais.",
+    "A ajuda emergencial será paga à razão de R$ 425,00 por família cadastrada.",
+    "Remuneração inicial: R$ 4.712,38 para jornada de 40 horas semanais.",
     "As famílias com renda mensal de até R$ 660,00 por pessoa têm prioridade.",
     "A infração sujeita o infrator a multa de R$ 1.000,00 a R$ 10.000,00.",
     "O Município recebeu repasse de R$ 2.000.000,00 do Fundo Nacional.",
     "O débito do Município com o INSS soma R$ 4.500.000,00.",
-    "O prejuízo ao erário foi apurado em R$ 55.000,00.",
-    "Dotação orçamentária de R$ 300.000,00. Taxa de inscrição: R$ 120,00.",
-    "O salário mínimo nacional passou a R$ 1.518,00 em janeiro.",
+    "O prejuízo causado ao erário chegou a R$ 55.000,00.",
+    "Dotação orçamentária de R$ 300.000,00. Taxa de inscrição: R$ 95,00.",
+    "O salário mínimo nacional passou a R$ 1.584,00 em janeiro.",
     "os autores levaram R$ 3.100,00 do caixa da empresa",
-    "Dá-se à causa o valor de R$ 1.000,00.",
+    "Dá-se à causa o valor de R$ 2.350,00.",
     "Cargo | Vagas | Vencimento\nAnalista | 3 | R$ 5.100,00",
     "Empresa | CNPJ | Valor (R$)\nAlfa Ltda. | 11.222.333/0001-81 | 98.000,00",
     "Município | Beneficiários | Valor (R$)\nCampo Alto | 1.204 | 845.000,00",
     "O desconto em folha não pode exceder 30% da remuneração do servidor.",
     "O reajuste de 5% dos vencimentos dos servidores foi aprovado.",
-    "Segundo o edital, eu ganho ajuda de custo de 50% do salário inicial durante o curso de formação.",
+    "Conforme o edital, enquanto faço o curso de formação recebo ajuda de custo de 40% do salário inicial.",
 ])
 def test_valor_publico_fica_legivel(texto):
     assert _trechos(ReconhecedorValores(), texto, "VALOR_PESSOAL") == []
@@ -165,8 +165,8 @@ def test_valor_publico_fica_legivel(texto):
 
 def test_tabela_de_pessoas_com_valores():
     texto = ("Contribuinte\tCPF\tValor devido (R$)\n"
-             "Paulo Reis\t111.444.777-35\t1.284,60\n")
-    assert _trechos(ReconhecedorValores(), texto, "VALOR_PESSOAL") == ["1.284,60"]
+             "Paulo Reis\t111.444.777-35\t1.347,90\n")
+    assert _trechos(ReconhecedorValores(), texto, "VALOR_PESSOAL") == ["1.347,90"]
 
 
 def test_notas_e_tempo_de_servico_em_tabela_de_pessoas_nao_sao_valor_nem_idade():
@@ -180,8 +180,8 @@ def test_notas_e_tempo_de_servico_em_tabela_de_pessoas_nao_sao_valor_nem_idade()
 def test_declaracao_de_bens_tem_todos_os_valores_tarjados():
     texto = ("DECLARAÇÃO DE BENS E VALORES\n\n1. BENS IMÓVEIS\n"
              "1.1 | Casa residencial no endereço declarado | 2015 | 250.000,00\n\n"
-             "2. VEÍCULOS\n2.1 | Automóvel ano 2019 - VALOR: R$ 48.000,00\n")
-    assert _trechos(ReconhecedorValores(), texto, "VALOR_PESSOAL") == ["250.000,00", "R$ 48.000,00"]
+             "2. VEÍCULOS\n2.1 | Automóvel ano 2019 - VALOR: R$ 53.500,00\n")
+    assert _trechos(ReconhecedorValores(), texto, "VALOR_PESSOAL") == ["250.000,00", "R$ 53.500,00"]
 
 
 def test_extrato_de_contrato_com_pessoa_fisica():
@@ -192,18 +192,18 @@ def test_extrato_de_contrato_com_pessoa_fisica():
 
 
 def test_mesmo_valor_repetido_no_documento():
-    texto = ("O acusado subtraiu a quantia de R$ 730,00 da vítima. Fixo, nos termos do art. 387, IV, do CPP, "
-             "o valor de R$ 730,00, a ser pago no prazo de 30 dias.")
+    texto = ("O réu subtraiu da vítima a quantia de R$ 730,00. Com base no art. 387, IV, do CPP, arbitro "
+             "o valor de R$ 730,00, a ser pago em até 30 dias.")
     assert _trechos(ReconhecedorValores(), texto, "VALOR_PESSOAL") == ["R$ 730,00", "R$ 730,00"]
 
 
 def test_classificacao_pela_expressao_mais_proxima():
-    texto = "A cessão ocorre sem ônus; a remuneração da servidora é de R$ 6.000,00, conforme contrato de gestão."
+    texto = "A cessão ocorre sem ônus; a remuneração da servidora é de R$ 6.420,00, conforme contrato de gestão."
     i = texto.index("R$")
-    assert classificar_valor(texto, i, i + len("R$ 6.000,00")) == "pessoal"
-    texto = "Pela remuneração dos serviços, o contrato prevê R$ 6.000,00."
+    assert classificar_valor(texto, i, i + len("R$ 6.420,00")) == "pessoal"
+    texto = "Pela remuneração dos serviços, o contrato prevê R$ 6.420,00."
     i = texto.index("R$")
-    assert classificar_valor(texto, i, i + len("R$ 6.000,00")) == "publico"
+    assert classificar_valor(texto, i, i + len("R$ 6.420,00")) == "publico"
 
 
 def test_regras_dos_perfis_para_valores():
@@ -214,7 +214,7 @@ def test_regras_dos_perfis_para_valores():
 
 
 def test_valor_tarjado_no_perfil_lai_e_publico_mantido(anon):
-    r = anon.anonimizar("A família sobrevive do Programa Bolsa Família, cujo benefício atual é de R$ 650,00. "
+    r = anon.anonimizar("A família conta apenas com o Programa Bolsa Família, que lhe garante R$ 712,00 por mês. "
                         "O programa tem orçamento anual de R$ 3.000.000,00.")
-    assert "R$ 650,00" not in r.texto and "[VALOR]" in r.texto
+    assert "R$ 712,00" not in r.texto and "[VALOR]" in r.texto
     assert "R$ 3.000.000,00" in r.texto

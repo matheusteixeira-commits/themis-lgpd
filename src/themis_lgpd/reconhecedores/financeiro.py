@@ -85,7 +85,7 @@ FINANCEIRO: list[Padrao | ColunasIdentificadoras] = [
                    + _SEP + _NUM + r"(?P<v>\d(?:[\d.]{0,15}\d)?(?:\s?[-.]\s?[\dXx])?)(?!\d)", 0.85,
                    camada=CONTEXTUAL, grupo="v", validador=lambda valor: sum(c.isdigit() for c in valor) >= 3,
                    nome="banco:conta"),
-    # Número com dígito após hífen ("12345-6", "0012345-6") em contexto bancário próximo, mas não imediato.
+    # Número com dígito após hífen ("52817-4", "0052817-4") em contexto bancário próximo, mas não imediato.
     PadraoBancario("CONTA_BANCARIA", ANTES_NUM + r"\d{4,12}-[\dXx]" + DEPOIS_NUM, 0.7,
                    contexto=("conta", "ag[êe]ncia", "banco", r"banc[áa]ri[oa]s?", "dep[óo]sito",
                              r"deposit(?:ad[oa]s?|ar|em)", "transfer[êe]ncia", "pix", "ted", "doc", "creditad[oa]",
@@ -117,11 +117,11 @@ _NAO_PLACA = (r"ISO|NBR|IEC|ABNT|LAI|OUV|SEI|SIC|LEI|ART|CEP|CPF|CID|PEC|ADI|RES
               r"TEL|CEL|FAX|NUM|ANO|DOC|ATA|OAB|CRM|SUS|CNH|CNS|PIS|INSS|MEC|STF|STJ|TST|TSE|TCU|TCDF|CLDF|GDF|SES|SEE|"
               r"BRB|NOV|DEZ|JAN|FEV|MAR|ABR|MAI|JUN|JUL|AGO|SET|OUT")
 #: A placa não continua a numeração de um ato ("Contrato nº 214/PGE-2024") nem é o número de série de
-#: um equipamento ("medidor nº MVF-0137", "lacre nº ABC-1234"): o número de placa não é precedido de "nº".
+#: um equipamento ("medidor nº MVF-0137", "lacre nº QRT-5082"): o número de placa não é precedido de "nº".
 _ANTES_PLACA = (r"(?<![\w-])(?=[A-Za-z]{3}(?:-[ \t]*\n[ \t]*|[-\s])?\d)(?<!\d/)(?<!\bn[º°o]\.?\s{0,2})"
                 r"(?<!\bn[úu]mero\s{1,2})")
 
-#: Placa estrangeira, citada com o país ("placa boliviana 2187-KXT", "placa argentina AB 123 CD"): cada
+#: Placa estrangeira, citada com o país ("placa boliviana 3409-GHN", "placa argentina AB 123 CD"): cada
 #: país tem formato próprio, por isso vale qualquer combinação de duas a quatro letras e dígitos por bloco.
 _PLACA_ESTRANGEIRA = (r"\bplacas?\s+(?:estrangeira|boliviana|paraguaia|argentina|uruguaia|venezuelana|peruana|chilena|"
                       r"colombiana|guianense|surinamesa|(?:do|da)\s+(?:Bol[íi]via|Paraguai|Argentina|Uruguai|Venezuela|"
@@ -340,7 +340,7 @@ _ATO_CONTRATACAO = (r"(?:contrato|conv[êe]nio|termo\s+(?:de\s+)?(?:fomento|cola
 _DESIGNACOES_PROCESSO = (r"(?:(?:processo|proc\.)(?:\s+(?:administrativo|adm\.|sei|eletr[ôo]nico|licitat[óo]rio))*|"
                          r"NUP|SEI)")
 #: Número de ato de contratação logo antes do processo, separado só por travessão ou quebra de linha:
-#: "Contrato nº 12/2025 – Processo SEI nº …", "EXTRATO DO TERMO DE FOMENTO Nº 3/2025⏎Processo nº …".
+#: "Contrato nº 12/2025 – Processo SEI nº …", "TERMO DE COLABORAÇÃO Nº 3/2025⏎Processo nº …".
 _ATO_ANTES_DO_PROCESSO = re.compile(
     r"\b" + _ATO_CONTRATACAO + r"\b[^\n\d]{0,40}?(?:n[º°o]\.?|n[úu]mero)\s*[\w./\-]*\d[\w./\-]*\s*"
     r"(?:[–—\-]\s*|\n\s*)" + _DESIGNACOES_PROCESSO + r"\s*[:\-]?\s*(?:n[º°o]\.?|n[úu]mero)?\s*[:\-]?\s*$", re.IGNORECASE)
@@ -357,7 +357,7 @@ _ACAO_COLETIVA = re.compile(r"\b(?:a[çc][ãa]o\s+civil\s+p[úu]blica|(?-i:ACP)|
                             r"a[çc][ãa]o\s+direta(?:\s+de\s+inconstitucionalidade)?|(?-i:ADI|ADPF|ADC|ADO)|"
                             r"habeas\s+corpus\s+coletivo|mandado\s+de\s+seguran[çc]a\s+coletivo)\s*(?:n[º°o]\.?)?\s*[:\-]?\s*$",
                             re.IGNORECASE)
-#: Registro de pessoa jurídica ("certidão de registro de pessoa jurídica no conselho nº …").
+#: Registro de pessoa jurídica ("comprovante de registro da pessoa jurídica no conselho nº …").
 _REGISTRO_PJ = re.compile(r"\bpessoa\s+jur[íi]dica\b[^\n\d.;]{0,30}$", re.IGNORECASE)
 
 
@@ -610,7 +610,7 @@ PROCESSOS: list[Padrao] = [
            grupo="v", validador=lambda valor: _id_plausivel(valor), nome="protocolo:ocorrencia"),
     # Número ligado à designação por um verbo ou expressão de identificação, mesmo distante dela na
     # frase: "o processo que abri na regional é o 12345/2024", "o protocolo de atendimento foi
-    # 2024.0315-12", "registrado no sistema sob o número 2024.03.0012", "Número do processo: …".
+    # 2024.0315-12", "a solicitação aberta no portal sob o número 2025.07.0031", "Número do processo: …".
     PadraoProcesso("PROTOCOLO", _NAO_ATO + r"(?<!c[óo]digo\s+de\s+)\b(?:" + _REFERENCIAS + r")\b" + _LIGACAO_REF +
                    _VALOR_REF, 0.8,
                    camada=CONTEXTUAL, grupo="v", validador=lambda valor: _referencia_plausivel(valor),

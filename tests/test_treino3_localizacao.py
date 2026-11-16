@@ -93,8 +93,8 @@ def test_endereco_urbano_atipico(anon, texto, proibidos):
 
 
 @pytest.mark.parametrize("texto,proibidos", [
-    ("Último endereço no país de origem: Calle 22 con Carrera 15, casa nº 8, Barquisimeto",
-     ["Calle 22", "Carrera 15", "nº 8"]),
+    ("Último endereço no exterior: Calle 31 con Carrera 6, casa nº 112, Maracay",
+     ["Calle 31", "Carrera 6", "nº 112"]),
     ("Último endereço no Haiti: Rue Toussaint, nº 31, Ruelle Espoir, Gonaïves", ["Toussaint", "31"]),
     ("Informou que a avó mora no bairro San Martín, calle Sucre esquina Miranda, em Cobija.",
      ["calle Sucre esquina Miranda"]),
@@ -139,7 +139,7 @@ def test_coordenadas_de_obra_ficam_legiveis():
     # Uso coletivo do espaço, sem pessoa determinada.
     "A equipe observou mais pessoas pernoitando na área do antigo terminal.",
     # Comunidade atendida pela unidade pública.
-    "Fica inaugurada a UBS da comunidade rural Sítio Lagoa Funda.",
+    "Fica inaugurada a UBS que atende a comunidade rural Sítio Pedra Lisa.",
     # Patrimônio e página na internet não são propriedades rurais.
     "O Sítio Histórico da Serra Velha recebeu visitantes.",
     "O edital está disponível no Sítio Eletrônico da Prefeitura.",
@@ -164,12 +164,12 @@ def test_texto_sem_endereco_pessoal(texto):
     ("O cacique da Aldeia Pirajuí acompanhou a visita.", "cacique da Aldeia Pirajuí"),
     ("conforme declaração da presidente da Associação de Pescadores do Lago Azul", "presidente da Associação de "
                                                                                    "Pescadores do Lago Azul"),
-    ("A agente comunitária de saúde da microárea 7 confirmou a residência.",
-     "agente comunitária de saúde da microárea 7"),
+    ("A agente de saúde que visita a microárea 12 confirmou a residência.",
+     "agente de saúde que visita a microárea 12"),
     ("O carroceiro que recolhe recicláveis na Rua do Porto toda noite viu o carro.",
      "carroceiro que recolhe recicláveis na Rua do Porto toda noite"),
-    ("Trabalha como guardador de carros em frente à Igreja de São Bento aos domingos.",
-     "guardador de carros em frente à Igreja de São Bento aos domingos"),
+    ("É guardador de carros ao lado do Mercado Público nas noites de sexta.",
+     "guardador de carros ao lado do Mercado Público nas noites de sexta"),
     ("o mototaxista que faz a linha do porto no turno da noite", "mototaxista que faz a linha do porto no turno da noite"),
     ("o motorista da rota Barreiro–sede do turno vespertino", "motorista da rota Barreiro–sede do turno vespertino"),
     ("É o responsável pela cantina do Bloco 3 aos sábados.", "responsável pela cantina do Bloco 3"),
@@ -230,9 +230,9 @@ def test_rodape_do_orgao_fica_legivel(anon):
 
 def test_endereco_do_orgao_na_ultima_linha_apos_o_cargo(anon):
     texto = ("GOVERNO DO ESTADO DO TOCANTINS\nSECRETARIA DA CULTURA\n\nRelação de oficinas aprovadas.\n\n"
-             "Paulo Rezende – Diretor de Fomento\nQuadra 102 Norte, Avenida LO-4, Lote 8 – Palmas/TO – CEP 77006-000")
+             "Paulo Rezende – Diretor de Fomento\nQuadra 102 Norte, Avenida LO-4, Lote 21 – Palmas/TO – CEP 77006-000")
     saida = anon.anonimizar(texto).texto
-    assert "Lote 8" in saida and "77006-000" in saida, saida
+    assert "Lote 21" in saida and "77006-000" in saida, saida
 
 
 def test_endereco_do_destinatario_no_fim_continua_tarjado(anon):
@@ -245,14 +245,14 @@ def test_endereco_do_destinatario_no_fim_continua_tarjado(anon):
 # ---------------------------------------------------------------------------- contatos do órgão e de empresa
 CONTATOS_DO_ORGAO = [
     # Cabeçalho de mensagem com nome do setor ou sem nome exibido.
-    ("De: Coordenação de Saúde Mental <saudemental@saude.ms.gov.br>\nData: 10/02/2026", "saudemental@saude.ms.gov.br"),
+    ("De: Coordenação de Saúde Mental <saudemental@saude.ms.gov.br>\nData: 23/09/2025", "saudemental@saude.ms.gov.br"),
     ("Para: vigilancia.sanitaria@saude.ms.gov.br; nucleo.dst@saude.ms.gov.br\nAssunto: inspeção",
      "nucleo.dst@saude.ms.gov.br"),
     # Celular qualificado como do órgão ou anunciado entre os canais do órgão.
     ("Informações pelo WhatsApp institucional (65) 99876-1100.", "(65) 99876-1100"),
     ("Denúncias pelo Disque 181 ou pelo WhatsApp (65) 99876-1200.", "(65) 99876-1200"),
     ("Informações: (96) 99001-2233 (WhatsApp da Comissão de Contratação).", "(96) 99001-2233"),
-    ("Plantão da Defesa Civil: 199 e (27) 99777-1212.", "(27) 99777-1212"),
+    ("Plantão 24 horas da Defesa Civil: 199 ou (27) 99654-3030.", "(27) 99654-3030"),
     # E-mail da comissão hospedado em provedor gratuito, com o órgão citado.
     ("Os autos estão disponíveis na Comissão de Licitação ou pelo e-mail cpl.serraalta@gmail.com.",
      "cpl.serraalta@gmail.com"),
@@ -263,8 +263,8 @@ CONTATOS_DO_ORGAO = [
     # Canal anunciado no início do período.
     ("Atendimento presencial do SIC: Rua Quinze, 80, das 8h às 14h; telefone (31) 3333-2000.", "(31) 3333-2000"),
     # Pedido de resposta feito pelo órgão.
-    ("Solicita-se resposta no prazo de dez dias pelo e-mail nucleo.defesa@defensoria.go.def.br.",
-     "nucleo.defesa@defensoria.go.def.br"),
+    ("Aguarda-se resposta em cinco dias úteis pelo e-mail nucleo.infancia@defensoria.go.def.br.",
+     "nucleo.infancia@defensoria.go.def.br"),
 ]
 
 
@@ -277,9 +277,9 @@ def test_contato_do_orgao_fica_legivel(anon, texto, contato):
 
 @pytest.mark.parametrize("texto,contato", [
     ("Para: Joana Pereira <joana.pereira@saude.ms.gov.br>", "joana.pereira@saude.ms.gov.br"),
-    ("As fotos podem ser tiradas pelo celular do leiloeiro, (11) 98888-7766.", "(11) 98888-7766"),
+    ("O agendamento da visita é feito pelo celular do leiloeiro, (11) 98234-5577.", "(11) 98234-5577"),
     ("Contato por WhatsApp: (95) 99110-4455.", "(95) 99110-4455"),
-    ("Para contato com a assistida: (34) 99100-2020.", "(34) 99100-2020"),
+    ("Telefone da assistida para retorno: (34) 99321-4646.", "(34) 99321-4646"),
     ("Dúvidas: atendimento.prefeitura@gmail.com", "atendimento.prefeitura@gmail.com"),
 ])
 def test_contato_pessoal_continua_tarjado(anon, texto, contato):
@@ -287,20 +287,20 @@ def test_contato_pessoal_continua_tarjado(anon, texto, contato):
 
 
 def test_email_de_fornecedor(anon):
-    texto = TIMBRE + "As ordens de fornecimento serão enviadas ao e-mail vendas@ferragenspinheiro.com.br."
-    assert ("CONTATO_EMPRESA", "alertar") in _tipos(anon, texto, "vendas@ferragenspinheiro.com.br")
+    texto = TIMBRE + "As requisições de material serão enviadas ao fornecedor pelo e-mail vendas@aroeira.com.br."
+    assert ("CONTATO_EMPRESA", "alertar") in _tipos(anon, texto, "vendas@aroeira.com.br")
 
 
 # ---------------------------------------------------------------------------- endereços do órgão e de empresa
 @pytest.mark.parametrize("texto,trecho,tipo", [
-    ("CONTRATADA: Construtora Boa Obra Ltda., CNPJ 12.345.678/0001-95, com sede na Rua do Comércio, 45, Sala 3, "
+    ("CONTRATADA: Construtora Boa Obra Ltda., CNPJ 34.218.507/0001-38, com sede na Rua do Comércio, 45, Sala 3, "
      "Centro, Lajeado/RS.", "Rua do Comércio, 45", "ENDERECO_EMPRESA"),
     ("Local do fato: Padaria Pão de Ouro, Avenida Central, 900, loja 2", "Avenida Central, 900", "ENDERECO_EMPRESA"),
     ("EMPREGADOR\nRazão social: Laticínios Vale Verde Ltda.\nCNPJ: 12.345.678/0001-95\nEndereço: Rua da Usina, 300",
      "Rua da Usina, 300", "ENDERECO_EMPRESA"),
     ("Atendimento presencial do SIC: Rua Quinze, 80, das 8h às 14h.", "Rua Quinze, 80", "ENDERECO_INSTITUCIONAL"),
-    ("Os donativos são recebidos no Galpão da Defesa Civil, na Rua do Mercado, 50, das 8h às 18h.",
-     "Rua do Mercado, 50", "ENDERECO_INSTITUCIONAL"),
+    ("As doações devem ser entregues no Galpão da Assistência Social, na Rua do Arsenal, 72, das 8h às 17h.",
+     "Rua do Arsenal, 72", "ENDERECO_INSTITUCIONAL"),
     ("Data: 05/03/2026     Local: Auditório da Regional de Ensino – Rua Ceará, 210, Iguatu/CE", "Rua Ceará, 210",
      "ENDERECO_INSTITUCIONAL"),
 ])
@@ -321,7 +321,7 @@ def test_endereco_do_trabalhador_no_formulario_continua_tarjado(anon):
     ("A viatura QWE2R34, da Delegacia Regional, foi recolhida para reparo.", ["QWE2R34"]),
     ("O caminhão basculante oficial da Secretaria de Obras, placa RTY5U67, foi cedido.", ["RTY5U67"]),
     ("A unidade móvel Van Saúde na Comunidade, placa SAQ1W23, percorreu 3 mil km.", ["SAQ1W23"]),
-    ("com inclusão do ônibus placa PLM3K45 no plano de abastecimento da frota", ["PLM3K45"]),
+    ("com inclusão do ônibus placa PNX8J62 na escala de revisão preventiva da frota", ["PNX8J62"]),
     ("A van adaptada da Policlínica, RENAVAM 70315926482, chassi 9BD12345678901234, voltou a operar.",
      ["70315926482", "9BD12345678901234"]),
 ])
@@ -358,7 +358,7 @@ def test_veiculo_particular_continua_tarjado(anon, texto, placa):
     # No pedido do cidadão, a placa da viatura aponta o servidor que a conduzia.
     ("Solicito informações sobre o condutor da viatura de placa QWE2R34, que me abordou ontem.", "QWE2R34"),
     # A empresa citada no pedido costuma ser a própria requerente.
-    ("Represento a Construtora Boa Obra Ltda., CNPJ 12.345.678/0001-95, com sede na Rua do Comércio, 45.",
+    ("Represento a Construtora Boa Obra Ltda., CNPJ 34.218.507/0001-38, com sede na Rua do Comércio, 45.",
      "Comércio, 45"),
     ("Nossa empresa enviou a proposta pelo e-mail vendas@ferragenspinheiro.com.br e não teve retorno.",
      "vendas@ferragenspinheiro.com.br"),
@@ -375,7 +375,7 @@ def test_no_pedido_do_cidadao_continua_tarjado(anon, texto, valor):
 @pytest.mark.parametrize("texto,trecho", [
     ("Nota fiscal com chave de acesso 4219 0801 1223 3300 0199 5500 1000 0123 4510 0098 7650 anexada.",
      "4219 0801 1223 3300 0199 5500 1000 0123 4510 0098 7650"),
-    ("O ginásio foi construído com recursos do Convênio nº 887766/2020.", "887766/2020"),
+    ("A reforma da creche foi custeada pelo Convênio nº 985247/2021.", "985247/2021"),
     ("conforme o subitem 7.2.1.4 do Termo de Referência", "7.2.1.4"),
     ("nomeado para o cargo em comissão de Assessor, símbolo CC-2, a partir de 1º de março", "CC-2"),
 ])
@@ -385,6 +385,6 @@ def test_numero_publico_fica_legivel(anon, texto, trecho):
 
 def test_perfil_maximo_tarja_contato_de_empresa():
     anon = Anonimizador(perfil="maxima")
-    saida = anon.anonimizar(TIMBRE + "As ordens de fornecimento serão enviadas ao e-mail "
-                                     "vendas@ferragenspinheiro.com.br.").texto
-    assert "vendas@ferragenspinheiro.com.br" not in saida
+    saida = anon.anonimizar(TIMBRE + "As requisições de material serão enviadas ao fornecedor pelo e-mail "
+                                     "vendas@aroeira.com.br.").texto
+    assert "vendas@aroeira.com.br" not in saida

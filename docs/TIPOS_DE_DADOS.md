@@ -54,13 +54,13 @@ coluna **Validação** indica o que é conferido além do formato.
 | `CTPS` | Carteira de trabalho | `[CTPS]` | 90 | Contexto obrigatório; inclui série e UF | CTPS 1234567 série 0012/DF |
 | `CERTIDAO` | Matrícula de certidão civil | `[CERTIDÃO]` | 90 | Formato de 32 dígitos (Provimento CNJ nº 3/2009); citação do assento ou do ato de notas por termo, livro e folha (inclusive tomo e folio de registros estrangeiros), tarjada inteira, perto de menção a certidão, nascimento, casamento, óbito ou cartório | termo 4521, livro A-32, folha 118; Livro 91, fls. 23, do Tabelionato |
 | `MATRICULA` | Matrícula funcional | `[MATRÍCULA]` | 85 | Contexto obrigatório ("matrícula", "Matr.", "MATR", "MAT", "SIAPE", "MASP", "ID funcional", "nº funcional", "registro funcional"; "RF" só no formato do registro funcional), com o vínculo ("/01"); posto ou graduação e quadro de militar estadual antes do número; coluna de tabela com esse cabeçalho. Ano isolado não é matrícula | MASP 1234567-8; Id. funcional 1234567/01; RF 123.456.7/1; SD PM 100.234-5 |
-| `REGISTRO_PROFISSIONAL` | Registro profissional (OAB, CRM, RNTRC, CADASTUR, RGP, registro no MTE…) e RQE | `[REGISTRO PROFISSIONAL]` | 85 | Sigla do conselho com a UF ou a região ("6ª Região"), inclusive em minúsculas; coluna de tabela com a sigla no cabeçalho. O número e a região ficam sob a tarja; a sigla e a UF, visíveis. A sigla seguida do número de um ato ("Ofício OAB/UF nº 12/2026") ou do registro de pessoa jurídica não é registro profissional | OAB/DF 12.345; CRN-3 88421; CRESS 6ª Região nº 1.234; RQE 4.321; RGP AM-00123456 |
+| `REGISTRO_PROFISSIONAL` | Registro profissional (OAB, CRM, RNTRC, CADASTUR, RGP, registro no MTE…) e RQE | `[REGISTRO PROFISSIONAL]` | 85 | Sigla do conselho com a UF ou a região ("6ª Região"), inclusive em minúsculas; coluna de tabela com a sigla no cabeçalho. O número e a região ficam sob a tarja; a sigla e a UF, visíveis. A sigla seguida do número de um ato ("Ofício OAB/UF nº 12/2026") ou do registro de pessoa jurídica não é registro profissional | OAB/DF 12.345; CRN-3 41736; CRESS 6ª Região nº 1.234; RQE 4.321; RGP AM-00123456 |
 | `BENEFICIO` | Benefício previdenciário ou social (NB do INSS) | `[BENEFÍCIO]` | 90 | Contexto obrigatório ("NB", "benefício"), inclusive no cabeçalho da coluna de uma tabela | NB 123.456.789-0 |
 | `REGISTRO_SAUDE` | Prontuário, DNV, AIH, cartão de vacina ou registro em sistema de informação em saúde | `[REGISTRO DE SAÚDE]` | 85 | Contexto obrigatório; o prontuário pode trazer a sigla do serviço ("Prontuário CER:", "Prontuário SIGLA nº", "Prontuário na unidade:") e o número, a sigla da unidade; registro da pessoa no SIASI, SINAN, SISREG, SINASC, SIPNI ou SISCAN | prontuário nº 2891163; Prontuário: ABC-0123/2024; Registro SIASI: 1.234.567 |
 | `MATRICULA_ESCOLAR` | Matrícula escolar ou RA | `[MATRÍCULA ESCOLAR]` | 85 | Contexto obrigatório ("RA", "registro acadêmico", "matrícula do aluno"), inclusive com os grupos separados por pontos | RA 123456789-X; R.A.: 000.123.456-7 |
 | `INSCRICAO_IMOVEL` | Inscrição imobiliária (IPTU, CCM) | `[INSCRIÇÃO]` | 80 | Contexto obrigatório | inscrição imobiliária 01.23.456.0789.001 |
 | `DOCUMENTO` | Número de documento | `[DOCUMENTO]` | 80 | Contexto obrigatório; documentos de estrangeiros (RNE, RNM, DPRNM, cédula de identidad, carta d'identità, DNI, NIF e outros identificadores nacionais, com a nacionalidade entre a palavra e o número); codice fiscale italiano (caractere de controle) e identidade chinesa (dígito de controle ISO 7064, com menção a identidade); carteiras sem formato nacional (CIPTEA e outras "Carteira de … nº"); coluna de tabela com cabeçalho de inscrição, protocolo, requerimento ou AIT. A data após "registro" ("Data do registro: …") é a data do ato e fica legível | Documento do cliente: 1234567-8; cédula V-12.345.678; CIPTEA nº 2026-UF-1234567 |
-| `DATA_NASCIMENTO` | Data de nascimento | `[DATA DE NASCIMENTO]` | 85 | Contexto ("nascido em", "data de nascimento", "DN", e em documentos de estrangeiros "nacida el", "nato a … il", "née le") ou coluna "Nascimento" de tabela; formatos numérico (também com espaços no lugar das barras e com o ano primeiro), ISO, com mês em algarismos romanos ou abreviado, por extenso (também em espanhol, italiano e francês), de registro civil e toda por extenso; o ano isolado ou presumido. "Nasceu em" com sujeito que é programa, projeto ou entidade não é data de nascimento | nascida em 12/03/1985; 1º de março de 1985; DN 03/XI/2015; nascido aos onze dias do mês de julho de mil novecentos e oitenta |
+| `DATA_NASCIMENTO` | Data de nascimento | `[DATA DE NASCIMENTO]` | 85 | Contexto ("nascido em", "data de nascimento", "DN", e em documentos de estrangeiros "nacida el", "nato a … il", "née le") ou coluna "Nascimento" de tabela; formatos numérico (também com espaços no lugar das barras e com o ano primeiro), ISO, com mês em algarismos romanos ou abreviado, por extenso (também em espanhol, italiano e francês), de registro civil e toda por extenso; o ano isolado ou presumido. "Nasceu em" com sujeito que é programa, projeto ou entidade não é data de nascimento | nascida em 12/03/1985; 1º de março de 1985; DN 03/XI/2015; nascida aos vinte e oito dias do mês de novembro de mil novecentos e setenta |
 | `IDADE` | Idade de pessoa | `[IDADE]` | 80 | Contexto que liga a idade a uma pessoa identificável (ver [Idade e valores de pessoa natural](#idade-e-valores-de-pessoa-natural)) | Idade: 52 anos; Fulano, 33 anos, CPF…; o filho, de 6 anos |
 
 ### Contato, localização e finanças
@@ -70,15 +70,15 @@ coluna **Validação** indica o que é conferido além do formato.
 | `EMAIL` | E-mail | `[E-MAIL]` | 90 | Formato; inclui formas ofuscadas | maria.souza@exemplo.com.br; joao arroba gmail ponto com; joao [arroba] gmail [ponto] com; joao @ gmail . com |
 | `TELEFONE` | Telefone | `[TELEFONE]` | 85 | Padrões próprios e biblioteca phonenumbers (região BR) | (61) 99876-5432 |
 | `PERFIL_REDE_SOCIAL` | Perfil em rede social | `[PERFIL]` | 85 | `@usuario` com contexto, URL de rede social ou identificador logo após o nome do aplicativo de mensagem ("WeChat: …", "Telegram: …") | @maria.souza |
-| `IP` | Endereço IP | `[IP]` | 80 | Reconhecedor do Presidio; a numeração de item, cláusula ou código de classificação com a mesma forma ("subitem 8.3.1.2", "COBRADE 1.3.2.1.4") fica legível | 203.0.113.45 |
-| `ENDERECO` | Endereço | `[ENDEREÇO]` | 70 | Logradouro (inclusive abreviado, numerado, com ordem — "2ª Travessa" — e passarela) e componentes (inclusive barraco e "casa sem número"), com o ponto de referência que o completa ("ao lado da capela…") e complementos atípicos ("fundos", "quarto 3", "2º andar", "beco 5"); propriedades e localidades rurais, ocupações e favelas, com a descrição da casa, a posição e a distância ("casa de taipa, segunda à esquerda depois da capela", "a 3 km da escola"); linha das colônias do Sul ("Linha São Pedro, s/n, km 7"); valor do campo de moradia ("Endereço:", "Residência:", "Local de pernoite:"), sem município, UF e território; ponto de pernoite de pessoa em situação de rua ("pernoita sob o viaduto…"); endereço no exterior ("Calle 7 con Carrera 9", "Rue X, nº 17"); lote de assentamento em texto de regularização fundiária; unidade de abrigo; coordenadas da moradia; rodovias das 27 UFs (no documento expedido pelo órgão, só com expressão de residência ou propriedade: sem elas, "BR-163, km 410" é local de obra); endereçamento do DF; município ou região de residência. Linha de tabela ("Rua X \| 9") não forma endereço | Rua B-15, Quadra 30, Lote 10; Sítio Boa Esperança; PE-060, km 10; QNM 12 Conjunto B Casa 4 |
+| `IP` | Endereço IP | `[IP]` | 80 | Reconhecedor do Presidio; a numeração de item, cláusula ou código de classificação com a mesma forma ("subitem 8.3.1.2", "COBRADE 1.1.3.2.1") fica legível | 203.0.113.45 |
+| `ENDERECO` | Endereço | `[ENDEREÇO]` | 70 | Logradouro (inclusive abreviado, numerado, com ordem — "2ª Travessa" — e passarela) e componentes (inclusive barraco e "casa sem número"), com o ponto de referência que o completa ("ao lado da capela…") e complementos atípicos ("fundos", "quarto 3", "2º andar", "beco 5"); propriedades e localidades rurais, ocupações e favelas, com a descrição da casa, a posição e a distância ("casa de taipa, terceira à direita depois do campo de futebol", "a 3 km da escola"); linha das colônias do Sul ("Linha São Pedro, s/n, km 7"); valor do campo de moradia ("Endereço:", "Residência:", "Local de pernoite:"), sem município, UF e território; ponto de pernoite de pessoa em situação de rua ("pernoita sob o viaduto…"); endereço no exterior ("Calle 7 con Carrera 9", "Rue X, nº 17"); lote de assentamento em texto de regularização fundiária; unidade de abrigo; coordenadas da moradia; rodovias das 27 UFs (no documento expedido pelo órgão, só com expressão de residência ou propriedade: sem elas, "BR-163, km 410" é local de obra); endereçamento do DF; município ou região de residência. Linha de tabela ("Rua X \| 9") não forma endereço | Rua B-15, Quadra 30, Lote 27; Sítio Boa Esperança; PE-060, km 10; QNM 12 Conjunto B Casa 4 |
 | `CAR` | Recibo do Cadastro Ambiental Rural | `[CAR]` | 90 | Formato (UF, código IBGE do município e 32 caracteres hexadecimais) | MT-5107925-1A2B.3C4D.… |
 | `CEP` | CEP | `[CEP]` | 80 | Formato com hífen ou após "CEP" | 72215-120 |
 | `CONTA_BANCARIA` | Agência/conta bancária | `[CONTA BANCÁRIA]` | 85 | Contexto bancário; IBAN pelo Presidio; colunas "Agência" e "Conta" de tabelas e planilhas. A conta tem ao menos três dígitos ("símbolo CC-3" é cargo). A conta específica de convênio ou parceria, a de fundo e a de doações, sem menção a pessoa natural, ficam legíveis | agência 1234, conta 56789-0 |
 | `CARTAO` | Cartão de pagamento | `[CARTÃO]` | 90 | Algoritmo de Luhn; trechos de sequências maiores de grupos de dígitos (chave de acesso de NF-e) não são cartão | 4111 1111 1111 1111 |
 | `CHAVE_PIX` | Chave PIX | `[CHAVE PIX]` | 90 | Contexto ("pix", "chave") | chave pix 61998765432 |
 | `CARTEIRA_CRIPTO` | Carteira de criptomoeda | `[CARTEIRA CRIPTO]` | 85 | Reconhecedor do Presidio | |
-| `VALOR_PESSOAL` | Valor recebido ou devido por pessoa natural | `[VALOR]` | 70 | Contexto que liga o valor a uma pessoa (ver [Idade e valores de pessoa natural](#idade-e-valores-de-pessoa-natural)) | aposentadoria de R$ 1.600,00; dívida de R$ 412,00 |
+| `VALOR_PESSOAL` | Valor recebido ou devido por pessoa natural | `[VALOR]` | 70 | Contexto que liga o valor a uma pessoa (ver [Idade e valores de pessoa natural](#idade-e-valores-de-pessoa-natural)) | aposentadoria de R$ 1.873,40; dívida de R$ 412,00 |
 
 ### Veículos e processos
 
@@ -99,13 +99,13 @@ coluna **Validação** indica o que é conferido além do formato.
 | `LOCALIDADE` | Cidade ou região administrativa | `[LOCALIDADE]` | 30 | Os 5.570 municípios do IBGE ("Cidade/UF" com conferência da UF, "município de Cidade", menção isolada não ambígua) e as regiões administrativas do DF; "moro em campinas" e "resido em Taguatinga" são classificados como `ENDERECO` |
 | `URL` | Endereço de internet | `[URL]` | 20 | |
 | `CONTATO_INSTITUCIONAL` | Telefone ou e-mail de órgão ou setor | `[CONTATO INSTITUCIONAL]` | 20 | Ver [Contatos, endereços e veículos do órgão e de empresas](#contatos-endereços-e-veículos-do-órgão-e-de-empresas) |
-| `ENDERECO_INSTITUCIONAL` | Endereço de sede ou unidade de órgão | `[ENDEREÇO INSTITUCIONAL]` | 20 | "na sede da Secretaria, situada na Rua…"; cabeçalho e rodapé do documento; local público de serviço ("no Galpão da Defesa Civil, na Rua…") |
+| `ENDERECO_INSTITUCIONAL` | Endereço de sede ou unidade de órgão | `[ENDEREÇO INSTITUCIONAL]` | 20 | "na sede da Secretaria, situada na Rua…"; cabeçalho e rodapé do documento; local público de serviço ("no almoxarifado da Defesa Civil, na Avenida…") |
 | `PLACA_OFICIAL` | Placa de veículo da frota oficial | `[PLACA OFICIAL]` | 20 | "veículos oficiais de placas …"; "a viatura …", "o caminhão oficial da Secretaria, placa …"; tabela da frota e lotes de leilão de bens da frota |
 | `VEICULO_OFICIAL` | RENAVAM ou chassi de veículo da frota oficial | `[VEÍCULO OFICIAL]` | 20 | Na linha de tabela da placa oficial ou na frase que designa o veículo do órgão ("a van adaptada da Policlínica, RENAVAM …") |
 | `CONTATO_EMPRESA` | Telefone ou e-mail de empresa | `[CONTATO DE EMPRESA]` | 20 | E-mail comercial ("vendas@…", "comercial…@…") em frase sobre fornecedor ou contratada |
 | `ENDERECO_EMPRESA` | Endereço de empresa ou estabelecimento | `[ENDEREÇO DE EMPRESA]` | 20 | "…Ltda., CNPJ …, com sede na Rua…"; estabelecimento comercial logo antes ("Padaria X, Avenida…"); campo de endereço do bloco que qualifica a empresa ("Razão social:", "CNPJ:") |
 | `UNIDADE_INSTITUCIONAL` | Nome de órgão, unidade, estabelecimento ou empresa | `[UNIDADE]` | 20 | Nome de pessoa reconhecido dentro de célula de coluna de unidade ("Escola / Lotação", "Unidade de saúde", "Órgão de origem", "Empresa") numa tabela de pessoas: integra o nome da unidade ("EE Professora Fulana"). Na coluna de lugar ("Município", "Destino", "Naturalidade"), o nome vira `LOCALIDADE` |
-| `QUASE_IDENTIFICADOR` | Quase-identificador | `[QUASE-IDENTIFICADOR]` | 15 | Função, local e turno ("atendente do guichê 4 na tarde de ontem"); função ou condição precedida de "único" ("única professora surda da escola", "o único apenado da galeria que atua como monitor"); aposto que descreve a pessoa ("o escrivão do plantão, um senhor grisalho de bigode"); descrição física com marca distintiva ("o mais alto, com tatuagem no pescoço"); "único" com qualificador de língua, origem ou família ("a única falante de guarani do abrigo", "a única operadora haitiana do turno"); trabalho de rua com lugar e frequência ("o carroceiro que recolhe papelão na Rua X toda madrugada"); cargo comunitário ("o cacique da Aldeia X", "a presidente da associação de moradores", "a agente de saúde da microárea 4") |
+| `QUASE_IDENTIFICADOR` | Quase-identificador | `[QUASE-IDENTIFICADOR]` | 15 | Função, local e turno ("atendente do guichê 4 na tarde de ontem"); função ou condição precedida de "único" ("única professora surda da escola", "o único detento do pavilhão que trabalha na cozinha"); aposto que descreve a pessoa ("o escrivão do plantão, um senhor grisalho de bigode"); descrição física com marca distintiva ("o mais alto, com tatuagem no pescoço"); "único" com qualificador de língua, origem ou família ("a única falante de guarani do abrigo", "a única enfermeira venezuelana do plantão"); trabalho de rua com lugar e frequência ("o vendedor de picolé que fica na Praça X todas as tardes"); cargo comunitário ("o cacique da Aldeia X", "a presidente da associação de moradores", "a agente de saúde da microárea 4") |
 | `NUMERO_NAO_IDENTIFICADO` | Número longo não identificado | `[NÚMERO]` | 10 | Reservado; não é produzido pelos reconhecedores padrão |
 | `MANUAL` | Trecho tarjado manualmente | `[TARJADO]` | 110 | Lista de bloqueio e tarjas manuais da revisão |
 
@@ -113,9 +113,9 @@ coluna **Validação** indica o que é conferido além do formato.
 
 | Código | Nome | Etiqueta | Categoria | Exemplos de achado |
 |---|---|---|---|---|
-| `SAUDE` | Dado de saúde | `[DADO DE SAÚDE]` | `SENSIVEL` | CID F32.1, F41.1 e G40; C.I.D. 6A70.1; "Diagnósticos de alta: E11.5; M86.1"; "diagnosticado com depressão"; "asma"; "faço uso de fluoxetina 20mg"; "creatinina de 1,6 mg/dL"; "PA 150 x 95 mmHg"; "Glasgow 13"; "licença para tratamento de saúde"; "ouve vozes"; "cheira solvente"; "consulta no CAPS AD"; "usa bombinha"; "gestante de oito meses"; "PcD (def. física)"; "TETRAVIRAL D2" |
+| `SAUDE` | Dado de saúde | `[DADO DE SAÚDE]` | `SENSIVEL` | CID F32.1, F41.1 e G40; C.I.D. 6A70.1; "Diagnósticos de alta: J18.9; I50.0"; "diagnosticado com depressão"; "asma"; "faço uso de fluoxetina 20mg"; "creatinina de 1,6 mg/dL"; "PA 150 x 95 mmHg"; "Glasgow 13"; "licença para tratamento de saúde"; "ouve vozes"; "cheira solvente"; "consulta no CAPS AD"; "usa bombinha"; "gestante de oito meses"; "PcD (def. física)"; "TETRAVIRAL D2" |
 | `RELIGIAO` | Convicção religiosa | `[CONVICÇÃO RELIGIOSA]` | `SENSIVEL` | "sou católico"; "membro da Igreja …"; "filha de santo do Terreiro …"; "frequenta a Paróquia …"; "ogã de um terreiro de mina"; "Religião: …" |
-| `OPINIAO_POLITICA` | Opinião política | `[OPINIÃO POLÍTICA]` | `SENSIVEL` | "filiado ao Partido … (sigla) e membro de seu diretório municipal"; "filiado ao mesmo partido do governador"; "candidato a deputado estadual pelo Partido …"; "fez campanha para o candidato …" |
+| `OPINIAO_POLITICA` | Opinião política | `[OPINIÃO POLÍTICA]` | `SENSIVEL` | "filiado ao Partido … (sigla) e tesoureiro do diretório da legenda na cidade"; "filiado ao mesmo partido do governador"; "candidato a deputado estadual pelo Partido …"; "fez campanha para o candidato …" |
 | `FILIACAO_SINDICAL` | Filiação sindical ou associativa | `[FILIAÇÃO]` | `SENSIVEL` | "sou sindicalizado"; "mensalidade sindical"; "desfiliado do Sindicato … (sigla)"; "delegado sindical do Sindsaúde"; "licença para mandato classista" |
 | `VIDA_SEXUAL` | Vida sexual / orientação sexual | `[VIDA SEXUAL]` | `SENSIVEL` | "relacionamento homoafetivo"; "homem cisgênero"; "teve relações sexuais com …"; "se identifica como menino"; "Identidade de gênero: …" |
 | `GENETICO_BIOMETRICO` | Dado genético ou biométrico | `[DADO BIOMÉTRICO]` | `SENSIVEL` | exame de DNA, impressão digital |
@@ -163,8 +163,8 @@ em orientações e rótulos.
 O tipo de violência só é contextual com o enquadramento que o atribui a alguém ("vítima de", "sofreu",
 "medo de"); citado sem enquadramento ("denúncias de assédio moral"), assim como "situação de risco" ou
 "de vulnerabilidade", é termo isolado e depende de vínculo. "Conselho tutelar" e "acolhimento
-institucional" também dependem de vínculo, e faixas e limites de idade ("crianças de 6 meses a menores
-de 9 anos", "menores de 15 anos") não são dado de menor.
+institucional" também dependem de vínculo, e faixas e limites de idade ("crianças de 3 meses a menores
+de 8 anos", "menores de 15 anos") não são dado de menor.
 
 #### Registro clínico e documento centrado em pessoa
 
@@ -183,7 +183,7 @@ encaminhamento, avaliação biopsicossocial…), quando há ao menos duas seçõ
 
 - são reconhecidas também as formas próprias do registro: analito com resultado ("creatinina de 1,6
   mg/dL", "anti-HCV reagente"), sinal vital e medida, escala clínica ("ECOG 2", "Child-Pugh C"),
-  posologia ("400 mg EV de 12/12 h"), fórmula obstétrica e idade gestacional, achados do exame físico e
+  posologia ("750 mg VO de 8/8 h"), fórmula obstétrica e idade gestacional, achados do exame físico e
   psíquico, nome de exame, termos pelo sufixo (-algia, -ectomia, -plastia…) e o valor de campos clínicos
   ("Natureza:", "Tipo de violência:", "Evolução:", "Marcha:");
 - o trecho tarjado vai até a fronteira da frase (ponto final, ponto e vírgula, quebra de linha, célula),
@@ -228,7 +228,7 @@ Três reconhecedores se complementam:
 | Reconhecedor | Funcionamento | Funciona em minúsculas e caixa alta |
 |---|---|---|
 | `BR_Nomes_Modelo` | Entidades `PER` (e `MISC`/`LOC` iniciadas por prenome conhecido) do modelo `pt_core_news_lg`, divididas na quebra de linha, no travessão e na barra vertical (o cargo da linha de baixo não entra no nome) e filtradas: títulos e cargos iniciais, letras isoladas, algarismos romanos, palavras comuns e administrativas, siglas, nomes de instituições, empresas, normas e lugares | não |
-| `BR_Nomes_Lista` | Sequências iniciadas por um dos cerca de 700 prenomes brasileiros das listas (inclusive os mais frequentes por sexo, década e UF no Censo 2010 do IBGE), seguidos de sobrenomes, conectores ou iniciais ("Graziela B. Assunção"); em CAIXA ALTA, até três palavras fora das listas entre nomes ou no fim do nome; o nome continua na linha seguinte quando a linha termina em conector, quando a seguinte começa por "Filho", "Neto" ou "Júnior" ou quando a célula da tabela foi partida | sim |
+| `BR_Nomes_Lista` | Sequências iniciadas por um dos cerca de 700 prenomes brasileiros das listas (inclusive os mais frequentes por sexo, década e UF no Censo 2010 do IBGE), seguidos de sobrenomes, conectores ou iniciais ("Rosângela T. Medeiros"); em CAIXA ALTA, até três palavras fora das listas entre nomes ou no fim do nome; o nome continua na linha seguinte quando a linha termina em conector, quando a seguinte começa por "Filho", "Neto" ou "Júnior" ou quando a célula da tabela foi partida | sim |
 | `BR_Nomes_Gatilho` | Nome após gatilho de contexto ("meu nome é", "requerente:", "Atenciosamente,", "sou a…"), rótulo de campo ("Membro:", "Periciada:", "Contribuinte:"), papel ou ato de pessoal ("a servidora FULANA", "conduzido por", "Exonerar"); nome antes de identificador, idade ou cargo ("FULANO, matrícula", "FULANO – Membro"); linha só com o nome sobre a linha do cargo, na assinatura; célula de tabela com o nome em linha que traz CPF ou matrícula, inclusive em tabela alinhada por espaços e com o restante do nome na linha de baixo; nomes um por linha em lista; nome invertido ("SOBRENOME, Fulana", "SOBRENOME, F. B."); nome de guerra após posto, corporação e matrícula ("SD PM 000.000-0 FULANO"); parentesco em aposto ("a esposa, FULANA", "a filha Fulana, de 15 anos"); papel em linha de título ("VÍTIMA⏎FULANA"); pronome de tratamento com nome fora das listas ("Dona Fulana", "Sr. Fulano"); iniciais de pessoa ("K.C.P.", "M. E. S."), também nas demais menções do documento; apelidos e nomes pelos quais a pessoa é chamada ("vulgo “Fulano”", "conhecida na vizinhança como Fulana", "prefere ser chamada de Fulana", "“Fulana” (nome social)"). Nesses contextos, nomes de imigrantes e indígenas fora das listas são aceitos em CAIXA ALTA, com partículas estrangeiras ("DEL", "VON DER", "AL"), e os do Leste Asiático, com o sobrenome em CAIXA ALTA à frente ("FULANO Bel-trano") | sim |
 
 Nomes que integram nomes de lugares, instituições, empresas ou normas não são tratados como pessoa:
@@ -348,7 +348,7 @@ reconhecedores, o contexto do documento inteiro reclassifica esses achados para 
   paginação ou última linha depois do cargo do signatário, fora de bloco de destinatário), após o rótulo
   "Endereço da unidade:", o canal de atendimento ("Atendimento presencial do SIC:") ou o edifício-sede
   ("Palácio…", "Centro Administrativo…"), depois de local público de serviço ("Local: Auditório da
-  Regional – Rua…", "no Galpão da Defesa Civil, na Rua…", "no pátio da Garagem Municipal, Rua…") ou
+  Regional – Rua…", "no almoxarifado da Defesa Civil, na Avenida…", "no depósito da Secretaria de Obras, Rua…") ou
   introduzido pela sede ou pela unidade ("na sede da Corregedoria, na Rua…", "a Diretoria de Atenção
   Primária, situada na Avenida…", "na UBS Vila Nova, na Rua…") numa frase que anuncia o serviço — horário
   de atendimento, hora do ato ou providência ("poderão ser retirados", "deverá ser protocolada"); num
@@ -384,8 +384,8 @@ costuma ser a própria requerente e o número citado ao lado do órgão costuma 
 mesmo número, e-mail ou identificador de veículo recebe a mesma classificação em todo o documento.
 
 Números públicos com forma de dado pessoal são descartados: códigos de natureza de despesa ("natureza
-de despesa 3.3.90.39") em contexto orçamentário e subitens ou códigos de classificação ("subitem
-8.3.1.2", "COBRADE 1.3.2.1.4") lidos como endereço IP; chave de acesso de nota fiscal eletrônica (44
+de despesa 3.3.90.47") em contexto orçamentário e subitens ou códigos de classificação ("subitem
+8.3.1.2", "COBRADE 1.1.3.2.1") lidos como endereço IP; chave de acesso de nota fiscal eletrônica (44
 dígitos com dígito verificador) lida como telefone ou cartão; número logo após a designação
 de ato ("Convênio nº 912345/2021") lido como telefone; RENAVAM lido como telefone; símbolo de cargo em
 comissão ("símbolo CC-3") lido como conta.
@@ -456,7 +456,7 @@ linha no meio da frase não a interrompe; as expressões entre parênteses só d
   convênio, rendimento de aplicação financeira, empresa, erário, tabela, valor estimado ou global, valor
   fixado, taxa, valor da causa) mantém o valor legível, assim como limites e faixas ("até R$ 660,00", "de
   R$ 1.000,00 a R$ 10.000,00", "limitada a R$ 50.000,00"), médias sem pessoa designada na frase ("valor
-  médio de R$ 1.640,00"), valores por grupo ("a renda média das famílias", "R$ 600,00 por família", "pago
+  médio de R$ 1.640,00"), valores por grupo ("a renda média das famílias", "R$ 740,00 por família", "pago
   a 52 famílias") e dívidas, multas e prejuízos do próprio ente ou de autarquia ("o débito do Município",
   "prejuízo ao INSS");
 - expressão de vínculo pessoal (renda, remuneração, dívida, multa…) tarja o valor, salvo em oração
@@ -476,7 +476,7 @@ ou rubrica de contracheque), todos os valores de declarações de bens (Lei nº 
 valores sem contexto decisivo em extratos de contrato ou termo de outorga cuja contraparte é pessoa
 física (identificada por CPF), em frases com CPF e sem CNPJ e na seção de renda ("RENDA FAMILIAR",
 "Renda e despesas") de ficha cadastral, prontuário ou estudo social sobre pessoa ou família identificada
-(com CPF, NIS ou código familiar), o dinheiro levado ou guardado ("R$ 950,00 em dinheiro") e as
+(com CPF, NIS ou código familiar), o dinheiro levado ou guardado ("R$ 830,00 em dinheiro") e as
 repetições, no mesmo documento, de um valor já reconhecido como pessoal. Agência, conta, cartão e chave
 PIX continuam nos tipos da categoria `FINANCEIRO`. Os valores de `VALOR_PESSOAL` não são propagados para
 outros trechos do documento, pois a mesma quantia pode ter outro sentido em outra frase.

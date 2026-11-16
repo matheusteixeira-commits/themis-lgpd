@@ -80,7 +80,7 @@ _NAO_IDADE_ANTES = re.compile(
     r"(?!\s+(?-i:\p{Lu}\p{Ll}))[^.;,\n]{0,12}$",
     re.IGNORECASE)
 
-#: Iniciais de pessoa: "K.C.P.", "K. M. P.", "A.F.L.".
+#: Iniciais de pessoa: "R.T.G.", "J. B. S.", "M.V.D.".
 _INICIAIS = r"(?:\b[A-ZÀ-Ú]\.\s?){2,}(?:[A-ZÀ-Ú]\b\.?)?"
 #: Nome próprio de duas palavras ou mais, em caixa normal ou alta, com conectores.
 _NOME = (r"(?:\b\p{Lu}\p{Ll}+(?:[-'’]\p{Lu}?\p{Ll}+)*(?:\s+(?:(?:d[aeo]s?|e)\s+)?\p{Lu}\p{Ll}+(?:[-'’]\p{Lu}?\p{Ll}+)*)+|"
@@ -121,24 +121,24 @@ _ROTULO_IDADE = re.compile(
     r"(?:\s*(?:,|e)\s*\d{1,2}\s*(?:m[êe]s(?:es)?|dias?)\b)?)?|" + _EXTENSO + r"\s+(?:anos?|m[êe]s(?:es)?)\b)"
     r"(?!\s*(?:a|à|e|ou)\s+\d)",
     re.IGNORECASE)
-#: Idade em aposto, após vírgula, travessão ou parêntese: "Fulano, 38 anos, CPF…", "K.C.P., 9 anos;".
+#: Idade em aposto, após vírgula, travessão ou parêntese: "Fulano, 38 anos, CPF…", "R.T.G., 9 anos;".
 _APOSTO = re.compile(r"(?:(?<=[,;(]\s{0,3})|(?<=[–—]\s{0,3})|(?<=\s-\s))(?P<v>" + _IDADE + r")" + _NAO_IDADE_DEPOIS +
                      r"(?=\s*(?:[,;.)|\t\n]|$|e\s+\S|de\s+idade|\(\s*nascid))", re.IGNORECASE)
-#: Idade com "de": "a filha, A.F.L., de 3 anos", "um sobrinho de 10 anos".
+#: Idade com "de": "a neta, M.V.D., de 4 anos", "um sobrinho de 10 anos".
 _DE_IDADE = re.compile(r"\bde\s+(?P<v>" + _IDADE + r")" + _NAO_IDADE_DEPOIS, re.IGNORECASE)
 #: Idade com "com": "hoje com 2 anos", "então com 16 anos", "…, com 52 anos, empresário", "…, com 61 anos
 #: completos, aposentada".
 _COM_IDADE = re.compile(r"(?:(?<=,\s{0,3})|\b(?:hoje|ent[ãa]o|atualmente|agora|j[áa])\s+)com\s+(?P<v>" + _IDADE + r")" +
                         r"(?:\s+completos(?=\s*[,;.)\n]))?" + _NAO_IDADE_DEPOIS +
                         r"(?=\s*(?:de\s+idade|[,;.)\n]|$|e\s+\S))", re.IGNORECASE)
-#: Idade com verbo: "contava 19 anos", "tem 9 anos", "possuindo 60 (sessenta) anos de idade".
+#: Idade com verbo: "contava 19 anos", "tem 9 anos", "possuindo 57 (cinquenta e sete) anos de idade".
 _VERBO_IDADE = re.compile(
     r"\b(?:tem|tinha|completou|completa|completar[áa]|completando|contava(?:\s+com)?|possui|"
     r"possu[íi]a|possuindo|fez|far[áa])\s+(?P<v>" + _IDADE + r")" + _NAO_IDADE_DEPOIS, re.IGNORECASE)
-#: "N anos de idade" em qualquer construção: "61 (sessenta e um) anos de idade".
+#: "N anos de idade" em qualquer construção: "73 (setenta e três) anos de idade".
 _ANOS_DE_IDADE = re.compile(r"(?<![\d,.])(?P<v>" + _IDADE + r")(?=\s+de\s+idade\b)(?!\s+de\s+idade\s+ou\s+(?:mais|menos))",
                             re.IGNORECASE)
-#: Idade logo depois da data de nascimento: "Data de nascimento: 17/02/2019 (6 anos)", "… – 28 anos",
+#: Idade logo depois da data de nascimento: "Data de nascimento: 22/08/2019 (7 anos)", "… – 28 anos",
 #: inclusive com o mês em algarismos romanos ("03/XI/2015") ou o ano primeiro ("2011-07-21", "2011.07.21").
 _DEPOIS_DA_DATA = re.compile(
     r"(?:\bnasc\w*\.?|\bD\.?N\.?)[^\d\n]{0,25}(?:\d{1,2}\s*[/.\-]\s*(?:\d{1,2}|[IVX]{1,4})\s*[/.\-]\s*\d{2,4}|"
@@ -361,8 +361,8 @@ _DIA_EXTENSO = (r"(?:primeiro|vinte(?:\s+e\s+" + _UNIDADE_EXTENSO + r")?|trinta(
                 _UNIDADE_EXTENSO + r")")
 _ANO_EXTENSO = (r"(?:mil\s+(?:oitocentos|novecentos)|dois\s+mil)(?:\s+e\s+(?:" + _DEZENA_EXTENSO + r"(?:\s+e\s+" +
                 _UNIDADE_EXTENSO + r")?|" + _DEZ_A_DEZENOVE + r"|" + _UNIDADE_EXTENSO + r"))?")
-#: Data toda por extenso, como em proclamas e assentos de registro civil: "onze dias do mês de
-#: julho de mil novecentos e oitenta", "primeiro de junho de dois mil e dez".
+#: Data toda por extenso, como em proclamas e assentos de registro civil: "vinte e oito dias do mês de
+#: março de mil novecentos e cinquenta e oito", "primeiro de fevereiro de dois mil e quatro".
 DATA_POR_EXTENSO = (r"\b" + _DIA_EXTENSO + r"\s+(?:dias?\s+)?(?:do\s+m[êe]s\s+)?de\s+" + MESES + r"\s+(?:do\s+ano\s+)?de\s+(?:" +
                     _ANO_EXTENSO + r"|\d{4})(?!\d)")
 #: Mês em algarismos romanos, como em registros antigos e documentos estrangeiros ("03/XI/2015").
@@ -405,7 +405,7 @@ _COL_DURACAO = re.compile(r"tempo|per[íi]odo|prazo|dura[çc]|perman|car[êe]nci
 _DATA = re.compile(r"(?<![\d/.\-])\d{1,2}\s*[/.\-]\s*\d{1,2}\s*[/.\-]\s*(?:19|20)?\d{2}(?![\d/.\-])")
 #: Célula que é uma idade ("31 anos", "7 meses") ou só o número de anos.
 _CELULA_IDADE = re.compile(r"^\s*(?P<v>" + _IDADE + r"|\d{1,3})\s*$", re.IGNORECASE)
-#: Valor monetário no início de uma célula, com ou sem "R$": "R$ 600,00 (Bolsa Família)", "8.412,57".
+#: Valor monetário no início de uma célula, com ou sem "R$": "R$ 820,00 (Bolsa Família)", "6.290,14".
 _CELULA_VALOR = re.compile(r"\s*(?P<v>(?:R\$\s?)?(?:\d{1,3}(?:\.\d{3})+|\d+),\d{2})(?![\d])")
 
 
@@ -563,7 +563,7 @@ _REAIS = (r"(?:R\$|US\$|U\$|USD|EUR|€|£)\s?" + _QUANTIA +
 _SALARIOS = (r"\b(?:(?:meio|um|dois|tr[êe]s|quatro|cinco|seis|sete|oito|nove|dez|\d{1,2}(?:,\d{1,2})?)(?:\s+e\s+meio)?|"
              r"metade|um\s+quarto|um\s+ter[çc]o|dois\s+ter[çc]os|tr[êe]s\s+quartos|\d/\d)\s+(?:d[oe]s?\s+)?"
              r"sal[áa]rios?[\s-]+m[íi]nimos?(?:\s+e\s+meio)?\b|\b(?:um|dois|tr[êe]s)\s+sal[áa]rios?\s+e\s+meio\b")
-#: Percentual dos rendimentos de alguém: "25% (vinte e cinco por cento) dos rendimentos brutos".
+#: Percentual dos rendimentos de alguém: "15% (quinze por cento) dos rendimentos brutos".
 _PERCENTUAL = (r"\b\d{1,3}(?:,\d{1,2})?\s?%(?:\s*\([^()\n]{3,60}\))?(?=\s+d[oa]s?\s+(?:rendimentos|sal[áa]rios?|"
                r"remunera[çc](?:[ãa]o|[õo]es)|proventos|vencimentos)\b(?!\s+(?:inicial|iniciais|base|b[áa]sico)\b))")
 _VALOR = re.compile(r"(?P<reais>" + _REAIS + r")|(?P<salarios>" + _SALARIOS + r")|(?P<percentual>" + _PERCENTUAL + r")",
@@ -595,7 +595,7 @@ _FRACO = (
     r"custear|custeio|sustent\w+|sobreviv\w+|estim(?:a|ou|ad[oa])|adquiri\w*|compr(?:ou|ad[oa])|vend(?:eu|id[oa])|"
     r"exigi\w*|cobr(?:ou|ad[oa]|ava)|somam|somaram|soma|totaliz\w+|apurad[oa]s?\s+em|corresponde\w*|"
     r"deve|devia|devendo|ganha|ganhava|ganhou|"
-    # Ganho, gasto e sustento contados no relato ("recebendo R$ 70,00 por diária", "gastou em média…", "tira uns
+    # Ganho, gasto e sustento contados no relato ("recebendo R$ 76,40 por diária", "gastou em média…", "tira uns
     # dois mil", "sobrevive com dois salários e meio", "lhe davam cem reais").
     r"recebendo|ganh(?:o|ei|am|amos|ando)|gast(?:a|am|o|ei|ou|ava|ar|ando|aram|amos)|apur(?:a|ava|ando)|"
     r"rend(?:e|em|ia|eu)|tir(?:a|ava|ou)|viv(?:e|em|ia|iam)\s+com|davam?|levaram|levou"
@@ -627,8 +627,8 @@ _PUBLICO = (
 _NEUTRO = r"sal[áa]rios?[\s-]+m[íi]nimos?(?:\s+(?:vigente|nacional|atual))?"
 _GATILHO = re.compile(r"\b(?:(?P<neutro>" + _NEUTRO + r")|(?P<publico>" + _PUBLICO + r")|(?P<forte>" + _FORTE +
                       r")|(?P<fraco>" + _FRACO + r"))\b", re.IGNORECASE)
-#: Expressões logo após o valor que o vinculam a uma pessoa ("R$ 1.518,00 mensais de pensão",
-#: "R$ 455,40 para despesas pessoais") ou o tornam público ("do caixa da empresa", "ao erário").
+#: Expressões logo após o valor que o vinculam a uma pessoa ("R$ 1.236,00 mensais de pensão",
+#: "R$ 318,70 para despesas pessoais") ou o tornam público ("do caixa da empresa", "ao erário").
 _DEPOIS_PESSOAL = re.compile(
     r"^[\s,)]*(?:mensais\s+)?(?:\(?\s*(?:bolsa\s+fam[íi]lia|BPC|benef[íi]cio|aposentadoria|pens[ãa]o|aux[íi]lio)|"
     r"(?:de|a\s+t[íi]tulo\s+de)\s+(?:pens[ãa]o|aposentadoria|renda|sal[áa]rio|benef[íi]cio|aluguel|alimentos)|"
@@ -639,13 +639,13 @@ _DEPOIS_PUBLICO = re.compile(
     r"^[^.;\n]{0,25}?\b(?:da\s+empresa|do\s+caixa|ao\s+er[áa]rio|aos\s+cofres|do\s+contrato|da\s+contratada|"
     r"(?:ao|do|pelo|para\s+o)\s+(?:munic[íi]pio|estado|distrito\s+federal|governo)|(?:à|da|pela)\s+(?:uni[ãa]o|prefeitura|secretaria)|"
     r"por\s+(?:fam[íi]lia|benefici[áa]ri[oa]|alun[oa]|vaga|cargo|candidat[oa])|para\s+quem|aos?\s+infrator|"
-    # Valor pago a um grupo contado ("R$ 300,00 mensais pagos a 52 famílias").
+    # Valor pago a um grupo contado ("R$ 275,00 mensais pagos a 38 famílias").
     r"(?:a|às|aos|para|entre)\s+(?:cerca\s+de\s+)?\d[\d.]*\s+(?:fam[íi]lias|pessoas|benefici[áa]ri[oa]s|alun[oa]s|"
     r"estudantes|servidor(?:es|as)|munic[íi]pios|entidades|institui[çc][õo]es|escolas|unidades|bolsistas|"
     r"trabalhador(?:es|as)|agricultor(?:es|as)|produtor(?:es|as)|pescador(?:es|as)|catador(?:es|as)|atletas|"
     r"idos[oa]s|crian[çc]as|jovens|moradores|participantes|candidat[oa]s|inscrit[oa]s|contemplad[oa]s|projetos|"
     r"grupos|associa[çc][õo]es|cooperativas|organiza[çc][õo]es))", re.IGNORECASE)
-#: Faixa de valores ou limite ("de R$ 500,00 a R$ 5.000,00", "até R$ 218,00"): referência normativa.
+#: Faixa de valores ou limite ("de R$ 463,10 a R$ 4.631,00", "até R$ 218,00"): referência normativa.
 _LIMITE_ANTES = re.compile(r"\b(?:at[ée]|inferior\s+a|superior\s+a|m[áa]ximo\s+de|m[íi]nimo\s+de|limite\s+de|"
                            r"limitad[oa]s?\s+a|"
                            r"teto\s+de|acima\s+de|abaixo\s+de|entre(?:\s+\S+){0,2}\s+e|"
@@ -653,7 +653,7 @@ _LIMITE_ANTES = re.compile(r"\b(?:at[ée]|inferior\s+a|superior\s+a|m[áa]ximo\s
                            re.IGNORECASE)
 _FAIXA_DEPOIS = re.compile(r"\s*(?:a|à|até)\s+R\$", re.IGNORECASE)
 #: "Entre R$ X e R$ Y": a conjunção só faz faixa depois de "entre"; nos demais casos, soma valores
-#: ("subtraídos € 900,00 e US$ 300,00").
+#: ("subtraídos € 750,00 e US$ 420,00").
 _ENTRE_ANTES = re.compile(r"\bentre\s*$", re.IGNORECASE)
 _E_DEPOIS = re.compile(r"\s*e\s+R\$", re.IGNORECASE)
 #: Outro valor coordenado logo depois do valor, com o parêntese que os envolve.
@@ -701,7 +701,7 @@ _PESSOA_JURIDICA = re.compile(r"\bCNPJ\b|\bLtda\b|\bS\.\s?A\.|\bEIRELI\b|\b(?i:e
 _ANCORA_INICIAL = re.compile(
     r"\s*(?:\d+(?:\.\d+)*\.?\s+)?(?:QUE\s+)?(?:Sua|Seu|Suas|Seus|Afirmou|Declarou|Informou|Relatou|Alegou|Disse|"
     r"Esclareceu|Acrescentou|Narrou|Confessou|Admitiu|Reconheceu|Contou|Mencionou|"
-    # Sujeito oculto em relato sobre a pessoa ("Gastou em média R$ 180,00 por semana").
+    # Sujeito oculto em relato sobre a pessoa ("Gastou em média R$ 145,00 por semana").
     r"Gasta|Gastou|Recebe|Recebeu|Ganha|Ganhou|Paga|Pagou|Deve|Devia|Vive|Sobrevive|Trabalha|Tira)\b(?!-)")
 #: Marcas normativas na oração: o valor é fixado por norma ou edital para um cargo ou categoria.
 _NORMATIVO = re.compile(r"\b(?:fica(?:m)?\s+(?:fixad|estabelecid|institu[íi]d)\w*|fixa(?:d[oa]s?|r)?|estabelece\w*|"
@@ -728,7 +728,7 @@ _CPF = re.compile(r"\bCPF\b|\d{3}\.\d{3}\.\d{3}-\d{2}|\*{3}\.\d{3}\.\d{3}-\*{2}"
 def _inicio_frase(texto: str, pos: int, alcance: int = 160) -> int:
     ini = max(0, pos - alcance)
     ultimo = None
-    # O limite estendido deixa a fronteira examinar o início do valor ("…per capita de⏎R$ 452,40").
+    # O limite estendido deixa a fronteira examinar o início do valor ("…per capita de⏎R$ 387,60").
     for m in _FIM_FRASE.finditer(texto, ini, min(len(texto), pos + 3)):
         if m.end() > pos:
             break
@@ -788,7 +788,7 @@ def classificar_valor(texto: str, ini: int, fim: int, documento_pj: bool = False
     """
     a, b = _inicio_frase(texto, ini), _fim_frase(texto, fim)
     antes = texto[a:ini]
-    # Valores coordenados ("R$ 300,00 e R$ 450,00) serão pagas pelo Município"): o que vem depois
+    # Valores coordenados ("R$ 260,00 e R$ 390,00) serão pagas pelo Município"): o que vem depois
     # do último vale para todos.
     seguinte = fim
     while (m := _OUTRO_VALOR.match(texto, seguinte)) is not None:

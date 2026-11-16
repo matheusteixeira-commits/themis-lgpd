@@ -52,7 +52,7 @@ _POSTO = (r"(?:SD|CB|[123][º°o]?\s?SGT|SGT|SUBTEN|ST|ASP(?:\s+OF)?|[12][º°o]
 #: Quadro ou corporação que segue o posto: Polícia Militar e Corpo de Bombeiros e seus quadros.
 _CORPORACAO = r"(?:PM|BM|QOPM|QPPM|QOBM|QPBM|QOEM|QOE|QOA|QOS|QPE|QPMP|QOC|CBM)"
 #: Componentes do assento de registro civil ou de ato notarial no formato antigo: livro, folha e
-#: termo, em qualquer ordem ("termo 1.234, livro A-12, folha 56", "Livro 214, fls. 88", "acta nº 3,
+#: termo, em qualquer ordem ("termo 1.234, livro A-12, folha 56", "Livro 37, fls. 142", "acta nº 3,
 #: tomo 2, folio 15").
 _C_LIVRO = r"(?:livro|liv\.|tomo|libro|registre)\s*(?:n[º°o]\.?\s*)?(?-i:[A-Z]{1,2}-?)?\d(?:[\d.]*\d)?"
 _C_FOLHA = r"(?:folhas?|fls?\.|fls|folio|f[óo]lio|foja|feuillet)\s*(?:n[º°o]\.?\s*)?\d+(?:\s?v(?:erso)?\b)?"
@@ -72,7 +72,7 @@ _NAO_ATO_CONSELHO = (r"(?<!(?i:\b(?:of[íi]cio|of\.|parecer(?:\s+t[ée]cnico)?|r
                      r"(?<!(?i:pessoa\s+jur[íi]dica|empresa|\bPJ)\b[^\n.;]{0,20})")
 #: Número do registro em conselho, com a letra inicial e o sufixo de categoria ou de dígito opcionais
 #: ("A12345-6", "123.456-ENF" até o hífen, "12345-P"), inclusive com o código do estado antes do ponto
-#: ("52.12345-6").
+#: ("52.40817-3").
 _NUM_CONSELHO = r"[A-Z]?(?:\d{1,3}(?:\.\d{3})+|\d{1,2}\.\d{4,6}|\d{3,})(?:\s*[-/]\s*[A-Z0-9]{1,2}\b){0,2}"
 #: Data numérica completa ("12/05/2025", "12.05.25").
 _DATA = re.compile(r"\d{1,2}\s*[/.\-]\s*\d{1,2}\s*[/.\-]\s*\d{2,4}")
@@ -172,7 +172,7 @@ PADROES: list[Padrao | ColunasIdentificadoras] = [
     Padrao("CERTIDAO", ANTES_NUM + r"\d{6}\s?\d{2}\s?\d{2}\s?\d{4}\s?\d\s?\d{5}\s?\d{3}\s?\d{7}[-\s]?\d{2}" + DEPOIS_NUM,
            0.9),
     # ---------------- Assento de registro civil ou ato de notas no formato antigo, citado por livro,
-    # folha e termo ("termo 1.234, livro A-12, folha 56", "Livro 214, fls. 88"), inclusive em
+    # folha e termo ("termo 1.234, livro A-12, folha 56", "Livro 37, fls. 142"), inclusive em
     # registros de outros países ("acta nº 3, tomo 2, folio 15") e de nascimento indígena (RANI). A
     # citação inteira identifica o assento; exige ao menos dois componentes, um deles livro ou folha, e
     # menção a certidão, nascimento, casamento, óbito ou cartório por perto.
@@ -248,8 +248,8 @@ PADROES: list[Padrao | ColunasIdentificadoras] = [
     Padrao("RG", ANTES_NUM + r"\d{1,2}\.\d{3}\.\d{3}\s?-\s?[\dXx]" + DEPOIS_NUM, 0.85,
            contexto=(r"rg", r"identidade", r"ssp", r"c[ée]dula"), contexto_obrigatorio=True, nome="rg:contexto-depois"),
     # ---------------- Registro em cadastros profissionais não vinculados a conselho: transportadores
-    # (RNTRC), turismo (CADASTUR), pesca (Registro Geral da Atividade Pesqueira, RGP, com a UF antes do
-    # número: "RGP AB-00012345") e registro profissional no Ministério do Trabalho ("registro MTE
+    # (RNTRC), turismo (CADASTUR), pesca (o RGP, Registro Geral da Atividade Pesqueira, com a UF antes do
+    # número: "RGP AB-00012345") e registro profissional mantido pelo Ministério do Trabalho ("registro MTE
     # UF/001234.5").
     Padrao("REGISTRO_PROFISSIONAL", r"(?-i:\b(?:RNTRC|CADASTUR))" + _SEP + _NUM + _SEP + r"(?P<v>\d[\d.\-/]{4,16}\d)",
            0.9, camada=CONTEXTUAL, grupo="v", nome="registro:cadastro"),
@@ -414,7 +414,7 @@ _LINHA_PJ = re.compile(r"\b(?:LTDA|EIRELI|EPP|S\.?/?A|CNPJ)\b\.?", re.IGNORECASE
 _CELULA_ALINHADA = re.compile(r"\S+(?: \S+)*")
 #: Cabeçalho numérico de colunas de dias, comum em escalas ("01 02 03 … 31").
 _DIAS = re.compile(r"\d{1,2}(?: \d{1,2})+")
-#: Complemento numérico separado por um espaço dentro da mesma célula ("013 524608-3").
+#: Complemento numérico separado por um espaço dentro da mesma célula ("024 718305-6").
 _COMPLEMENTO = re.compile(r" [\d.\-/]*\d[\d.\-/]*(?=\s|$)")
 
 

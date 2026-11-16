@@ -222,7 +222,7 @@ class ReconhecedorNomesModelo(EntityRecognizer):
 
 class ReconhecedorIP(IpRecognizer):
     """``IpRecognizer`` que descarta a numeração de itens e códigos com a forma de endereço IPv4
-    ("subitem 8.3.1.2", "COBRADE 1.3.2.1.4"; ver :func:`themis_lgpd.validadores.numeracao_de_item`)."""
+    ("subitem 8.3.1.2", "COBRADE 1.1.3.2.1"; ver :func:`themis_lgpd.validadores.numeracao_de_item`)."""
 
     def analyze(self, text, entities, nlp_artifacts=None, regex_flags=None):
         return [r for r in super().analyze(text, entities, nlp_artifacts, regex_flags)

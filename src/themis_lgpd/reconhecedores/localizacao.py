@@ -58,7 +58,7 @@ _ROTULO_COMPONENTE = (
 #: número impede que "mas" seja lido como "MA" + "s" ou "nos" como "nº" + "s".
 _ROTULO_NUMERICO = r"(?:\bn[º°o]\.?|\bn[úu]mero|\b(?-i:BR|" + "|".join(UFS) + r")-?)"
 _MESES = r"(?:janeiro|fevereiro|mar[çc]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\b"
-#: O dia de um logradouro com nome de data ("rua 15 de novembro") não é número nem valor de componente.
+#: O dia de um logradouro com nome de data ("rua 13 de maio") não é número nem valor de componente.
 _NAO_DATA = rf"(?!\s+de\s+{_MESES})"
 #: Valor de um componente: número ("12", "602-A", "1.234") ou letra isolada ("B"). Nunca uma palavra
 #: — o que impede que "ch" + "ão" de "chão" seja lido como "chácara ão".
@@ -75,7 +75,7 @@ _COMPLEMENTO_ATIPICO = (r"\b(?:fundos|sobreloja|t[ée]rreo|subsolo|cobertura|ed[
 _COMPONENTE = (rf"(?:{_ROTULO_COMPONENTE}\s*{_VALOR_COMP}|{_ROTULO_NUMERICO}\s*{_VALOR_NUMERICO}|(?<![\w/])s/n(?![\w/])|"
                rf"\bcasa\s+sem\s+n[úu]mero\b|{_COMPLEMENTO_ATIPICO})")
 #: Localidade rural que integra o endereço depois da propriedade ou da linha ("Sítio Bela Vista, Córrego
-#: Fundo", "Linha 12, lote 9, Gleba Santa Cruz").
+#: Fundo", "Linha 18, lote 31, Gleba Santa Cruz").
 _LOCALIDADE_DO_ENDERECO = r"(?:c[óo]rrego|ribeir[ãa]o|igarap[ée]|ramal|travess[ãa]o|gleba|vicinal|n[úu]cleo\s+rural)"
 #: Componente cujo valor é um nome próprio ("Edifício Toronto", "Residencial Bela Vista"), a rodovia
 #: em que fica o quilômetro ("km 12 da Rodovia Transamazônica", "km 8 da Rodovia LMG-800") ou a
@@ -88,7 +88,7 @@ _COMPONENTE_NOMEADO = (r"\b(?:edif[íi]cio|ed\.|residencial|condom[íi]nio|bloco
                        rf"|\b{_LOCALIDADE_DO_ENDERECO}\s+(?-i:(?:d[aeo]s?\s+)?[A-ZÀ-Ú][\wÀ-ú'’]+"
                        r"(?:\s+(?:d[aeo]s?\s+)?[A-ZÀ-Ú][\wÀ-ú'’]+){0,4})")
 #: Sequência de até oito componentes após o início do endereço, separados por vírgula, hífen ou
-#: preposição ("Lote 12 da DF-330", "km 15 da Rodovia BR-060", "casa 3 no Bloco B").
+#: preposição ("Lote 12 da DF-330", "km 42 da Rodovia BR-364", "casa 3 no Bloco B").
 _COMPONENTES = rf"(?:\s*[,\-–]?\s*(?:(?:n[oa]|d[ao])\s+)?(?:{_COMPONENTE}|{_COMPONENTE_NOMEADO})){{0,8}}"
 #: Componente que delimita o lote ou a unidade residencial ("Lote 12", "Chácara 15", "Casa 8").
 _COMPONENTE_LOTE = rf"\b(?:lote|lt\.?|ch[áa]cara|casa|cs\.?|conjunto|conj\.?|quadra|qd\.?)\s*{_VALOR_COMP}"
@@ -105,7 +105,7 @@ _CASA_COLETIVA = (r"(?!\s*,\s*casa\s+d[aeo]s?\s+(?:farinha|reza|apoio|sa[úu]de|
 #: Nome de logradouro que homenageia uma data ("15 de Novembro", "1º de Maio", "7 de Setembro").
 _NOME_DATA = r"(?:[12]?\d|3[01])[º°]?\s+de\s+" + _MESES
 #: Número do imóvel: com milhar ("1.234"), simples com letra ("230A") ou "s/n"; também como ponto de
-#: referência ("altura do número 450"). O dia de um nome-data ("rua 15 de novembro") não é número.
+#: referência ("altura do número 450"). O dia de um nome-data ("rua 13 de maio") não é número.
 _NUMERO = (r"(?:(?:na\s+)?altura\s+do\s+)?(?:n[º°o]?\.?\s*|n[úu]mero\s*)?(?:\d{1,3}(?:\.\d{3})+|\d{1,6}[A-Za-z]?|s/?n)"
            r"(?![\w/])" + _NAO_DATA)
 #: Cidade seguida de UF ("Joinville - SC", "Goiânia/GO", "Recife (PE)"). O pronome oblíquo colado ao
@@ -235,7 +235,7 @@ PADROES: list[Padrao] = [
            r"(?:\s*[,\-–]\s*(?:ch[áa]cara|s[íi]tio|fazenda|lote|n[úu]cleo(?:\s+rural)?|condom[íi]nio)[^\n,;.]{0,40})*",
            0.8, contexto=CTX_RESIDENCIA, janela=60, nome="endereco:km-rodovia"),
     # Linha, picada ou travessão com nome, comuns nas colônias do Sul, seguidos de "s/n", quilômetro, lote
-    # ou número ("Linha São Roque, s/n, km 7", "Picada Café, lote 12"). O nome começa por maiúscula e o
+    # ou número ("Linha Santo Expedito, s/n, km 4", "Picada Café, lote 12"). O nome começa por maiúscula e o
     # componente é obrigatório: "linha de crédito" e "linha do tempo" não são endereço.
     Padrao("ENDERECO",
            r"\b(?-i:Linha|LINHA|Picada|PICADA|Travess[ãa]o|TRAVESS[ÃA]O)\s+" + _NOME_PROPRIO
@@ -248,7 +248,7 @@ PADROES: list[Padrao] = [
            r"\b" + _LOCALIDADE_COLETIVA + r"\s+" + _NAO_LOCALIDADE + _NOME_PROPRIO
            + r"(?:\s*,\s*margem\s+(?:esquerda|direita)[^\n,;.]{0,50})?(?=\s*,\s*(?:casa|barraco|barraca)\b)"
            + _CASA_COLETIVA + _COMPONENTES, 0.8, contexto=CTX_RESIDENCIA, janela=60, nome="endereco:localidade-casa"),
-    # Unidade de abrigo ou de conjunto habitacional ("unidade habitacional 214 do setor C", no abrigo):
+    # Unidade de abrigo ou de conjunto habitacional ("unidade habitacional 108 da ala B", no abrigo):
     # exige menção ao acolhimento ou à residência.
     Padrao("ENDERECO",
            r"\bunidade\s+habitacional\s+\d{1,4}[A-Z]?(?:\s+(?:d[oa]|n[oa])\s+(?:setor|bloco|m[óo]dulo|ala|quadra)\s+"
@@ -256,8 +256,8 @@ PADROES: list[Padrao] = [
            0.8, contexto=CTX_RESIDENCIA + (r"abrig\w*", r"acolhid[oa]s?", r"acolhimento"), contexto_obrigatorio=True,
            janela=120, nome="endereco:unidade-habitacional"),
     # Endereço no exterior, com o tipo de via em espanhol, francês ou italiano, seguido de número,
-    # componente ou cruzamento ("Calle 14 con Carrera 9, casa nº 27", "Rue Capois, nº 17", "calle
-    # principal, casa 45", "calle Bolívar esquina Sucre"). O cruzamento sem número exige expressão de
+    # componente ou cruzamento ("Calle 47 con Carrera 3, casa nº 58", "Rue Capois, nº 17", "calle
+    # principal, casa 45", "calle Sarmiento esquina Belgrano"). O cruzamento sem número exige expressão de
     # residência (ver ReconhecedorEndereco).
     Padrao("ENDERECO",
            r"\b(?:calles?|carrera|cra\.|jir[óo]n|pasaje|calzada|rue|ruelle|boulevard|chemin|strada|piazza|corso)\s+"
@@ -339,7 +339,7 @@ _COMPONENTES_DEPOIS = re.compile(
 )
 #: Ordem da via antes do logradouro, comum no Nordeste ("2ª Travessa São Jorge", "1ª Rua do Canal").
 _ORDEM_VIA = re.compile(rf"(?<![\w.])\d{{1,2}}(?:[ªº°]|a|o){_ESPACO}+\Z")
-#: Ponto de referência que completa o endereço sem número ("casa sem número, ao lado da capela de São
+#: Ponto de referência que completa o endereço sem número ("casa sem número, atrás da capela de São
 #: Benedito", "em frente à escola municipal"): até cinco palavras, sem atravessar a vírgula.
 _REFERENCIA_DEPOIS = re.compile(
     rf"{_ESPACO}*,?{_ESPACO}*(?:ao{_ESPACO}+lado|em{_ESPACO}+frente|atr[áa]s|pr[óo]xim[oa]|perto|nos{_ESPACO}+fundos)"
@@ -347,7 +347,7 @@ _REFERENCIA_DEPOIS = re.compile(
     re.IGNORECASE,
 )
 #: Descrição que localiza a moradia sem número, em segmentos separados por vírgula: a casa ("casa de
-#: taipa azul"), a posição ("segunda à esquerda depois da capela", "vizinho ao depósito"), a distância
+#: taipa azul"), a posição ("quarta casa à esquerda antes da ponte", "vizinho ao depósito"), a distância
 #: ("a 2 km da escola") ou a propriedade conhecida ("no sítio conhecido como Recanto").
 _DESCRICAO_DEPOIS = re.compile(
     _CASA_COLETIVA + rf"{_ESPACO}*,{_ESPACO}*(?=(?:casa|barrac[oa]|palafita|(?:primeira|segunda|terceira|quarta|quinta|[úu]ltima)"
@@ -366,8 +366,8 @@ _PARTE_ANTES = re.compile(
     rf"{_ESPACO}*[,\-–]?{_ESPACO}*)+\Z",
     re.IGNORECASE,
 )
-#: Ligação entre duas partes do mesmo endereço ("Sítio Recanto Feliz na Estrada do Barreiro",
-#: "Assentamento Estrela Dalva, no km 15", "km 12 da Rodovia LMG-800").
+#: Ligação entre duas partes do mesmo endereço ("Sítio Três Irmãos na Estrada do Capão Seco",
+#: "Assentamento Pedra Branca, no km 22", "km 31 da Rodovia TO-050").
 _ENTRE_PARTES = re.compile(rf"{_ESPACO}*(?:[,\-–]{_ESPACO}*)?(?:(?:n[oa]s?|em|d[aeo]s?|à|ao){_ESPACO}+)?",
                            re.IGNORECASE)
 #: Órgão ou equipamento público citado antes do endereço: o endereço é institucional e, pela LAI, de
@@ -489,7 +489,7 @@ _PROPRIEDADE_NA_RODOVIA = re.compile(r"\b(?:ch[áa]cara|s[íi]tio|fazenda|lote|n
 _CRUZAMENTO = re.compile(r"\s(?:con|esquina|y|entre|et|e)\s", re.IGNORECASE)
 
 #: Rótulo de campo que introduz a moradia da pessoa num formulário ou relatório ("Endereço:", "End.:",
-#: "Residência:", "Local de pernoite:", "Último endereço no país de origem:"). Os rótulos de endereço de
+#: "Residência:", "Local de pernoite:", "Último endereço no exterior:"). Os rótulos de endereço de
 #: unidade, de obra, de empresa ou eletrônico não entram.
 _ROTULO_MORADIA = re.compile(
     r"^[ \t]*(?:[-–•*][ \t]*)?(?:endere[çc]o(?:[ \t]+(?:residencial|atual|completo|domiciliar|de[ \t]+resid[êe]ncia))?|"
@@ -556,7 +556,7 @@ def _enderecos_rotulados(texto: str) -> list[Deteccao]:
     return saida
 
 
-#: Lote rural citado sem a vicinal ("ocupa o lote 23", "os confrontantes do lote 46"), fora de tabela e de
+#: Lote rural citado sem a vicinal ("ocupa o lote 23", "os confrontantes do lote 58"), fora de tabela e de
 #: licitação.
 _LOTE = re.compile(r"\blote\s+(?:n[º°o]\.?\s*)?\d{1,4}[A-Z]?(?![\w/])(?!\s*(?:\||d[oa]\s+(?:preg[ãa]o|licita|edital|"
                    r"leil[ãa]o|contrato|ata|item)))", re.IGNORECASE)
@@ -618,7 +618,7 @@ class ReconhecedorEndereco(ReconhecedorPadroes):
             # "Secretaria de Estado de Fazenda …", "Ministério da Fazenda": órgão, não propriedade.
             if d.origem == "endereco:rural" and _ORGAO_ANTES.search(texto, max(0, d.inicio - 60), d.inicio):
                 continue
-            # No documento expedido pelo órgão, "a UBS da comunidade rural Sítio Lagoa Seca" e "a escola do
+            # No documento expedido pelo órgão, "a UBS do povoado Sítio Lagoa Seca" e "a escola do
             # Sítio Boa Vista" designam a comunidade atendida pela unidade pública, e rodovia e quilômetro
             # sem residência nem propriedade ("ponte na RO-010, km 87"), o local da obra.
             if (d.origem == "endereco:rural" and not residencia and documento_do_orgao(texto)
