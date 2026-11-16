@@ -2,7 +2,7 @@
   "conjunto": "validacao",
   "perfil": "lai",
   "documentos": 1080,
-  "segundos_por_documento": 0.0109,
+  "segundos_por_documento": 0.0188,
   "recall": 1.0,
   "recall_por_tipo": {
     "CHASSI": 1.0,

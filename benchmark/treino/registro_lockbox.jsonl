@@ -1,1 +1,5 @@
 {"data": "2026-11-16T01:03:58+00:00", "motivo": "linha de base antes do ciclo de treinamento (commit 8ab6651)", "commit": "8ab6651", "perfil": "lai", "recall_entidades": 0.9464, "documentos_com_vazamento": 0.1031}
+{"data": "2026-11-16T12:34:49+00:00", "motivo": "avaliação final do treinamento (commit eef0f77)", "commit": "eef0f77", "perfil": "lai", "recall_entidades": 0.9506, "documentos_com_vazamento": 0.0992}
+{"data": "2026-11-16T12:41:08+00:00", "motivo": "comparação com o Presidio puro: tabela publicada da versão treinada (commit eef0f77)", "commit": "eef0f77", "perfil": "lai", "recall_entidades": 0.9506, "documentos_com_vazamento": 0.0992}
+{"data": "2026-11-16T13:14:07+00:00", "motivo": "versão publicada (commit 46dc4a5): verificação final e sobrenome com palavra de instituição, decididas fora do conjunto de referência e da lockbox", "commit": "46dc4a5", "perfil": "lai", "recall_entidades": 0.9506, "documentos_com_vazamento": 0.0992}
+{"data": "2026-11-16T13:15:42+00:00", "motivo": "comparação com o Presidio puro: tabela publicada da versão 46dc4a5", "commit": "46dc4a5", "perfil": "lai", "recall_entidades": 0.9506, "documentos_com_vazamento": 0.0992}

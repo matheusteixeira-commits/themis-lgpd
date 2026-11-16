@@ -71,6 +71,71 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
   rótulo de proteção só é desativado quando causa dano medido; `DADO_SENSIVEL`, sem efeito mensurável
   nas seleções e sem dano, continua ativo.
 
+### Alterado — detecção treinada em documentos oficiais
+
+Três ciclos de melhoria orientados por medição (método em `docs/BENCHMARKS.md`, seção *Treinamento
+das regras*). No conjunto de referência de 120 documentos oficiais fictícios, que nunca serviu ao
+ajuste, o recall passa de 64,7% para 93,6%, a precisão das tarjas de 85,5% para 93,5%, a preservação de
+trechos públicos de 88,9% para 96,5% e os documentos com algum vazamento de 93,3% para 50,0% (45
+deixaram de vazar, nenhum passou a vazar). Na partição de teste do esic-ner, o recall passa de 94,6%
+para 95,1% e a precisão da triagem de 0,948 para 0,963.
+
+- A idade ligada a uma pessoa passa a ser tarjada (tipo `IDADE`), inclusive por extenso, em aposto e
+  entre parênteses; a data de nascimento é reconhecida também por extenso, com mês em algarismos
+  romanos, com o ano primeiro e em documentos de outros países.
+- Valores recebidos ou devidos por pessoa natural — salário, benefício, renda, pensão, dívida,
+  prejuízo — passam a ser tarjados (tipo `VALOR_PESSOAL`, categoria `ECONOMICO`; alerta no perfil
+  `identificadores`). Valores de contratos, de órgãos e totais de programas continuam legíveis.
+- Dados do próprio órgão e de empresas — telefone e e-mail de setor, endereço da sede, placa, RENAVAM
+  e chassi da frota oficial, contato e endereço de fornecedor, nome de unidade em tabela — ficam
+  legíveis e sinalizados para revisão (categoria `INSTITUCIONAL`; tarjados no perfil `maxima`). As
+  regras mais amplas valem só em documento expedido pelo órgão, com timbre nas primeiras linhas.
+- Saúde e dados sensíveis fora do registro clínico: linguagem leiga, fala transcrita, uso de
+  substâncias, tratamento descrito pelo serviço (CAPS, fila de transplante), deficiência e gestação
+  sem verbo de atribuição, violência classificada no caso e dados sensíveis em terceira pessoa ou por
+  perífrase; enunciados normativos, estatísticas e nomes de órgãos com esses termos continuam
+  legíveis.
+- Tabelas, formulários e documentos digitalizados (`reconhecedores/tabelas.py`): cada coluna é
+  tipificada pelo cabeçalho em tabelas separadas por barra, tabulação, ponto e vírgula ou espaços
+  alinhados, em grade e em formulário; a normalização reúne palavras hifenizadas em caixa alta,
+  números partidos, letras em quadrícula e rótulos colados ao valor, e corrige trocas comuns de OCR
+  em nomes e rótulos.
+- Nomes em formas atípicas: invertidos ("SOBRENOME, prenome"), com partículas estrangeiras, do Leste
+  Asiático com o sobrenome à frente, apelidos, iniciais de crianças e testemunhas, nome de guerra após
+  posto e nome em célula de tabela. Nome de pessoa dentro de nome de embarcação, programa, honraria,
+  entidade, empresa, logradouro ou município fica legível.
+- Documentos de estrangeiros (RNE, RNM, cédulas de identidade e passaportes de outros países, codice
+  fiscale e identidade chinesa com dígito de controle), assentos de registro civil por livro e folha,
+  carteiras sem formato nacional (CIPTEA, RGP) e números de parecer, ficha e prontuário de sistemas
+  setoriais.
+- Endereços de aldeias, povoados, comunidades ribeirinhas, acampamentos, ocupações, assentamentos e
+  abrigos, com a referência descritiva ("casa de taipa depois da capela"), ponto de pernoite de
+  pessoa em situação de rua, endereço estrangeiro, linha colonial com quilômetro e coordenadas.
+- Quase-identificadores por função, lugar, turno ou cargo comunitário, e "único" com qualificador de
+  língua, origem ou família.
+- Registros em conselho e documentos de identidade: o número continua tarjado; a sigla do conselho, o
+  órgão emissor e a UF ficam legíveis ("CRM-PE [REGISTRO PROFISSIONAL]").
+- Menos tarja indevida em documentos públicos: processos, autos e laudos sobre coletividade ou pessoa
+  jurídica, numeração de itens e de classificação com forma de IP, protocolos do diário oficial e
+  códigos verificadores do SEI, contas bancárias de pessoa jurídica, notas de empenho e ordens
+  bancárias.
+
+### Adicionado — avaliação com separação de dados
+
+- Conjunto de referência independente (`benchmark/ouro`): 120 documentos oficiais fictícios de todas
+  as regiões, com anotação dupla cega, adjudicação e congelamento por SHA-256, e avaliador
+  (`benchmark/avaliar_ouro.py`) de recall, precisão real das tarjas e preservação de trechos
+  públicos, com intervalos de confiança.
+- Corpus de desenvolvimento de 200 documentos oficiais fictícios (`benchmark/oficial`) e 120
+  documentos adversariais (`benchmark/adversarial`), anotados pelas mesmas diretrizes.
+- Partições de ajuste, seleção e *lockbox*: `--erros` só nas partições de ajuste; a partição de teste
+  do esic-ner exige `--lockbox MOTIVO` e registra cada uso, também em `benchmark/comparar.py`;
+  consulta às seleções por métricas agregadas (`benchmark/treino/portao.py`).
+- Comparação pareada de duas execuções (`benchmark/treino/comparar_execucoes.py`): *bootstrap*
+  pareado e teste de McNemar.
+- Trava de regressão no CI: o conjunto de referência precisa manter recall ≥ 93%, precisão das tarjas
+  ≥ 92,5% e preservação ≥ 95,5%.
+
 ### Adicionado — cobertura nacional
 
 - Endereços de todo o país: abreviações (Av., Trav., Pça., Lgo., Rod., Estr.), número com milhar,
@@ -204,14 +269,24 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ### Desempenho
 
-- Análise de textos longos quase linear: 100 mil caracteres em 4,7 s (1.0.0: 11,3 s). O reforço de
+- Análise de textos longos quase linear: 100 mil caracteres em 8,0 s (1.0.0: 11,3 s). O reforço de
   confiança por contexto do Presidio localiza o token de cada achado por busca binária, e o filtro de
-  nomes lê o texto do documento uma vez, em vez de remontá-lo a cada entidade.
+  nomes lê o texto do documento uma vez, em vez de remontá-lo a cada entidade. As regras de contexto e
+  o classificador acrescentados no treinamento quase dobraram o tempo de análise em relação à versão
+  anterior a ele (4,7 s).
 - PDF: páginas tarjadas gravadas em escala de cinza quando não têm cor e em JPEG quando fotográficas,
-  com composição em paralelo — 0,32 s por página (1.0.0: 0,47 s) e arquivos 42% menores.
+  com composição em paralelo — 0,36 s por página (1.0.0: 0,47 s) e arquivos 31% menores.
 
 ### Corrigido
 
+- A verificação final recusava o arquivo inteiro quando um termo de saúde, dado sensível ou valor de
+  pessoa natural tarjado num trecho aparecia, sem relação com a pessoa, em outro (o pedido do
+  requerente e uma nota técnica sobre o programa, no mesmo PDF). Esses valores não se propagam; a
+  ocorrência deixada visível pela análise passa a ser reconhecida pelo contexto, e uma tarja que não
+  chegou ao arquivo continua sendo acusada.
+- Sobrenome com palavra de nome de instituição ("Augusto Casa Grande", "Rafaela da Ponte") deixava o
+  nome inteiro legível: depois de um prenome conhecido, a palavra só indica instituição quando seguida
+  de preposição ("Casa de Cultura").
 - A verificação final de PDFs, DOCX e XLSX deixava de entregar documentos válidos quando um sobrenome
   tarjado ("Rocha") aparecia como palavra comum em minúsculas ("rocha") em outro trecho; ela passa a
   seguir a regra da propagação.

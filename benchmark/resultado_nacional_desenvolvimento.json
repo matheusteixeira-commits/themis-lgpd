@@ -2,7 +2,7 @@
   "conjunto": "desenvolvimento",
   "perfil": "lai",
   "documentos": 1080,
-  "segundos_por_documento": 0.0112,
+  "segundos_por_documento": 0.0209,
   "recall": 1.0,
   "recall_por_tipo": {
     "CAR": 1.0,

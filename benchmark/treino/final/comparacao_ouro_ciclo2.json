@@ -1,0 +1,190 @@
+{
+  "documentos": 120,
+  "metricas": {
+    "documentos_com_vazamento": {
+      "base": 0.5385,
+      "candidata": 0.5,
+      "diferenca": -0.0385,
+      "ic95": [
+        -0.0777,
+        -0.0092
+      ],
+      "p_nao_melhor": 0.0195
+    },
+    "precisao_tarjas": {
+      "base": 0.929,
+      "candidata": 0.935,
+      "diferenca": 0.0059,
+      "ic95": [
+        -0.0037,
+        0.0159
+      ],
+      "p_nao_melhor": 0.129
+    },
+    "preservacao_publicos": {
+      "base": 0.9542,
+      "candidata": 0.9647,
+      "diferenca": 0.0105,
+      "ic95": [
+        0.0031,
+        0.0182
+      ],
+      "p_nao_melhor": 0.001
+    },
+    "recall:CONTATO": {
+      "base": 0.9896,
+      "candidata": 0.9896,
+      "diferenca": 0.0,
+      "ic95": [
+        0.0,
+        0.0
+      ],
+      "p_nao_melhor": 1.0
+    },
+    "recall:DADO_FINANCEIRO": {
+      "base": 0.8667,
+      "candidata": 0.9167,
+      "diferenca": 0.05,
+      "ic95": [
+        -0.0196,
+        0.1277
+      ],
+      "p_nao_melhor": 0.1285
+    },
+    "recall:DADO_SAUDE": {
+      "base": 0.8722,
+      "candidata": 0.885,
+      "diferenca": 0.0128,
+      "ic95": [
+        0.0025,
+        0.0289
+      ],
+      "p_nao_melhor": 0.022
+    },
+    "recall:DADO_SENSIVEL": {
+      "base": 0.5556,
+      "candidata": 0.5926,
+      "diferenca": 0.037,
+      "ic95": [
+        0.0,
+        0.1034
+      ],
+      "p_nao_melhor": 0.359
+    },
+    "recall:DATA_NASC": {
+      "base": 0.8485,
+      "candidata": 0.9545,
+      "diferenca": 0.1061,
+      "ic95": [
+        0.0208,
+        0.1912
+      ],
+      "p_nao_melhor": 0.007
+    },
+    "recall:DOC_PESSOAL": {
+      "base": 0.9528,
+      "candidata": 0.9606,
+      "diferenca": 0.0079,
+      "ic95": [
+        0.0,
+        0.0248
+      ],
+      "p_nao_melhor": 0.3665
+    },
+    "recall:DOC_PROFISSIONAL": {
+      "base": 0.9895,
+      "candidata": 0.9895,
+      "diferenca": 0.0,
+      "ic95": [
+        0.0,
+        0.0
+      ],
+      "p_nao_melhor": 1.0
+    },
+    "recall:ENDERECO": {
+      "base": 0.9032,
+      "candidata": 0.9194,
+      "diferenca": 0.0161,
+      "ic95": [
+        0.0,
+        0.0545
+      ],
+      "p_nao_melhor": 0.3815
+    },
+    "recall:ID_PROCESSUAL": {
+      "base": 0.9079,
+      "candidata": 0.9211,
+      "diferenca": 0.0132,
+      "ic95": [
+        0.0,
+        0.0441
+      ],
+      "p_nao_melhor": 0.3665
+    },
+    "recall:ID_VEICULO": {
+      "base": 1.0,
+      "candidata": 1.0,
+      "diferenca": 0.0,
+      "ic95": [
+        0.0,
+        0.0
+      ],
+      "p_nao_melhor": 1.0
+    },
+    "recall:NOME_PESSOA": {
+      "base": 0.9778,
+      "candidata": 0.9889,
+      "diferenca": 0.0111,
+      "ic95": [
+        0.0,
+        0.0246
+      ],
+      "p_nao_melhor": 0.049
+    },
+    "recall:QUASI_IDENTIFICADOR": {
+      "base": 0.4615,
+      "candidata": 0.5385,
+      "diferenca": 0.0769,
+      "ic95": [
+        0.0,
+        0.2727
+      ],
+      "p_nao_melhor": 0.369
+    },
+    "recall_entidades": {
+      "base": 0.9188,
+      "candidata": 0.9364,
+      "diferenca": 0.0176,
+      "ic95": [
+        0.0097,
+        0.0264
+      ],
+      "p_nao_melhor": 0.0
+    },
+    "recall_estrito": {
+      "base": 0.9028,
+      "candidata": 0.9081,
+      "diferenca": 0.0054,
+      "ic95": [
+        -0.0071,
+        0.0191
+      ],
+      "p_nao_melhor": 0.236
+    },
+    "tarja_fora_do_gabarito": {
+      "base": 0.1845,
+      "candidata": 0.1776,
+      "diferenca": -0.0069,
+      "ic95": [
+        -0.0154,
+        0.0016
+      ],
+      "p_nao_melhor": 0.052
+    }
+  },
+  "mcnemar_vazamento": {
+    "deixaram_de_vazar": 4,
+    "passaram_a_vazar": 0,
+    "p": 0.125
+  }
+}

@@ -20,7 +20,12 @@ Componentes e dados de terceiros
   ReportLab (BSD), Pillow (MIT-CMU), python-docx (MIT), openpyxl (MIT): leitura e escrita de arquivos.
 - LibreOffice (MPL-2.0): conversão de DOC, XLS, PPT e RTF, quando instalado; não é distribuído.
 - streamlit-image-coordinates (MIT): marcação de regiões com o mouse na interface.
-- Benchmark: o conjunto EliMC/esic-ner (CC BY 4.0) é baixado sob demanda e não é redistribuído.
+- Benchmark: o conjunto EliMC/esic-ner (CC BY 4.0) é baixado sob demanda e não é redistribuído. Os
+  arquivos de resultado por documento em benchmark/treino contêm só contagens e o resumo SHA-256 de
+  cada texto, sem trechos do conjunto.
+- benchmark/ouro, benchmark/oficial e benchmark/adversarial: documentos oficiais fictícios e suas
+  anotações, de produção própria, sob a licença MIT. Nomes, números, endereços e contatos são
+  inventados; qualquer coincidência com pessoas reais é casual.
 - src/themis_lgpd/dados/modelos/sensivel: classificador de trechos (spaCy spancat) para dados de
   saúde, dados sensíveis, nomes de pessoas e quase-identificadores, treinado pelos autores sobre a
   partição de treino do conjunto EliMC/esic-ner (https://huggingface.co/datasets/EliMC/esic-ner),
