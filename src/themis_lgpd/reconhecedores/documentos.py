@@ -38,7 +38,7 @@ CTX_CNH = ("cnh", r"habilita[çc][ãa]o", r"carteira (?:nacional )?de (?:habilit
 CTX_CNPJ = ("cnpj", r"c\.n\.p\.j\.?", "pessoa jur[íi]dica", "empresa", "inscrita no")
 #: Siglas das unidades da Federação, que acompanham o registro em conselho ("CRM-PB", "OAB/SC").
 _UF = r"(?:A[CLMP]|BA|CE|DF|ES|GO|M[AGST]|P[ABEIR]|R[JNORS]|S[CEP]|TO)"
-#: Caractere de máscara em documentos parcialmente ocultados ("***.123.456-**", "060.XXX.XXX-11").
+#: Caractere de máscara em documentos parcialmente ocultados ("***.123.456-**", "123.XXX.XXX-45").
 _MASCARA = r"[*Xx•#]"
 
 #: Regras de documentos de identificação.
@@ -53,7 +53,7 @@ PADROES: list[Padrao | ColunasIdentificadoras] = [
     Padrao("CPF", r"(?-i:CPF|C\.P\.F\.?)(?P<v>\d{3}[.\s]?\d{3}[.\s]?\d{3}[-.\s/]?\d{2})" + DEPOIS_NUM, 0.9,
            grupo="v", nome="cpf:colado"),
     # CPF parcialmente mascarado, como publicam os órgãos ao divulgar atos com o nome do servidor ou
-    # do candidato ("***.123.456-**", "060.XXX.XXX-11"): os dígitos visíveis, somados ao nome,
+    # do candidato ("***.123.456-**", "123.XXX.XXX-45"): os dígitos visíveis, somados ao nome,
     # ainda identificam a pessoa. Exige ao menos um grupo mascarado e um grupo de dígitos; tolera a
     # quebra de linha após um separador.
     Padrao("CPF", r"(?<![\w*•#.])(?:\d{3}|" + _MASCARA + r"{3})\.\s?(?:\d{3}|" + _MASCARA + r"{3})\.\s?(?:\d{3}|" +
@@ -130,9 +130,9 @@ PADROES: list[Padrao | ColunasIdentificadoras] = [
            _SEP + r"(?P<v>\d{3}\.?\d{3}\.?\d{3}-?\d)(?!\d)", 0.9, camada=CONTEXTUAL, grupo="v", nome="beneficio:nb"),
     # ---------------- Registros de saúde: prontuário, declaração de nascido vivo (DNV), autorização de
     # internação hospitalar (AIH) e cartão de vacinação. O prontuário pode trazer a sigla do serviço
-    # ou do sistema ("Prontuário CAPS:", "Prontuário SUAS nº") ou uma qualificação ("prontuário
+    # ou do sistema ("Prontuário CER:", "Prontuário SIGLA nº") ou uma qualificação ("prontuário
     # familiar", "prontuário prisional"), e o número pode começar pela sigla da unidade que o emitiu
-    # ("ABC-0123/2024", "XYZ-UN 0452").
+    # ("ABC-0123/2024", "XYZ-UN 0371").
     Padrao("REGISTRO_SAUDE",
            r"(?:\bprontu[áa]rio(?:\s+(?:m[ée]dico|familiar|prisional|eletr[ôo]nico|hospitalar|ambulatorial|"
            r"odontol[óo]gico|cl[íi]nico|social|(?-i:[A-Z]{2,8})))?|(?-i:\bDNV\b)|declara[çc][ãa]o\s+de\s+nascido\s+vivo|"
@@ -175,7 +175,7 @@ PADROES: list[Padrao | ColunasIdentificadoras] = [
            grupo="v", nome="certidao:termo"),
     # ---------------- Registro em conselho profissional (OAB, CRM, CREA, CAU…): sigla e número, em
     # qualquer ordem. Siglas em maiúsculas, para não casar com palavras comuns. A sigla pode trazer
-    # a UF ("OAB/SP") ou a região ("CRN-3", "CRP-06", "CRESS 10ª Região"), que integram o registro.
+    # a UF ("OAB/SP") ou a região ("CRN-3", "CRP-06", "CRESS 6ª Região"), que integram o registro.
     # O Registro de Qualificação de Especialista (RQE) segue a mesma forma.
     Padrao("REGISTRO_PROFISSIONAL",
            r"(?P<v>\b(?:OAB|CRM|CRO|CRP|COREN|CREA|CAU|CRF|CRN|CREFITO|CRMV|CRC|CRBio|CRESS|CREF|CRFa|CRQ|"
@@ -226,7 +226,7 @@ def _cpf_mascarado(valor: str) -> bool:
 
 
 #: Cabeçalhos de coluna que designam identificadores de pessoa e o tipo atribuído às células da
-#: coluna. O cabeçalho precisa ocupar a célula inteira ("MATRÍCULA", "SIAPE", "COREN-AM", "Nº de
+#: coluna. O cabeçalho precisa ocupar a célula inteira ("MATRÍCULA", "SIAPE", "COREN-SP", "Nº de
 #: inscrição"); os tipos são os deste módulo.
 _COLUNAS: list[tuple[str, str]] = [
     ("CPF", r"cpf"),
@@ -259,7 +259,7 @@ class ColunasIdentificadoras:
     """Identificadores em colunas de tabelas, reconhecidos pelo cabeçalho da coluna.
 
     Anexos de portarias, editais de resultado, escalas e relações de beneficiários listam pessoas em
-    tabelas ("NOME | MATRÍCULA | CARGO", "MASP | NOME | DESTINO"): o número da célula não traz a
+    tabelas ("NOME | MATRÍCULA | LOTAÇÃO", "SIAPE | SERVIDOR | FUNÇÃO"): o número da célula não traz a
     palavra-chave ao lado, que está só no cabeçalho. Uma linha com separadores de coluna (barra
     vertical ou tabulação), sem dígitos, em que uma célula inteira designa um documento, é tomada
     como cabeçalho; nas linhas seguintes com o mesmo número de colunas, a célula dessa coluna é

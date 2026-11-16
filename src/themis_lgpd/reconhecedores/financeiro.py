@@ -21,8 +21,8 @@ from .base import ANTES_NUM, CONTEXTUAL, DEPOIS_NUM, Deteccao, Padrao, Reconhece
 _NUM = r"(?:(?:de\s+)?n(?:[º°o]|úm(?:ero)?|um(?:ero)?)?\.?\s*)?"
 #: O número não pode vir logo após a designação de norma, edital ou contrato: números de atos
 #: públicos ("Lei nº 12.527/2011", "Edital 85/2009") devem permanecer visíveis, inclusive com a
-#: sigla do órgão emissor entre a designação e o número ("Resolução CONTRAN nº 432/2013",
-#: "Portaria GM/MS nº 1.119/2008").
+#: sigla do órgão emissor entre a designação e o número ("Resolução CONTRAN nº 619/2016",
+#: "Portaria GM/MS nº 2.436/2017").
 _NAO_NORMA = (r"(?<!\b(?:lei|decreto|portaria|resolu[çc][ãa]o|instru[çc][ãa]o\s+normativa|edital|termo(?:\s+de\s+\w+)*|"
               r"of[íi]cio|memorando|nota\s+fiscal|empenho|contrato|conv[êe]nio|preg[ãa]o|licita[çc][ãa]o)"
               r"(?:\s+(?-i:[A-Z][A-Za-z]*(?:/[A-Z][A-Za-z]*)*)){0,2}\s{1,3}(?:n[º°o.]*\s*)?)")
@@ -174,19 +174,19 @@ _QUALIFICATIVOS = (r"(?:[ \t]+(?:\((?-i:[A-Z]{2,8})\)|(?!(?:" + _ATOS_PUBLICOS +
 #: número, mas exigem valor com forma de registro, pois também introduzem quantidades.
 _MARCA_REGISTRO = r"(?:n[º°o]\b\.?|n\.\s*[º°o]?|n[úu]mero|nr\b\.?)\s*[:.]?"
 #: Número do documento: sigla opcional da unidade emissora antes ("ABC-0123/2025", "XY-AB 019/2026")
-#: ou depois ("0123/2025-IML", "087/2026-ABC/DEF"), ou código alfanumérico em maiúsculas com ao menos
-#: três dígitos ("9C4R2T7A").
+#: ou depois ("0123/2025-PTC", "0451/2026-ABC/DEF"), ou código alfanumérico em maiúsculas com ao menos
+#: três dígitos ("7D3K5M2P").
 _VALOR_REGISTRO = (r"(?P<v>(?:(?-i:(?!(?:CPF|CNPJ|RG|CNH|PIS|NIS|CEP|CNS|OAB|CRM|SIAPE)\b)[A-Z][A-Z0-9]{0,7}"
                    r"(?:-[A-Z0-9]{1,6}){0,2})[\s\-]?)?\d[\d./\-]*\d" + _SUFIXO_SIGLA +
                    r"|(?-i:(?=[A-Z0-9]{6,12}(?![\w]))(?=(?:[A-Z]*\d){3})(?=\d*[A-Z])[A-Z0-9]{6,12}))"
                    r"(?![\w])(?![.\-/]\d)(?!,\d)")
-#: Número precedido do nome de uma tabela pública de códigos ("Código IBGE: 1300607", "CNAE 8411-6/00"):
+#: Número precedido do nome de uma tabela pública de códigos ("Código IBGE: 5300108", "CNAE 8411-6/00"):
 #: não é registro de pessoa, mesmo que uma designação de registro apareça antes na mesma linha.
 _NAO_CODIGO_PUBLICO = r"(?<!\b(?-i:IBGE|CNAE|CBO|CID|NCM|CATMAT|CATSER|UASG)\s{0,3}[:\-]?\s{0,3})"
 
 #: Título de documento de licitação ou de contratação pública: linha curta, em maiúsculas, iniciada
 #: pela espécie do documento e com a designação do procedimento ("AVISO DE LICITAÇÃO", "ATA DA
-#: SESSÃO PÚBLICA – PREGÃO ELETRÔNICO Nº 19/2025", "EXTRATO DO CONTRATO Nº 12/2025", "TERMO DE
+#: SESSÃO – CONCORRÊNCIA ELETRÔNICA Nº 4/2025", "EXTRATO DO CONTRATO Nº 12/2025", "TERMO DE
 #: REFERÊNCIA").
 _TITULO_CONTRATACAO = re.compile(
     r"\s*(?=(?:AVISO|EXTRATO|ATA|EDITAL|TERMO|RESULTADO|HOMOLOGA[ÇC][ÃA]O|ADJUDICA[ÇC][ÃA]O|PREG[ÃA]O|CONCORR[ÊE]NCIA|"
@@ -272,8 +272,8 @@ PROCESSOS: list[Padrao] = [
                    _MARCA_REGISTRO + r"|:)\s*" + _VALOR_REGISTRO, 0.8, camada=CONTEXTUAL, grupo="v",
                    validador=lambda valor: _registro_plausivel(valor, campo=True), nome="processo:sistema"),
     # Documento ou procedimento sobre uma pessoa, com qualificativos entre a designação e o número
-    # ("Relatório de Conduta e Avaliação Psicossocial nº 0123/2026-ABC", "Laudo nº 1020/2025-IML",
-    # "Sindicância Administrativa Investigatória nº 112/2026", "Termo de Apreensão nº AB12C3D4") ou, em
+    # ("Relatório de Acompanhamento Psicossocial nº 0123/2026-ABC", "Laudo nº 4410/2025-PTC",
+    # "Sindicância Administrativa Punitiva nº 977/2026", "Termo de Apreensão nº AB12C3D4") ou, em
     # campo de formulário, com dois-pontos ("Investigação: AB-123/2025").
     Padrao("PROTOCOLO",
            r"(?<![\w])(?:" + _REGISTROS_DE_PESSOA + r")(?![\w])" + _QUALIFICATIVOS + _MARCA_REGISTRO + r"\s*" +
@@ -297,8 +297,8 @@ PROCESSOS: list[Padrao] = [
            camada=CONTEXTUAL, grupo="v", validador=lambda valor: _id_plausivel(valor), nome="protocolo:contexto"),
     # Ocorrências, boletins, códigos de atendimento, certidões de dívida ativa e registros de imóveis,
     # com até 40 caracteres entre a palavra-chave e o número ("a ocorrência é a 2023-88741"). Boletins
-    # que são publicações (epidemiológico, informativo, de serviço, oficial, "Boletim do Comando-Geral")
-    # não entram, nem o título de um edital publicado ("EDITAL DE NOTIFICAÇÃO Nº 7/2025"), nem
+    # que são publicações (epidemiológico, informativo, de serviço, oficial, "Boletim da Polícia Militar")
+    # não entram, nem o título de um edital publicado ("EDITAL DE NOTIFICAÇÃO Nº 12/2024"), nem
     # códigos de tabelas públicas: código IBGE do município, CNAE, CBO, CID e o código de
     # enquadramento de uma infração seguido da descrição ("Código: 545-21 – Estacionar…").
     Padrao("PROTOCOLO",
