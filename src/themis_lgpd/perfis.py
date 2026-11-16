@@ -73,20 +73,23 @@ PERFIS: dict[str, Perfil] = {
             "Padrão para publicar respostas e documentos públicos: tarja identificadores e dados sensíveis "
             "ligados a pessoas; mantém CNPJ, cidades e termos genéricos, que viram alerta para revisão.",
             {**_IDENTIFICADORES, "SENSIVEL": VINCULADO, "INTIMIDADE": VINCULADO, "MENOR": VINCULADO,
-             "EMPRESA": MANTER, "LOCALIDADE": ALERTAR, "URL": MANTER, "QUASE_IDENTIFICADOR": ALERTAR},
+             "ECONOMICO": TARJAR, "EMPRESA": MANTER, "LOCALIDADE": ALERTAR, "URL": MANTER,
+             "QUASE_IDENTIFICADOR": ALERTAR},
         ),
         Perfil(
             "identificadores", "Somente identificadores",
             "Tarja apenas o que identifica diretamente a pessoa (nomes, documentos, contatos, endereços, "
             "processos). Dados sensíveis viram alerta. Útil para bases de dados e pesquisa.",
             {**_IDENTIFICADORES, "SENSIVEL": ALERTAR, "INTIMIDADE": ALERTAR, "MENOR": ALERTAR,
-             "EMPRESA": MANTER, "LOCALIDADE": MANTER, "URL": MANTER, "QUASE_IDENTIFICADOR": ALERTAR},
+             "ECONOMICO": ALERTAR, "EMPRESA": MANTER, "LOCALIDADE": MANTER, "URL": MANTER,
+             "QUASE_IDENTIFICADOR": ALERTAR},
         ),
         Perfil(
             "saude", "Saúde",
             "Como o perfil LAI, mas tarja qualquer menção a doenças, tratamentos e condições de saúde.",
             {**_IDENTIFICADORES, "SENSIVEL": VINCULADO, "INTIMIDADE": VINCULADO, "MENOR": VINCULADO,
-             "EMPRESA": MANTER, "LOCALIDADE": ALERTAR, "URL": MANTER, "QUASE_IDENTIFICADOR": ALERTAR},
+             "ECONOMICO": TARJAR, "EMPRESA": MANTER, "LOCALIDADE": ALERTAR, "URL": MANTER,
+             "QUASE_IDENTIFICADOR": ALERTAR},
             tarjar_sensivel_sempre=frozenset({"SAUDE", "GENETICO_BIOMETRICO"}),
         ),
         Perfil(
@@ -95,7 +98,8 @@ PERFIS: dict[str, Perfil] = {
             "§ 7º). Além dos identificadores, tarja cidade, lotação, função e turno e outros "
             "quase-identificadores que, combinados, permitiriam reconhecer quem se manifestou.",
             {**_IDENTIFICADORES, "SENSIVEL": VINCULADO, "INTIMIDADE": VINCULADO, "MENOR": TARJAR,
-             "EMPRESA": ALERTAR, "LOCALIDADE": TARJAR, "URL": TARJAR, "QUASE_IDENTIFICADOR": TARJAR},
+             "ECONOMICO": TARJAR, "EMPRESA": ALERTAR, "LOCALIDADE": TARJAR, "URL": TARJAR,
+             "QUASE_IDENTIFICADOR": TARJAR},
             score_minimo=0.5,
         ),
         Perfil(
@@ -104,15 +108,16 @@ PERFIS: dict[str, Perfil] = {
             "tarjados (LGPD, art. 14; ECA, art. 17), assim como turma, série e outros quase-identificadores "
             "de estudantes.",
             {**_IDENTIFICADORES, "SENSIVEL": VINCULADO, "INTIMIDADE": VINCULADO, "MENOR": TARJAR,
-             "EMPRESA": MANTER, "LOCALIDADE": ALERTAR, "URL": MANTER, "QUASE_IDENTIFICADOR": TARJAR},
+             "ECONOMICO": TARJAR, "EMPRESA": MANTER, "LOCALIDADE": ALERTAR, "URL": MANTER,
+             "QUASE_IDENTIFICADOR": TARJAR},
             tarjar_sensivel_sempre=frozenset({"SAUDE"}),
         ),
         Perfil(
             "maxima", "Proteção máxima",
             "Tarja tudo o que for detectado, inclusive termos sensíveis isolados, cidades, CNPJ, URLs e "
             "quase-identificadores. Maior proteção, menor legibilidade.",
-            {**_IDENTIFICADORES, "SENSIVEL": TARJAR, "INTIMIDADE": TARJAR, "MENOR": TARJAR, "EMPRESA": TARJAR,
-             "LOCALIDADE": TARJAR, "URL": TARJAR, "QUASE_IDENTIFICADOR": TARJAR},
+            {**_IDENTIFICADORES, "SENSIVEL": TARJAR, "INTIMIDADE": TARJAR, "MENOR": TARJAR, "ECONOMICO": TARJAR,
+             "EMPRESA": TARJAR, "LOCALIDADE": TARJAR, "URL": TARJAR, "QUASE_IDENTIFICADOR": TARJAR},
             score_minimo=0.4, score_alerta=0.3,
         ),
     ]
