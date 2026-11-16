@@ -365,7 +365,10 @@ _PARTE_DO_CORPO = (r"pr[óo]stata|mamas?|seios?|pulm[ãa]o|pulm[õo]es|f[íi]gad
                    r"pesco[çc]o|test[íi]culos?|cr[âa]nio|dedos?|superc[íi]lios?|sobrancelhas?|testa|face|rosto|nariz|"
                    r"l[áa]bios?|orelhas?|nuca|t[óo]rax|abd[ôo]men|abdome|costas|antebra[çc]os?|coxas?|panturrilhas?|"
                    r"calcanhar(?:es)?|costelas?|clav[íi]cula|n[áa]degas?|tronco|gengivas?|"
-                   r"membros?\s+(?:superiores|inferiores|superior|inferior)|regi[ãa]o\s+[\w-]+")
+                   r"membros?\s+(?:superiores|inferiores|superior|inferior)|regi[ãa]o\s+(?:orbit[áa]ria|orbital|malar|frontal|"
+                   r"occipital|temporal|parietal|lombar|cervical|tor[áa]cica|abdominal|inguinal|gl[úu]tea|sacral|perineal|"
+                   r"genital|palmar|plantar|dorsal|axilar|mandibular|nasal|zigom[áa]tica|epig[áa]strica|umbilical|escapular|"
+                   r"femoral|tibial|popl[íi]tea|cubital|deltoide[a]?)")
 #: Lado do corpo após a parte ("punho esquerdo", "membros inferiores bilateralmente").
 _LATERALIDADE = r"(?:\s+(?:(?:direit|esquerd)[oa]s?|bilateral(?:mente)?|[àa]\s+(?:direita|esquerda)))?"
 _QUALIFICADOR = (r"(?:\s+(?:" + _GRAVIDADE + "|" + _TIPO_CLINICO + r"|(?:d[eoa]s?|n[oa]s?|em)\s+(?:ambos\s+os\s+|ambas\s+as\s+|"
@@ -747,8 +750,10 @@ _NEGACAO_ANTES = re.compile(r"\b(?:nega(?:m|va|ndo)?|negou|sem|aus[êe]ncia\s+de
                             r"qualquer|nenhum[a]?|outr[oa]s?)(?:\s+de)?)?)\s+(?:\w+\s+){0,2}$", re.IGNORECASE)
 #: Pergunta ou campo de formulário respondido com "não" ("Possui deficiência? não", "Gestante: 5 – não").
 _NEGACAO_DEPOIS = re.compile(r"[^\n?:]{0,30}[?:]\s*(?:\d\s*[–-]\s*)?n[ãa]o\b", re.IGNORECASE)
-#: Rótulo de campo: o termo seguido de dois-pontos ("Internação: 03/06/2025", "Nome social: …").
+#: Rótulo de campo: o termo seguido de dois-pontos ("Internação: 03/06/2025", "Nome social: …"), no início da
+#: linha ou depois de numeração e marcador de opção ("2.", "[X]").
 _ROTULO_DEPOIS = re.compile(r"\s*(?:\([^()\n]{0,20}\)\s*)?:")
+_ANTES_DO_ROTULO = re.compile(r"[ \t\d.)•–-]*(?:\[[ xX]?\]|\([ xX]?\))?[ \t]*")
 #: Fronteiras do trecho estendido: quebra de linha (exceto a continuação recuada de uma prescrição),
 #: separador de campos ou de células, ponto e vírgula, ponto de interrogação ou exclamação e ponto final
 #: que não abrevia ("Dr.", "nº.", "P. falciparum") nem separa decimais.
@@ -958,7 +963,7 @@ class ContextoDocumental:
         linha = texto[inicio_linha:fim_linha].rstrip()
         if len(linha) <= 100 and not linha.endswith((".", ";", ":")) and _REGISTRO_PROFISSIONAL.search(linha):
             return ISENCAO_ASSINATURA
-        if (_ROTULO_DEPOIS.match(texto, fim) and texto[inicio_linha:ini].strip(" \t-–•0123456789.)[]()xX") == ""
+        if (_ROTULO_DEPOIS.match(texto, fim) and _ANTES_DO_ROTULO.fullmatch(texto, inicio_linha, ini)
                 and not origem.startswith(ORIGEM_CLINICA)):
             return ISENCAO_ROTULO
         return ""
