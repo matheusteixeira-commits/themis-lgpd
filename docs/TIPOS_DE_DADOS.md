@@ -180,9 +180,13 @@ LAI mantém legível e sinaliza para revisão:
   quando a linha começa pelo nome de um órgão ou unidade ("Núcleo de Endemias – (69) 3216-7742"), no
   cabeçalho do documento ou na mesma frase de outro contato do órgão ("pelo telefone … ou pelo e-mail
   setor@orgao.gov.br");
-- **endereço do órgão:** no cabeçalho do documento ou introduzido pela sede ou pela unidade ("na sede da
-  Corregedoria, na Rua…", "a Diretoria de Atenção Primária, situada na Avenida…", "na UBS Vila Nova, na
-  Rua…", "Endereço da unidade:"); o CEP do mesmo endereço acompanha a classificação;
+- **endereço do órgão:** no cabeçalho do documento (bloco de linhas curtas separado do corpo), após o
+  rótulo "Endereço da unidade:" ou o edifício-sede ("Palácio…", "Centro Administrativo…") ou introduzido
+  pela sede ou pela unidade ("na sede da Corregedoria, na Rua…", "a Diretoria de Atenção Primária,
+  situada na Avenida…", "na UBS Vila Nova, na Rua…") numa frase que anuncia o serviço — horário de
+  atendimento, hora do ato ou providência ("poderão ser retirados", "deverá ser protocolada"); num
+  pedido, a mesma construção costuma descrever o lugar que a pessoa frequenta. O CEP do mesmo endereço
+  acompanha a classificação, e o nome de pessoa dentro dele é o nome do logradouro;
 - **placa oficial:** enumeração após "veículos oficiais de placas…" ou "viaturas de placas…" e linhas de
   tabela que associam unidades do órgão a placas, em documento sobre a frota.
 
