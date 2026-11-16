@@ -13,7 +13,10 @@ a probabilidade de ser:
     se refere a uma pessoa) ou apenas sinalizado (conteúdo de interesse público).
 ``QUASI_IDENTIFICADOR``
     Descrição que aponta para uma pessoa sem nomeá-la ("a atendente do guichê 4 no plantão da
-    manhã"). Produz achados do tipo ``QUASE_IDENTIFICADOR``.
+    manhã"). Produziria achados do tipo ``QUASE_IDENTIFICADOR``, mas o rótulo está desativado nos
+    metadados do artefato (``rotulos_desativados``): no sistema integrado, as regras de
+    :mod:`themis_lgpd.reconhecedores.sensiveis` já cobrem o que ele acerta, e ele sinalizava frases
+    de expediente. Só os rótulos com limiar em ``limiares`` produzem achados.
 
 O componente é acrescentado ao pipeline do ``pt_core_news_lg`` já carregado pelo Themis e usa o mesmo
 vocabulário e os mesmos vetores estáticos, que não fazem parte do artefato. Sem o artefato, sem modelo

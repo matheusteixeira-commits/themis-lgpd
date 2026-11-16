@@ -1,14 +1,19 @@
 {
   "versao": 1,
-  "descricao": "Classificador de trechos (spaCy spancat) para dados de saúde e quase-identificadores",
+  "descricao": "Classificador de trechos (spaCy spancat) para dados de saúde; o rótulo de quase-identificadores fica desativado",
   "rotulos": [
     "DADO_SAUDE",
     "QUASI_IDENTIFICADOR"
   ],
   "fabrica": "spancat_singlelabel",
   "limiares": {
-    "DADO_SAUDE": 0.75,
-    "QUASI_IDENTIFICADOR": 0.8
+    "DADO_SAUDE": 0.75
+  },
+  "rotulos_desativados": {
+    "QUASI_IDENTIFICADOR": {
+      "limiar_na_selecao": 0.8,
+      "motivo": "Ablação no sistema integrado (regras do ciclo de melhoria + classificador), partição de seleção e conjunto de referência: com e sem este rótulo as métricas são idênticas, porque as regras de quase-identificadores já cobrem o que ele acerta; ligado, sinaliza frases normativas e de expediente ('a nota fiscal emitida em 12/05/2024 às 10h')."
+    }
   },
   "decodificacao": "maximo",
   "ativo_por_padrao": true,
