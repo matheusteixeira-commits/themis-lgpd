@@ -41,24 +41,24 @@ def _legivel(resultado, trecho: str) -> bool:
 
 # --------------------------------------------------------------------------- Saúde fora do registro clínico
 def test_sintoma_e_comportamento_em_linguagem_leiga(anon):
-    r = anon.anonimizar("Minha irmã ouve vozes de madrugada e não sai do quarto desde a mudança. Ela também parou de "
+    r = anon.anonimizar("Minha irmã ouve vozes de madrugada e já não dorme desde a mudança. Ela também parou de "
                         "comer e chora escondida todos os dias.")
-    for trecho in ("ouve vozes de madrugada", "não sai do quarto", "parou de comer", "chora escondida todos os dias"):
+    for trecho in ("ouve vozes de madrugada", "não dorme", "parou de comer", "chora escondida todos os dias"):
         assert _tarjado(r, trecho), trecho
 
 
 def test_uso_de_substancia_por_verbo_e_perifrase(anon):
-    r = anon.anonimizar("Contou que o companheiro cheira cola de sapateiro nos fins de semana e vive tomando pinga desde "
-                        "que perdeu o emprego.")
-    assert _tarjado(r, "cheira cola de sapateiro nos fins de semana")
-    assert _tarjado(r, "vive tomando pinga desde que perdeu o emprego")
+    r = anon.anonimizar("Segundo a vizinha, o marido dela cheira cola de sapateiro diariamente e anda bebendo "
+                        "pinga desde que mudou de cidade.")
+    assert _tarjado(r, "cheira cola de sapateiro diariamente")
+    assert _tarjado(r, "anda bebendo pinga desde que mudou de cidade")
 
 
 def test_tratamento_descrito_pelo_servico(anon):
-    r = anon.anonimizar("O filho da requerente faz acompanhamento semanal no CAPS AD e teve três internações em "
-                        "comunidade terapêutica.")
+    r = anon.anonimizar("O filho da requerente faz acompanhamento semanal no CAPS AD e já teve cinco internações em "
+                        "clínica de reabilitação.")
     assert _tarjado(r, "acompanhamento semanal no CAPS AD")
-    assert _tarjado(r, "três internações em comunidade terapêutica")
+    assert _tarjado(r, "cinco internações em clínica de reabilitação")
 
 
 def test_unidade_citada_pelo_nome_fica_legivel(anon):
@@ -76,7 +76,7 @@ def test_dispositivo_ato_assistencial_e_marca_comercial(anon):
 
 def test_falta_de_medicamento_nao_e_negacao(anon):
     texto = ("Requerente: Fulana de Teste\nData de nascimento: 02/03/1990\n\n"
-             "Relato: o meu filho ficou três dias sem a bombinha porque a farmácia estava fechada.")
+             "Relato: o meu caçula passou o feriado sem a bombinha porque a farmácia estava fechada.")
     assert _tarjado(anon.anonimizar(texto), "bombinha")
 
 
@@ -88,9 +88,9 @@ def test_gestacao_em_semanas_ou_meses_e_prematuridade(anon):
 
 
 def test_deficiencia_vacina_e_licenca_abreviadas(anon):
-    r = anon.anonimizar("O filho é PcD (def. visual total). A criança recebeu a TRÍPLICE VIRAL D2 nesta data. "
+    r = anon.anonimizar("O filho é PcD (def. visual total). A criança recebeu a TETRAVIRAL D2 nesta data. "
                         "A servidora esteve em Licença-saúde de 3 a 5 de maio.")
-    for trecho in ("PcD (def. visual total)", "TRÍPLICE VIRAL D2", "Licença-saúde"):
+    for trecho in ("PcD (def. visual total)", "TETRAVIRAL D2", "Licença-saúde"):
         assert _tarjado(r, trecho), trecho
 
 
@@ -100,8 +100,8 @@ def test_lesoes_com_partes_do_corpo_coordenadas(anon):
 
 
 def test_termo_coordenado_a_outro_tarjado(anon):
-    r = anon.anonimizar("No acolhimento, a criança apresentava febre e tosse.")
-    assert _tarjado(r, "febre") and _tarjado(r, "tosse")
+    r = anon.anonimizar("No acolhimento, o menino tinha febre e diarreia.")
+    assert _tarjado(r, "febre") and _tarjado(r, "diarreia")
 
 
 def test_campo_de_ficha_com_dado_de_saude(anon):
@@ -112,49 +112,49 @@ def test_campo_de_ficha_com_dado_de_saude(anon):
 
 # --------------------------------------------------------------------------- Dado sensível em perífrase
 def test_pratica_e_funcao_religiosa_em_terceira_pessoa(anon):
-    r = anon.anonimizar("A avó frequenta a Igreja Batista Monte Sião e o tio é ogã de um terreiro de candomblé.")
+    r = anon.anonimizar("A avó frequenta a Igreja Batista Monte Sião e o tio é ogã do terreiro de mina.")
     assert _tarjado(r, "Igreja Batista Monte Sião")
-    assert _tarjado(r, "ogã de um terreiro de candomblé")
+    assert _tarjado(r, "ogã do terreiro de mina")
 
 
 def test_pertenca_etnica_cigana_e_autodeclaracao(anon):
-    r = anon.anonimizar("A família se declara cigana da etnia Calon. O pai declarou-se pardo no cadastro.")
-    assert _tarjado(r, "cigana da etnia Calon")
+    r = anon.anonimizar("A família se declara cigana da etnia Sinti. O pai declarou-se pardo no cadastro.")
+    assert _tarjado(r, "cigana da etnia Sinti")
     assert _tarjado(r, "pardo")
 
 
 def test_relacao_afetiva_e_identidade_de_genero(anon):
     texto = ("Nome: Fulana de Teste\nIdentidade de gênero: mulher transexual\n\n"
-             "Relatou que mantém relacionamento afetivo com outra interna da unidade.")
+             "No acolhimento, relatou que tem relacionamento amoroso com outra acolhida do abrigo.")
     r = anon.anonimizar(texto)
     assert _tarjado(r, "mulher transexual")
-    assert _tarjado(r, "relacionamento afetivo com outra interna")
+    assert _tarjado(r, "relacionamento amoroso com outra acolhida")
 
 
 def test_mandato_sindical_e_atuacao_partidaria(anon):
-    r = anon.anonimizar("O servidor ficará liberado para mandato classista na diretoria do sindicato dos vigilantes. "
-                        "O depoente é filiado ao mesmo partido do prefeito.")
-    assert _tarjado(r, "liberado para mandato classista na diretoria do sindicato dos vigilantes")
-    assert _tarjado(r, "filiado ao mesmo partido do prefeito")
+    r = anon.anonimizar("O agente obteve licença para mandato classista junto ao sindicato dos vigilantes. "
+                        "O depoente é filiado ao mesmo partido do governador.")
+    assert _tarjado(r, "licença para mandato classista")
+    assert _tarjado(r, "filiado ao mesmo partido do governador")
 
 
 # --------------------------------------------------------------------------- Armadilhas de tarja indevida
 def test_enunciado_normativo_ou_de_protocolo_fica_legivel(anon):
-    r = anon.anonimizar("ORIENTAÇÕES À REDE\n3.1 O paciente com suspeita de dengue deve receber hidratação oral.\n"
-                        "3.2 A vítima de violência sexual deve ser acolhida em até 72 horas.")
-    assert _legivel(r, "dengue")
-    assert _legivel(r, "violência sexual")
+    r = anon.anonimizar("ORIENTAÇÕES À REDE\n3.1 O paciente com febre persistente e manchas deve ser reavaliado.\n"
+                        "3.2 A vítima de abuso sexual deverá ser atendida no mesmo dia.")
+    assert _legivel(r, "febre persistente")
+    assert _legivel(r, "abuso sexual")
 
 
 def test_relato_com_verbo_modal_continua_tarjado(anon):
-    r = anon.anonimizar("Em atenção ao pedido da mãe, que é evangélica, a aluna poderá faltar às aulas de sábado.")
+    r = anon.anonimizar("A pedido da mãe, que é evangélica, a aluna poderá faltar às aulas de sábado.")
     assert _tarjado(r, "evangélica")
 
 
 def test_contagem_e_estatistica_ficam_legiveis(anon):
-    r = anon.anonimizar("A secretária informou que, em 2024, foram 312 casos de violência doméstica, 41 deles com "
-                        "gravidez, e que a rede atende 57 estudantes com deficiência auditiva.")
-    for trecho in ("violência doméstica", "gravidez", "deficiência auditiva"):
+    r = anon.anonimizar("O balanço anual soma 312 registros de abuso sexual, 41 deles com gravidez, e o programa "
+                        "acompanha 57 estudantes com deficiência auditiva.")
+    for trecho in ("abuso sexual", "gravidez", "deficiência auditiva"):
         assert _legivel(r, trecho), trecho
     estatistica = "foram 312 casos de dengue"
     assert S.agregado(estatistica, estatistica.index("dengue"), len(estatistica))
@@ -163,7 +163,7 @@ def test_contagem_e_estatistica_ficam_legiveis(anon):
 
 
 def test_nome_social_como_rotulo_fica_legivel(anon):
-    r = anon.anonimizar("Meu nome social foi cadastrado. O uso do nome social é assegurado nos serviços de saúde.")
+    r = anon.anonimizar("Meu nome social foi cadastrado. O decreto garante a todos o tratamento pelo nome social.")
     assert "nome social" in r.texto
 
 
@@ -179,32 +179,32 @@ def test_internacao_socioeducativa_nao_e_dado_de_saude():
 
 
 def test_exame_pericial_so_requisitado_fica_legivel(anon):
-    r = anon.anonimizar("Providências: requisitado exame de corpo de delito ao instituto médico-legal.")
+    r = anon.anonimizar("Providências: solicitado exame de corpo de delito à perícia oficial.")
     assert _legivel(r, "exame de corpo de delito")
 
 
 def test_toponimo_e_nome_de_unidade_ficam_legiveis(anon):
     r = anon.anonimizar("Participam os municípios de Vila Nova Batista e Serra Alta. Assina a Coordenadora de Apoio a "
-                        "Pessoas em Situação de Violência, que me atendeu.")
+                        "Pessoas em Situação de Risco, que me atendeu.")
     assert _legivel(r, "Batista")
-    assert _legivel(r, "Situação de Violência")
+    assert _legivel(r, "Situação de Risco")
 
 
 def test_trecho_do_classificador_sem_termo_de_saude():
-    texto = "A laje foi concretada com fck 35 MPa. O morador disse que a obra atrasou e que perdeu o prazo."
+    texto = "A laje foi concretada com fck 35 MPa. O morador disse que a obra atrasou e que faltou cimento."
     ctx = S.contexto_documental(texto)
     ini = texto.index("fck")
     assert ctx.isencao(texto, ini, ini + len("fck 35 MPa"), "semantica", "aprendido:dado_saude", "SAUDE") == S.ISENCAO_FRAGMENTO
-    ini = texto.index("e que perdeu")
+    ini = texto.index("e que faltou")
     assert ctx.isencao(texto, ini, ini + 12, "semantica", "aprendido:dado_saude", "SAUDE") == S.ISENCAO_FRAGMENTO
 
 
 def test_violencia_classificada_pelo_tecnico(anon):
-    r = anon.anonimizar("Considerando tratar-se, em tese, de abuso sexual, o caso foi encaminhado à delegacia.")
+    r = anon.anonimizar("O conselho entende que trata-se de abuso sexual e remeteu cópia à delegacia.")
     assert _tarjado(r, "abuso sexual")
 
 
 def test_rotulo_de_campo_depois_de_outro_campo_fica_legivel(anon):
-    r = anon.anonimizar("Sexo: masculino   Identidade de gênero: homem cisgênero")
+    r = anon.anonimizar("Escolaridade: médio   Identidade de gênero: mulher cis")
     assert _legivel(r, "Identidade de gênero")
-    assert _tarjado(r, "homem cisgênero")
+    assert _tarjado(r, "mulher cis")

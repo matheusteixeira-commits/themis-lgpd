@@ -36,8 +36,8 @@ from .reconhecedores import sensiveis as S
 from .texto import TextoNormalizado, dobrar, normalizar
 
 #: Marcadores que indicam pessoa determinada mesmo em enunciado com verbo deôntico: primeira pessoa,
-#: pronome pessoal de terceira pessoa, autodeclaração ("declarou-se negra", "se reconhece como quilombola")
-#: e fala relatada da própria pessoa ("contou que é lésbica", "relatou que está grávida").
+#: pronome pessoal de terceira pessoa, autodeclaração ("declarou-se parda", "se reconhece como indígena")
+#: e fala relatada da própria pessoa ("contou que é bissexual", "relatou que está grávida").
 _VINCULO_FORTE = (
     r"eu|meu|minha|meus|minhas|me|mim|comigo|sou|estou|estive|tive|fui|sofro|sofri|"
     # "tenho interesse", "tenho as seguintes dúvidas": fórmulas do pedido, não situação pessoal.
@@ -56,9 +56,9 @@ _VINCULO_FORTE = (
     r"sofre|sofria|vem|mant[ée]m|mantinha|frequenta|frequentava|bebe|bebia|fuma|fumava|ouve|escuta|v[êe])"
 )
 #: Papéis com artigo ("o requerente", "a paciente", "a família") e possessivos de terceira pessoa: designam
-#: a pessoa de que o texto trata, mas também qualquer pessoa num enunciado normativo ("O paciente com
-#: sinais de alarme deve receber hidratação"). "Uso" é também o substantivo ("o uso de máscara"), e "deles"
-#: retoma também um grupo ("nove deles com gravidez").
+#: a pessoa de que o texto trata, mas também qualquer pessoa num enunciado normativo ("O paciente com febre
+#: persistente deve receber soro"). "Uso" é também o substantivo ("o uso de máscara"), e "deles" retoma
+#: também um grupo ("doze deles com sífilis").
 _VINCULO_PAPEL = (
     r"seu|sua|seus|suas|deles|delas|uso|"
     r"(?:o|a|do|da|ao|à|pel[oa])\s+(?:servidor|servidora|requerente|paciente|cidad[ãa]o|cidad[ãa]|interessad[oa]|"
@@ -84,9 +84,9 @@ _NORMATIVO = re.compile(
     r"\b(?:deve|devem|dever[áã]o?|poder[áã]o?|precisa(?:m)?\s+ser|aplica(?:m)?-se|utiliza(?:m)?-se|considera(?:m)?-se|"
     r"(?:[ée]|s[ãa]o|ser[áã]o?|fica(?:m)?|t[êe]m|tem)\s+(?:assegurad|garantid|vedad|obrigat[óo]ri|facultad|dispensad)\w*|"
     r"ter[áã]o?\s+(?:direito|prioridade|prefer[êe]ncia)|faz(?:em)?\s+jus|compete|incumbe|vedad[oa]s?)\b", re.IGNORECASE)
-#: Início de oração com sujeito genérico ("O paciente com sinais de alarme…", "Toda gestante…", "Nos casos
-#: de violência doméstica…", "Em caso de febre…"), depois da numeração do item. Num relato, a mesma frase
-#: com papel retomado do contexto ("Em atenção ao pedido da família, a estudante poderá…") não é norma.
+#: Início de oração com sujeito genérico ("O paciente com febre persistente…", "Toda gestante…", "Nos casos
+#: de abuso…", "Quando houver febre…"), depois da numeração do item. Num relato, a mesma frase com papel
+#: retomado do contexto ("A pedido da mãe, a aluna poderá…") não é norma.
 _INICIO_GENERICO = re.compile(
     r"\W*(?:\d+(?:\.\d+)*\.?\s+|[a-z]\)\s+|[–•-]\s+)?(?:(?:(?:o|a|os|as)\s+)?(?:pacientes?|gestantes?|crian[çc]as?|v[íi]timas?|"
     r"candidat[oa]s?|estudantes?|alun[oa]s?|usu[áa]ri[oa]s?|servidor(?:a|es|as)?|pessoas?|mulher(?:es)?|homens?|adolescentes?|"
@@ -96,11 +96,11 @@ _INICIO_GENERICO = re.compile(
     r"(?:nos|nas|em)\s+(?:casos?|registros|situa[çc][õo]es|hip[óo]teses?)\b|(?:quando|caso|se|com|sem)\b)", re.IGNORECASE)
 _MOTIVO_NORMATIVO = "Termo sensível em enunciado normativo ou de protocolo, sem pessoa determinada — revisar"
 #: Primeira pessoa em qualquer ponto do texto: num pedido ou relato pessoal, a frase com verbo deôntico ("o
-#: paciente com câncer deve iniciar o tratamento em 60 dias?") costuma tratar do caso de quem escreve.
+#: paciente com tuberculose deve receber o remédio na unidade?") costuma tratar do caso de quem escreve.
 _PRIMEIRA_PESSOA = re.compile(r"\b(?:eu|meu|minha|meus|minhas|comigo|sou|estou|tenho|tive|fui|sofro|sofri|preciso)\b",
                               re.IGNORECASE)
-#: Achados contextuais que, em norma ou protocolo, descrevem a situação em abstrato ("A vítima de violência
-#: sexual deve ser acolhida", "o portador de doença grave terá direito à isenção").
+#: Achados contextuais que, em norma ou protocolo, descrevem a situação em abstrato ("A vítima de abuso deve
+#: ser atendida no mesmo dia", "o portador de doença grave terá direito à isenção").
 _CONTEXTUAIS_EM_NORMA = frozenset({"intimidade:violencia", "saude:cid", "saude:cid-sem-ponto", "saude:frase", "saude:possui"})
 
 # Separação entre termos coordenados: vírgula, "e" ou "ou", com o determinante do segundo termo ("e o
@@ -636,10 +636,10 @@ class Anonimizador:
 
     @staticmethod
     def _saude_coordenada(original: str, entidades: list[Entidade]) -> None:
-        """Tarja o termo de saúde coordenado a outro já tarjado ("apresentava febre e tosse").
+        """Tarja o termo de saúde coordenado a outro já tarjado ("tinha febre e diarreia").
 
         A coordenação por vírgula, "e" ou "ou" atribui os dois termos à mesma pessoa; o que fica isolado
-        de vínculo próprio é o segundo ("tosse"), sinalizado sem esta regra.
+        de vínculo próprio é o segundo ("diarreia"), sinalizado sem esta regra.
         """
         tarjadas = sorted((e.inicio, e.fim) for e in entidades if e.tipo == "SAUDE" and e.acao == P.TARJAR)
         if not tarjadas:
@@ -659,7 +659,7 @@ class Anonimizador:
         Em "tive complicações por diabetes tipo 2 … o afastamento para tratamento de diabetes tipo 2
         interrompe o interstício?", a segunda menção revelaria a condição protegida na primeira. Só se
         aplica a ocorrências com o mesmo termo (sem distinção de caixa, acentos e espaços) ou contidas num
-        trecho tarjado com qualificadores e atributos ("órtese" depois de "órtese nas duas pernas", "asma
+        trecho tarjado com qualificadores e atributos ("prótese" depois de "prótese na perna direita", "asma
         grave" depois de "crise de asma grave"), salvo os núcleos genéricos ("deficiência").
         """
         def chave(e: Entidade) -> str:
