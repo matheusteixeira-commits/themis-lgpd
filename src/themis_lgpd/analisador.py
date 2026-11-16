@@ -69,6 +69,7 @@ from .reconhecedores import (
 )
 from .reconhecedores import base as B
 from .reconhecedores.institucional import reclassificar as reclassificar_institucionais
+from .validadores import numeracao_de_item, parte_de_sequencia
 
 #: Código de idioma usado em todo o registro do Presidio.
 IDIOMA = "pt"
@@ -219,6 +220,24 @@ class ReconhecedorNomesModelo(EntityRecognizer):
         return saida
 
 
+class ReconhecedorIP(IpRecognizer):
+    """``IpRecognizer`` que descarta a numeração de itens e códigos com a forma de endereço IPv4
+    ("subitem 8.3.1.2", "COBRADE 1.3.2.1.4"; ver :func:`themis_lgpd.validadores.numeracao_de_item`)."""
+
+    def analyze(self, text, entities, nlp_artifacts=None, regex_flags=None):
+        return [r for r in super().analyze(text, entities, nlp_artifacts, regex_flags)
+                if not numeracao_de_item(text, r.start, r.end)]
+
+
+class ReconhecedorCartao(CreditCardRecognizer):
+    """``CreditCardRecognizer`` que descarta trechos de sequências maiores de grupos de dígitos, como a
+    chave de acesso da nota fiscal eletrônica (ver :func:`themis_lgpd.validadores.parte_de_sequencia`)."""
+
+    def analyze(self, text, entities, nlp_artifacts=None, regex_flags=None):
+        return [r for r in super().analyze(text, entities, nlp_artifacts, regex_flags)
+                if not parte_de_sequencia(text, r.start, r.end)]
+
+
 class MotorSpacyThemis(SpacyNlpEngine):
     """``SpacyNlpEngine`` que carrega o modelo localmente.
 
@@ -281,11 +300,11 @@ def reconhecedores_brasileiros(com_modelo: bool = True) -> list[EntityRecognizer
         ReconhecedorThemis(tabelas.ReconhecedorTabelas(), tabelas.TIPOS, "BR_Tabelas"),
         PhoneRecognizer(supported_language=IDIOMA, supported_entity="TELEFONE", supported_regions=("BR",),
                         context=CONTEXTO["contatos"], name="Presidio_Telefone_BR"),
-        IpRecognizer(supported_language=IDIOMA, supported_entity="IP", context=["ip", "acesso", "endereço"],
-                     name="Presidio_IP"),
-        CreditCardRecognizer(supported_language=IDIOMA, supported_entity="CARTAO",
-                             context=["cartão", "crédito", "débito", "visa", "master", "elo", "amex"],
-                             name="Presidio_Cartao"),
+        ReconhecedorIP(supported_language=IDIOMA, supported_entity="IP", context=["ip", "acesso", "endereço"],
+                       name="Presidio_IP"),
+        ReconhecedorCartao(supported_language=IDIOMA, supported_entity="CARTAO",
+                           context=["cartão", "crédito", "débito", "visa", "master", "elo", "amex"],
+                           name="Presidio_Cartao"),
         IbanRecognizer(supported_language=IDIOMA, supported_entity="CONTA_BANCARIA",
                        context=["iban", "conta", "banco", "transferência"], name="Presidio_IBAN"),
         CryptoRecognizer(supported_language=IDIOMA, supported_entity="CARTEIRA_CRIPTO",
