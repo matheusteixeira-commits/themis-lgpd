@@ -140,6 +140,11 @@ def main() -> None:
     ap.add_argument("--json", type=Path)
     ap.add_argument("--detalhes", type=Path)
     ap.add_argument("--erros", type=Path, help="lista os erros por documento (só na partição de ajuste)")
+    ap.add_argument("--recall-minimo", type=float, default=0.0, help="falha (código 1) se o recall ficar abaixo")
+    ap.add_argument("--precisao-minima", type=float, default=0.0,
+                    help="falha (código 1) se a precisão das tarjas ficar abaixo")
+    ap.add_argument("--preservacao-minima", type=float, default=0.0,
+                    help="falha (código 1) se a preservação de trechos públicos ficar abaixo")
     args = ap.parse_args()
     arquivos = args.arquivos or sorted(PASTA.glob("*.jsonl"))
     if args.erros:
@@ -179,6 +184,14 @@ def main() -> None:
         erros = [erros_documento(d, ents) for d, ents in zip(docs, analises)]
         args.erros.write_text("".join(json.dumps(x, ensure_ascii=False) + "\n" for x in erros),
                               encoding="utf-8", newline="\n")
+    falhas = [f"{nome} {valor:.4f} abaixo do mínimo {minimo}" for nome, valor, minimo in (
+        ("recall", pontual["recall_entidades"], args.recall_minimo),
+        ("precisão das tarjas", pontual.get("precisao_tarjas", 1.0), args.precisao_minima),
+        ("preservação de trechos públicos", pontual.get("preservacao_publicos", 1.0), args.preservacao_minima),
+    ) if valor < minimo]
+    if falhas:
+        print("\n".join(falhas), file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
