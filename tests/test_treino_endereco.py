@@ -28,7 +28,7 @@ COMPLEMENTOS = [
     ("Envio para Rua Gama, 7, apto 2, Vicente Pires, CEP 72000-100.", ["Gama, 7", "Vicente Pires", "72000-100"], []),
     ("Resido na Rua Delta, 31, Jardim Itália, Recife - CEP 50000-000, desde 2015.", ["Jardim Itália", "Recife"],
      ["desde 2015"]),
-    ("O lote fica na Quadra 15, Conjunto 3, Lote 8, Riacho Fundo, CEP 71800-000.", ["Riacho Fundo", "71800"], []),
+    ("O lote fica na Quadra 15, Conjunto 3, Lote 17, Riacho Fundo, CEP 71800-000.", ["Riacho Fundo", "71800"], []),
 ]
 
 
@@ -60,7 +60,7 @@ def test_municipio_no_fim_fica_visivel(anon, texto, visivel):
     ("Moro no Assentamento Nova Aurora, no Km 15 da Rodovia GO-020, lote 42.",
      "Assentamento Nova Aurora, no Km 15 da Rodovia GO-020, lote 42"),
     ("Resido no Sítio Bom Retiro, KM 9 da Rodovia MGC-120.", "Sítio Bom Retiro, KM 9 da Rodovia MGC-120"),
-    ("O imóvel fica no Lote 9, Quadra 20, Setor Norte.", "Lote 9, Quadra 20, Setor Norte"),
+    ("O imóvel fica no Lote 26, Quadra 20, Setor Norte.", "Lote 26, Quadra 20, Setor Norte"),
     ("Moro no Setor Leste, Rua 3, nº 40.", "Setor Leste, Rua 3, nº 40"),
 ])
 def test_partes_do_mesmo_endereco_sao_unidas(texto, trecho):
@@ -77,11 +77,11 @@ NOVOS_FORMATOS = [
     ("Moro na Rodovia Estadual, km 40, Lote Rural 8.", ["Lote Rural 8"]),
     ("Moro na Estrada Velha, km 3, s/n, Gleba 2, Loteamento Bela Vista", ["s/n", "Gleba 2", "Bela Vista"]),
     ("Moro na Rua das Flores, altura do número 300, no bairro Jardim Alvorada.", ["300", "Alvorada"]),
-    ("Moro na Rua 15 de Novembro, 300, Centro.", ["15 de Novembro", "300"]),
+    ("Moro na Rua 21 de Abril, 300, Centro.", ["21 de Abril", "300"]),
     ("Resido na Avenida 7 de Setembro, nº 1200, apto 3.", ["7 de Setembro", "1200"]),
     ("Endereço: Rua 1º de Maio, 45 - Vila Operária", ["1º de Maio", "45", "Operária"]),
     ("O imóvel fica no Setor de Oficinas, Lote 12, Bloco B.", ["Oficinas", "Lote 12", "Bloco B"]),
-    ("Moro no Setor de Mansões, Quadra 4, Lote 9.", ["Mansões", "Quadra 4"]),
+    ("Moro no Setor de Mansões, Quadra 4, Lote 19.", ["Mansões", "Quadra 4"]),
     # Texto todo em minúsculas
     ("moradia: chácara bela vista, lote 7, núcleo rural ribeirão, planaltina/df", ["bela vista", "ribeirão"]),
     ("sou moradora da rua das flores 30 setor sul e preciso de ajuda", ["flores 30", "setor sul"]),
@@ -100,11 +100,11 @@ def test_novos_formatos_de_endereco(anon, texto, proibidos):
 @pytest.mark.parametrize("texto", [
     "A escola fica localizada na Gleba 6, Lote 2 da GO-118.",
     "O posto de saúde do Conjunto F, Casa 1 atende 300 famílias.",
-    "A Rua 15 de Novembro será recapeada pela prefeitura.",
-    "O semáforo da Avenida Central com a rua 15 de novembro está desregulado.",
+    "A Rua 13 de Maio será recapeada pela prefeitura.",
+    "O cruzamento da Avenida Goiás com a rua 13 de maio ficou sem sinalização.",
     "O Assentamento Santa Rita, em Marabá, recebeu investimentos.",
     "O Distrito Industrial de Vitória do Jari abriga 35 empresas.",
-    "Fui atendido no Posto de Saúde da Vila Planalto no dia 12 de maio.",
+    "Fui vacinada na UBS da Vila Esperança no dia 3 de junho.",
 ])
 def test_texto_publico_permanece(anon, texto):
     r = anon.anonimizar(texto)

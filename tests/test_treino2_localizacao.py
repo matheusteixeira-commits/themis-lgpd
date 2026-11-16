@@ -24,8 +24,8 @@ def _tipos(anon, texto, trecho):
 
 # ---------------------------------------------------------------------------- contatos do órgão
 CONTATOS_DO_ORGAO = [
-    ("Dúvidas poderão ser esclarecidas pelo telefone (64) 3218-4400 ou pelo e-mail protocolo.geral@itaguara.go.gov.br.",
-     ["(64) 3218-4400", "protocolo.geral@itaguara.go.gov.br"]),
+    ("Mais informações pelo telefone (64) 3218-4400 ou pelo e-mail protocolo@serradourada.go.gov.br.",
+     ["(64) 3218-4400", "protocolo@serradourada.go.gov.br"]),
     ("Informações: Coordenação de Vigilância Sanitária – (75) 3602-1188 – visa.municipal@saude.ba.gov.br",
      ["(75) 3602-1188", "visa.municipal@saude.ba.gov.br"]),
     ("A equipe permanece à disposição pelo telefone institucional (51) 3288-9010.", ["(51) 3288-9010"]),
@@ -33,7 +33,7 @@ CONTATOS_DO_ORGAO = [
     ("Atendimento ao contribuinte: 0800 642 1199 ou sac.tributos@fazenda.pi.gov.br.",
      ["0800 642 1199", "sac.tributos@fazenda.pi.gov.br"]),
     ("Núcleo de Endemias – (69) 3216-7742", ["(69) 3216-7742"]),
-    ("Sugestões de pauta podem ser enviadas ao e-mail conselho.saude@vilanova.rs.gov.br.",
+    ("Propostas para a próxima reunião devem ser encaminhadas ao e-mail conselho.saude@vilanova.rs.gov.br.",
      ["conselho.saude@vilanova.rs.gov.br"]),
     ("Emergências devem ser comunicadas pelo telefone 193 ou pelo número (48) 3254-6100.", ["(48) 3254-6100"]),
 ]
@@ -75,7 +75,7 @@ CONTATOS_PESSOAIS = [
     # Provedor de uso pessoal.
     ("Dúvidas: atendimento.prefeitura@gmail.com", "atendimento.prefeitura@gmail.com"),
     # E-mail de empresa: pode ser o canal pelo qual a própria pessoa recebe a resposta.
-    ("Para esclarecimentos, disponibilizamos o e-mail contato@pereiraconsultoria.com.br.",
+    ("Para mais informações, deixamos à disposição o e-mail contato@pereiraconsultoria.com.br.",
      "contato@pereiraconsultoria.com.br"),
     # Telefone da genitora em requisição do conselho tutelar.
     ("Genitora: Valdirene Souza – telefone (73) 3288-9041", "(73) 3288-9041"),
@@ -117,7 +117,7 @@ def test_celular(valor, esperado):
 ENDERECOS_DO_ORGAO = [
     "A vista dos autos será assegurada na sede da Controladoria-Geral, situada na Avenida das Nações, nº 1.200.",
     "O atendimento será prestado no Centro de Referência da Mulher, na Rua Treze de Maio, 455, das 8h às 17h.",
-    "Os documentos poderão ser entregues na Central de Atendimento ao Cidadão, situada na Rua Goiás, 77, Centro.",
+    "Os documentos poderão ser entregues na Central de Protocolo, situada na Rua Goiás, 77, Centro.",
     "Unidade: Policlínica Regional\nEndereço da unidade: Rua Pará, 410, Setor Sul",
 ]
 
@@ -178,7 +178,7 @@ def test_placa_de_veiculo_particular_continua_tarjada(anon, texto, placa):
 
 
 @pytest.mark.parametrize("texto", [
-    "Motocicleta Honda CG 160, ano 2019, placa QWE1R23, avaliada em R$ 9.000,00.",
+    "Motocicleta Honda CG 160, ano 2019, placa QWE1R23, avaliada em R$ 8.725,40.",
     "Equipamento: radar fixo nº RDF-0412, aferido em 10/01/2026, local da infração próximo ao veículo.",
     "Conforme o Contrato nº 88/SEJ-2025, o veículo foi cedido.",
 ])
@@ -194,8 +194,8 @@ def _enderecos(texto):
 
 @pytest.mark.parametrize("texto,trecho", [
     ("Endereço: 3ª Travessa do Sossego, 52, casa A, Liberdade.", "Travessa do Sossego, 52, casa A"),
-    ("residente no Povoado Lagoa Seca, casa sem número, ao lado da igreja de Santo Antônio, zona rural.",
-     "Povoado Lagoa Seca, casa sem número, ao lado da igreja de Santo Antônio"),
+    ("residente no Povoado Riacho Doce, casa sem número, perto da igreja de São Sebastião, zona rural.",
+     "Povoado Riacho Doce, casa sem número, perto da igreja de São Sebastião"),
     ("Endereço: Ocupação Vila Esperança, Rua 3, barraco 17, região norte", "Ocupação Vila Esperança, Rua 3, barraco 17"),
     ("vive com os filhos na Passarela Beija-Flor, casa 58, área de ressaca do bairro", "Passarela Beija-Flor, casa 58"),
 ])
@@ -239,8 +239,8 @@ QUASE = [
      "turno, recusou o registro.",
      "plantonista da delegacia naquela noite, um senhor careca de óculos que se identificou como chefe do turno"),
     # Posto militar com unidade numerada.
-    ("A soldado que dirigia a viatura do 3º Batalhão naquela madrugada chegou depressa.",
-     "soldado que dirigia a viatura do 3º Batalhão naquela madrugada"),
+    ("O sargento que pilotava a viatura do 2º Batalhão naquela noite chegou depressa.",
+     "sargento que pilotava a viatura do 2º Batalhão naquela noite"),
     # Relativa com preposição.
     ("segundo a orientadora educacional do turno vespertino da escola em que a criança estuda, houve faltas",
      "orientadora educacional do turno vespertino da escola em que a criança estuda"),
@@ -260,7 +260,7 @@ QUASE = [
     ("QUE o mais baixo, com cicatriz no queixo e que gaguejava ao falar, pegou o celular",
      "mais baixo, com cicatriz no queixo e que gaguejava ao falar"),
     # Candidato e caixa (no masculino, a pessoa) com sala, guichê, data e horário.
-    ("sou o candidato que fez a prova prática na sala 7 do bloco C no dia 04/02/2026", "candidato que fez a prova"),
+    ("sou o candidato que fez a prova prática na sala 7 do bloco C no dia 17/08/2025", "candidato que fez a prova"),
     ("Fui mal atendida pelo caixa do guichê 5 no dia 10/03/2026 às 15h20.", "caixa do guichê 5 no dia 10/03/2026"),
 ]
 

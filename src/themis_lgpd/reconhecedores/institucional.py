@@ -516,8 +516,8 @@ def _reclassificar_contatos(texto: str, deteccoes: list[Deteccao]) -> None:
 
 # --------------------------------------------------------------------------- Endereços
 _FIM_ENDERECO_ORGAO = r"(?:(?:n[oa]|à|em|:)\s*)?[-–:,]?\s*$"
-#: Local público ou de serviço onde fica a unidade ("no Galpão da Defesa Civil, na Rua…", "no pátio da
-#: Garagem Municipal, Rua…").
+#: Local público ou de serviço onde fica a unidade ("no Galpão da Assistência Social, na Rua…", "no pátio do
+#: Parque de Máquinas, Rua…").
 _LOCAL_DE_SERVICO = (r"(?:audit[óo]rio|plen[áa]rio|sal[ãa]o\s+(?:nobre|de\s+(?:eventos|reuni[õo]es|atos))|"
                      r"sala\s+de\s+(?:reuni[õo]es|sess[õo]es|confer[êe]ncias|treinamento)|gin[áa]sio|est[áa]dio|"
                      r"quadra\s+(?:poliesportiva|de\s+esportes)|teatro|centro\s+de\s+(?:conven[çc][õo]es|eventos)|"
@@ -541,7 +541,7 @@ _ENDERECO_ORGAO = re.compile(
     re.IGNORECASE,
 )
 #: Local público de evento ou de serviço logo antes do endereço ("Local: Auditório da Regional – Rua…",
-#: "no Galpão da Defesa Civil, na Rua…", "no pátio da Garagem Municipal, Rua…") ou canal de atendimento
+#: "no Galpão da Assistência Social, na Rua…", "no pátio do Parque de Máquinas, Rua…") ou canal de atendimento
 #: ("Atendimento presencial do SIC: Rua…"): ninguém mora em auditório, galpão ou pátio.
 _LOCAL_ANTES = re.compile(r"(?:\b" + _LOCAL_DE_SERVICO + r"\b[^.;\n]{0,70}?[,–\-]\s*(?:(?:n[oa]|à|em)\s+)?"
                           r"|\batendimento(?!\s+domiciliar)(?:\s+(?:presencial|ao\s+p[úu]blico))?"
@@ -712,14 +712,14 @@ def _veiculo_do_orgao(texto: str, d: Deteccao) -> bool:
 
     Vale a designação do veículo mais próxima antes do identificador, na mesma frase: veículo de serviço
     público ("a viatura QKM5E21", "a ambulância de placa…") ou qualificado como do órgão ("o veículo oficial
-    do Escritório", "a Fiat Doblò adaptada da Policlínica, RENAVAM…"), sem marca de posse particular entre a
-    designação e o identificador; ou, sem designação qualificada, a frase trata da frota ("…no plano de
-    abastecimento da frota"), sem vínculo pessoal.
+    do Escritório", "a Peugeot Boxer adaptada do Hospital, RENAVAM…"), sem marca de posse particular entre a
+    designação e o identificador; ou, sem designação qualificada, a frase trata da frota ("…na escala de
+    revisão preventiva da frota"), sem vínculo pessoal.
     """
     a, b = _frase(texto, d.inicio, d.fim)
     mencoes = list(_VEICULO_RE.finditer(texto, a, d.inicio))
     if mencoes:
-        # Designações contíguas formam uma só ("a unidade móvel Van da Cidadania", "a ambulância Fiat
+        # Designações contíguas formam uma só ("a unidade móvel Van do Emprego", "a ambulância Fiat
         # Ducato"): vale a primeira.
         k = len(mencoes) - 1
         while k > 0 and _APOSTO_VEICULO.fullmatch(texto, mencoes[k - 1].end(), mencoes[k].start()):
@@ -789,7 +789,7 @@ _NATUREZA_DESPESA = re.compile(r"[34]\.[1-9]\.\d{2}\.\d{2}(?:\.\d{2})?")
 _CONTEXTO_DESPESA = re.compile(r"\b(?:despesas?|natureza|elemento|dota[çc][ãa]o|or[çc]ament\w*|programa\s+de\s+trabalho)\b",
                                re.IGNORECASE)
 #: Subitem de edital ou contrato e código de classificação pública com a forma de endereço IP ("subitem
-#: 8.3.1.2", "COBRADE 1.3.2.1.4").
+#: 8.3.1.2", "COBRADE 1.4.1.1.0").
 _NUMERACAO_ANTES = re.compile(r"\b(?:(?:sub)?ite(?:m|ns)|cl[áa]usulas?|se[çc][ãa]o|cap[íi]tulo|anexo|par[áa]grafo|"
                               r"(?-i:COBRADE|CNAE|NCM|CBO|CATMAT|CATSER))\s*(?:n[º°o]\.?\s*)?$", re.IGNORECASE)
 #: Chave de acesso de nota fiscal eletrônica: 44 dígitos, em geral em grupos de quatro, com dígito

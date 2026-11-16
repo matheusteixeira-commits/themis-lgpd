@@ -622,8 +622,8 @@ SAUDE_CONTEXTUAL.append(
 # Tratamento com o medicamento nomeado ("tratamento com amoxicilina").
 SAUDE_SEMANTICA.append(
     Padrao("SAUDE", r"\btratamentos?\s+com\s+" + _MEDICAMENTO + r"\b", 0.8, camada=SEMANTICA, nome="saude:tratamento-com"))
-# Lista de códigos da CID após rótulo de diagnóstico ("Diagnósticos de alta: E11.5; M86.1; Z89.4",
-# "HD: F10.2 / I10 / K70.0?", "CID-10 da causa básica: O72.1"): o rótulo atribui os códigos à pessoa
+# Lista de códigos da CID após rótulo de diagnóstico ("Diagnósticos de alta: J18.9; N39.0; E87.1",
+# "HD: G40.9 / R56.8 / F44.5?", "CID-10 da causa básica: K35.8"): o rótulo atribui os códigos à pessoa
 # examinada. O código entra com o "?" de hipótese diagnóstica.
 _CODIGO_CID_LISTA = r"(?-i:[A-TV-Z]\d{2}(?:\.\d{1,2})?|[1-9][A-HJ-NP-Z][0-9A-HJ-NP-Z]{2}(?:\.[0-9A-HJ-NP-Z]{1,2})?)\??"
 SAUDE_CONTEXTUAL.append(
@@ -680,7 +680,7 @@ _SINAL_VITAL = (r"(?:(?-i:PA|PAS|PAD|PAM|FC|FR|SpO2|SatO2|Tax|HGT|IMC|PIO|PC|CA)
 _ESCALA = (r"(?:Glasgow|Apgar|ECOG|MELD|Child-Pugh|PHQ-9|GAD-7|MEEM|Mini-?exame\s+do\s+Estado\s+Mental|Katz|Barthel|Lawton|"
            r"Rankin|Braden|Fugl-Meyer|Tinetti|EuroSCORE(?:\s+II)?|Kellgren-Lawrence|TI-RADS|BI-RADS|Bethesda|Gleason|"
            r"(?-i:CDR|ASIA|MRC|mMRC|FOIS|KDIGO|NYHA|SOFA|NIHSS|EDSS|CARS|SNAP-IV|M-CHAT|BPRS|ASA))")
-#: Via de administração e frequência que acompanham a dose ("400 mg EV de 12/12 h", "50 mg pela manhã").
+#: Via de administração e frequência que acompanham a dose ("250 mg IV de 8/8 h", "50 mg pela manhã").
 _VIA = (r"(?:(?-i:EV|IV|IM|VO|SC|SL)|endovenos[oa]|intravenos[oa]|intramuscular|subcut[âa]ne[oa]|via\s+oral|oral|inalat[óo]ri[oa]|"
         r"t[óo]pic[oa]|sublingual)")
 _FREQUENCIA = (r"(?:(?:de\s+|a\s+cada\s+)?\d{1,2}\s*/\s*\d{1,2}\s*h(?:oras)?|a\s+cada\s+\d+\s+(?:horas|dias|semanas)|"
@@ -695,12 +695,12 @@ SAUDE_CLINICA = [
     Padrao("SAUDE", rf"\b{_ANALITO}(?:\s+(?:m[áa]xim[oa]|m[íi]nim[oa]|de\s+alta|de\s+admiss[ãa]o|inicial|final|basal|s[ée]ric[oa]))?"
                     rf"(?:\s+de\s+controle)?\s*(?:de|:|=|\||\t)?\s*{_RESULTADO}", 0.65, camada=SEMANTICA,
            nome=ORIGEM_CLINICA + "exame"),
-    # Sinal vital ou medida: "PA de 80 x 40 mmHg", "Peso: 31 kg", "IMC 34,1 kg/m²", "SpO2 mínima 86%".
+    # Sinal vital ou medida: "PA de 170 x 110 mmHg", "Peso: 31 kg", "IMC 34,1 kg/m²", "SpO2 mínima 86%".
     Padrao("SAUDE", rf"\b{_SINAL_VITAL}(?:\s+(?:m[íi]nim[oa]|m[áa]xim[oa]|de\s+admiss[ãa]o|inicial|final|pr[ée]-gestacional)){{0,2}}"
                     rf"(?:\s+(?:no|na|em|ao)\s+\w+)?\s*(?:de|:|=|\||\t)?\s*{_NUM}(?:\s*(?:x|X|/|por)\s*{_NUM})?"
                     r"\s*(?:mmHg|bpm|irpm|ipm|%|°C|ºC|kg/m²|kg/m2|kg|g|cm|m|mg/dL)?(?!\w)", 0.65, camada=SEMANTICA,
            nome=ORIGEM_CLINICA + "sinal-vital"),
-    # Peso da pessoa e sua variação: "pesando 16 kg", "perda de 7 kg em dois meses".
+    # Peso da pessoa e sua variação: "pesando 16 kg", "redução de 9 kg em seis semanas".
     Padrao("SAUDE", rf"\b(?:pes(?:o|ando|ava|ou)\s*(?:de|:)?\s*{_NUM}\s*kg|(?:perda|ganho|redu[çc][ãa]o)\s+(?:de\s+)?(?:peso\s+(?:de\s+)?)?"
                     rf"{_NUM}\s*kg(?:\s+em\s+\w+\s+(?:dias|semanas|meses|anos))?)\b", 0.65, camada=SEMANTICA,
            nome=ORIGEM_CLINICA + "peso"),
@@ -709,10 +709,10 @@ SAUDE_CLINICA = [
                     r"(?:(?:grau|n[íi]vel|est[áa]gio|classe|escore|pontua[çc][ãa]o)\s+)?"
                     r"(?:\d+(?:[.,]\d+)?(?:\s*/\s*\d+)?(?:\s*%|\s*pontos)?|(?-i:[A-E]|[IVX]{1,4})\b)(?:\s*\([^()\n]{1,40}\))?",
            0.65, camada=SEMANTICA, nome=ORIGEM_CLINICA + "escala"),
-    # Dose com via ou frequência: "400 mg EV de 12/12 h", "20 UI antes do café", "0,5 mg à noite".
+    # Dose com via ou frequência: "250 mg IV de 8/8 h", "20 UI antes do café", "0,5 mg à noite".
     Padrao("SAUDE", rf"\b{_DOSE_POSOLOGIA}(?:\s*,?\s*(?:{_VIA}|{_FREQUENCIA})){{1,4}}", 0.65, camada=SEMANTICA,
            nome=ORIGEM_CLINICA + "posologia"),
-    # Fórmula obstétrica ("G4 P3 (3 partos vaginais) A0") e idade gestacional com contexto de gestação.
+    # Fórmula obstétrica ("G5 P2 (2 cesáreas) A2") e idade gestacional com contexto de gestação.
     Padrao("SAUDE", r"(?-i:\bG\s?\d{1,2}\s?P\s?\d{1,2}(?:\s*\([^()\n]{1,40}\))?\s?A\s?\d{1,2}\b)", 0.65, camada=SEMANTICA,
            nome=ORIGEM_CLINICA + "obstetricia"),
     Padrao("SAUDE", r"\b\d{1,2}\s+semanas(?:\s+e\s+\d\s+dias?)?(?:\s+de\s+(?:gesta[çc][ãa]o|gravidez|idade\s+gestacional))?",
@@ -741,7 +741,7 @@ SAUDE_CLINICA = [
                     r"confus[ãa]o\s+mental|isolamento\s+social)",
            0.65, camada=SEMANTICA, nome=ORIGEM_CLINICA + "exame-psiquico"),
     # Achados do exame físico, mobilidade e cuidados: "crepitação à mobilização", "deambula com auxílio de
-    # andador", "transfere-se da cama para a cadeira", "curativo diário do coto".
+    # andador", "transfere-se sozinho para a poltrona", "curativo diário do coto".
     Padrao("SAUDE", r"\b(?:crepita[çc][ãa]o|geno\s+(?:varo|valgo)|derrame\s+articular|flex[ãa]o\s+limitada|"
                     r"amplitude\s+de\s+movimento|for[çc]a\s+muscular|aus[êe]ncia\s+de\s+(?:for[çc]a|sensibilidade|reflexos?|"
                     r"movimentos?|controle)|perda\s+de\s+sensibilidade|diminui[çc][ãa]o\s+da\s+sensibilidade|"
@@ -757,7 +757,7 @@ SAUDE_CLINICA = [
            0.65, camada=SEMANTICA, nome=ORIGEM_CLINICA + "exame-fisico"),
 ]
 # Campo de formulário clínico cujo valor é a condição registrada ("Natureza: fratura dos ossos nasais",
-# "Tipo de violência: física", "Parte do corpo atingida: cabeça/face", "Evolução: incapacidade
+# "Tipo de violência: física", "Parte do corpo atingida: tórax/abdome", "Evolução: incapacidade
 # temporária", "Forma: 1 – pulmonar"). O valor vai até o fim da linha.
 SAUDE_CLINICA.append(
     Padrao("SAUDE", r"^[ \t]*(?:\d{1,2}[.)]\s*)?(?:natureza(?:\s+da\s+les[ãa]o)?|partes?\s+do\s+corpo(?:\s+atingidas?)?|"
@@ -923,7 +923,7 @@ _CONECTIVO_NORMATIVO = re.compile(r"\b(?:conforme|nos\s+termos\s+d[aoe]s?|de\s+a
                                   r"previst[oa]s?\s+n[oa]s?|especificad[oa]s?\s+n[oa]s?|definid[oa]s?\s+n[oa]s?|"
                                   r"com\s+fundamento\s+n[oa]s?|para\s+fins\s+d[eo])\b")
 #: Negação ou hipótese: "nega alergias", "sem sintomas psicóticos", "Não foram observados sinais de…",
-#: "procurar emergência em caso de febre".
+#: "voltar à unidade em caso de vômitos".
 _NEGACAO_ANTES = re.compile(r"\b(?:nega(?:m|va|ndo)?|negou|sem|aus[êe]ncia\s+de|em\s+caso\s+de|na\s+presen[çc]a\s+de|"
                             r"se\s+houver|n[ãa]o\s+(?:apresenta(?:va)?|h[áa]|houve|possui|"
                             r"tem|refere|foram\s+(?:observad|identificad|constatad|encontrad)[oa]s|foi\s+(?:observad|identificad|"
@@ -1319,7 +1319,7 @@ class ContextoDocumental:
             negacao = None
         if self.centrado and (negacao or _NEGACAO_DEPOIS.match(texto, fim)):
             return ISENCAO_NEGACAO
-        # Título ou seção ("LAUDO MÉDICO PARA COMPROVAÇÃO DE DEFICIÊNCIA", "MOTIVO DA INTERNAÇÃO"). O título
+        # Título ou seção ("LAUDO PERICIAL DE DEFICIÊNCIA VISUAL", "MOTIVO DA INTERNAÇÃO"). O título
         # que enuncia o motivo de saúde de uma licença ou afastamento ("LICENÇA PARA TRATAMENTO DE SAÚDE") e
         # o trecho que traz o número do registro nomeiam o registro de uma pessoa e não são isentos.
         if (self.em(self.titulos, ini, fim) and not _MOTIVO_DE_LICENCA.search(texto, ini, fim)
@@ -1711,7 +1711,7 @@ INTIMIDADE_SEMANTICA = [
 MENOR_CONTEXTUAL = [
     # Criança ou adolescente com a idade ("meu filho de 8 anos"): a idade, combinada ao vínculo
     # familiar do requerente, identifica o menor.
-    # Faixas e limites de idade ("crianças de 6 meses a menores de 9 anos", "menores de 15 anos") são
+    # Faixas e limites de idade ("crianças de 9 meses a menores de 4 anos", "menores de 15 anos") são
     # critério de norma ou de estatística e ficam legíveis; o plural sem determinante designa um grupo.
     Padrao("DADO_DE_MENOR",
            r"\b(?:(?:minhas?|meus?|suas?|seus?|as?|os?)\s+(?:crian[çc]as|beb[êe]s|adolescentes|filh[oa]s|net[oa]s|entead[oa]s|"
@@ -1739,13 +1739,13 @@ MENOR_SEMANTICA = [
 # --------------------------------------------------------------------------- Quase-identificadores
 # Descrições que, sem nome, apontam para uma pessoa determinada: a função somada ao posto, ao turno, à
 # data ou à circunstância em que a pessoa foi encontrada ("a atendente do guichê 3 no plantão da manhã",
-# "o fiscal que esteve aqui no dia 12/05 às 10h"). Basta uma dessas descrições para que o órgão, ou
+# "o fiscal que esteve aqui no dia 23/08 às 14h"). Basta uma dessas descrições para que o órgão, ou
 # qualquer colega, saiba de quem se trata; por isso são sinalizadas para revisão (perfil LAI) ou
 # tarjadas (perfis de ouvidoria e de educação).
 #
 # A descrição tem três partes: a palavra que a introduz (artigo, contração ou "como", "sou", "era"),
 # que distingue a função de usos adjetivos ("nota fiscal", "parecer técnico"); a função; e a cadeia de
-# complementos que a delimitam — locuções preposicionadas ("do guichê 4", "no turno da manhã"), orações
+# complementos que a delimitam — locuções preposicionadas ("do guichê 9", "no plantão noturno"), orações
 # relativas ("que me atendeu") e advérbios de tempo e lugar ("ontem", "aqui"). Só é sinalizada a
 # descrição cuja cadeia contém um elemento que individualiza a pessoa (ver :data:`_INDIVIDUALIZA`):
 # "o servidor do setor de protocolo", sozinho, designa qualquer servidor do setor.
@@ -1798,9 +1798,9 @@ _FUNCOES = (
     # associação de moradores")
     r"parteir[oa]", r"benzedeir[oa]", r"rezador(?:a)?", r"cacique", r"paj[ée]", r"tuxaua", r"aidamo",
     r"presidente", r"vice-presidente", r"tesoureir[oa]",
-    # Pessoa designada pela responsabilidade ("o responsável pela biblioteca do bloco 2")
+    # Pessoa designada pela responsabilidade ("o responsável pelo almoxarifado do bloco 3")
     r"respons[áa]vel(?=\s+pel[oa]s?\b)",
-    # Postos militares e policiais, que designam a pessoa pelo posto ("a soldado que dirigia a viatura")
+    # Postos militares e policiais, que designam a pessoa pelo posto ("a sargento que lavrou o auto")
     r"soldado", r"sargento", r"subtenente", r"tenente", r"delegad[oa]",
     # Vizinhança, descrita pela moradia ("a vizinha do apartamento 22")
     r"vizinh[oa]",
@@ -1808,7 +1808,7 @@ _FUNCOES = (
     r"rapaz", r"mo[çc][oa]",
 )
 #: Pessoas designadas pela condição, e não pela função ("o único apenado da galeria", "a única interna
-#: da unidade", "a única pessoa que visita a idosa"): só formam quase-identificador depois de "único".
+#: da unidade", "a única pessoa que acompanha o acamado"): só formam quase-identificador depois de "único".
 _CONDICOES = (
     r"apenad[oa]", r"intern[oa]", r"reeducand[oa]", r"detent[oa]", r"pres[oa]", r"acolhid[oa]",
     r"morador(?:a)?", r"residente", r"pessoa", r"mulher", r"homem", r"crian[çc]a", r"adolescente", r"jovem",
@@ -1827,7 +1827,7 @@ _INTRODUZ = (r"(?:(?<=(?:(?:^|[^\w])(?:o|a|um|uma|do|da|no|na|pelo|pela|ao|à|nu
              r"nossa|pr[oa]s?|prum|pruma|(?:fun[çc][ãa]o|qualidade|condi[çc][ãa]o)\s+de)\s+)|:\s*)"
              r"|^(?=(?-i:[A-ZÀ-Ú])))")
 #: "Segurança", "guarda municipal" e "caixa" só designam a pessoa no masculino ("o segurança", "o guarda
-#: municipal", "pelo caixa do guichê 2"); no feminino, são o conceito ("a segurança do paciente"), a
+#: municipal", "pelo caixa da lotérica"); no feminino, são o conceito ("a segurança do paciente"), a
 #: corporação e o objeto.
 _INTRODUZ_MASC = r"(?<=(?:^|[^\w])(?:o|um|do|no|pelo|ao|num|dum|(?:d|n|daqu|naqu|aqu)?(?:est|ess|el)e|como|sou|era|fui)\s+)"
 _PREPOSICAO = (r"(?:d[oa]s?|de|n[oa]s?|em|num|numa|pel[oa]s?|ao|aos|à|às|a|as|entre|durante|desde|at[ée]|sobre|"
@@ -1882,21 +1882,21 @@ _COMPLEMENTO = (
     # "após o fechamento"), mas não de infinitivo nem de locução ("para pedir", "por isso").
     rf"(?:para|ap[óo]s)\s+(?:{_DETERMINANTE}\s+)?(?!\w+(?:ar|er|ir)\b){_NUCLEO}(?:\s+{_MODIFICADOR}){{0,2}}",
     rf"por\s+(?!(?:isso|meio|exemplo|favor|fim|conta|causa|vezes|que|volta)\b)(?!\w+(?:ar|er|ir)\b){_NUCLEO}",
-    # Oração relativa com preposição ou "onde": "da escola em que o adolescente estuda".
+    # Oração relativa com preposição ou "onde": "da creche em que a menina fica".
     rf"(?:(?:em|n[oa])\s+que|n[oa]s?\s+qua(?:l|is)|onde)\s+(?:{_DETERMINANTE}\s+)?{_NUCLEO}(?:\s+{_PALAVRA})?",
     # Apostos: "única docente do local", "um senhor grisalho", "responsável pela distribuição",
-    # "lotada na unidade"; dias da semana enumerados ("de segunda, quarta e sexta-feira").
+    # "lotada na unidade"; dias da semana enumerados ("de terça, quinta e sábado").
     rf"[úu]nic[oa]s?\s+{_NUCLEO}(?:\s+{_MODIFICADOR}){{0,2}}",
     rf"{_PESSOA_DESCRITA}(?:\s+{_MODIFICADOR}){{0,3}}",
     rf"respons[áa]vel|{_PARTICIPIO}|{_DIA_SEMANA}",
-    # Turno ou período em aposto ("da turma do 5º ano B, turno vespertino").
+    # Turno ou período em aposto ("da turma do 8º ano A, turno matutino").
     rf"(?:turno|per[íi]odo|plant[ãa]o|escala)(?:\s+{_MODIFICADOR}){{1,2}}",
     # Língua que a pessoa fala ("fluente em guarani", "falante de crioulo haitiano") e frequência
     # ("toda madrugada", "todas as manhãs de sábado").
     r"(?:fluente|falante|proficiente)\s+(?:em|de|d[oa])\s+[\wÀ-ú]+(?:\s+[\wÀ-ú]+)?",
     rf"tod[oa]s?\s+(?:[ao]s?\s+)?(?:madrugadas?|manh[ãa]s?|tardes?|noites?|dias?|semanas?|{_DIA_SEMANA})",
 )
-#: Vírgula seguida de novo complemento de tempo ou lugar: "ontem, dia 10, por volta das 15h".
+#: Vírgula seguida de novo complemento de tempo ou lugar: "anteontem, dia 27, por volta das 19h".
 _VIRGULA = (r"\s*,\s*(?=(?:n[oa]s?|num|numa|em|entre|durante|desde|at[ée]|sentido|por\s+volta|que|dia|ontem|"
             r"anteontem|hoje|l[áa]|[úu]nic[oa]s?|respons[áa]vel|turno|per[íi]odo|plant[ãa]o|escala|" + _PARTICIPIO + "|" + _PESSOA_DESCRITA + "|"
             + _DIA_SEMANA + r")\b|(?:[àa]s?|d[ao]s|de)\s+\d)")
@@ -1973,7 +1973,7 @@ _MARCA_FISICA = re.compile(
     r"\b(?:tatuage(?:m|ns)|cicatriz(?:es)?|piercings?|manc(?:o|a|ava|ando)|marcas?\s+de\s+nascen[çc]a|"
     r"sinal\s+de\s+nascen[çc]a|dentes?\s+de\s+ouro|pr[óo]tese|muletas?|gag(?:o|a|uejava)|olho\s+de\s+vidro|"
     r"sem\s+(?:um|o|os|dois)\s+dedos?)\b", re.IGNORECASE)
-#: Pessoa descrita pela aparência, sem nome ("o mais alto, com tatuagem de escorpião no pescoço", "um
+#: Pessoa descrita pela aparência, sem nome ("o mais velho, com tatuagem de âncora no antebraço", "um
 #: homem magro, de boné, que mancava"): suspeitos e testemunhas em boletins e termos de declaração.
 _DESCRICAO_FISICA = (
     r"(?<=\b(?:o|a|um|uma|ao|à|do|da)\s+)(?:mais\s+(?:alt|baix|velh|nov|magr|gord|fort)[oa]|homem|mulher|rapaz|"

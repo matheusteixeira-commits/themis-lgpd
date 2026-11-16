@@ -29,12 +29,12 @@ def _saude(r):
     ("Sofro de rinite alérgica todo inverno.", "rinite alérgica"),
     ("Desenvolvi lesão por esforço repetitivo no trabalho.", "lesão por esforço repetitivo"),
     # Alergias, infecções, nutrição
-    ("Meu filho tem alergia à proteína do leite de vaca (APLV).", "alergia à proteína do leite de vaca (APLV)"),
+    ("Meu neto convive com alergia à proteína do ovo (APO).", "alergia à proteína do ovo (APO)"),
     ("Minha tia pegou uma infecção por bactéria multirresistente.", "infecção por bactéria"),
     ("Minha neta tem fenilcetonúria e precisa de fórmula especial.", "fenilcetonúria"),
     # Visão, sintomas e deficiência
     ("Estou perdendo a visão e preciso do agendamento.", "perdendo a visão"),
-    ("Meu quadro piorou com dores fortes e sangramento constante.", "dores fortes"),
+    ("Minha situação se agravou, com dores fortes e vômitos frequentes.", "dores fortes"),
     ("Minha filha é uma criança com deficiência e usa cadeira de rodas.", "cadeira de rodas"),
     # Procedimentos, exames, imunização e medicamentos
     ("Aguardo a minha facoemulsificação desde março.", "facoemulsificação"),
@@ -51,7 +51,7 @@ def test_classes_de_condicao_tarjadas_com_vinculo(anon, texto, termo):
     ("Meu irmão tem tuberculose pulmonar.", "tuberculose pulmonar"),
     ("Eu tenho hérnia de disco lombar e artrose no quadril.", "artrose no quadril"),
     ("Tenho hipertensão arterial sistêmica severa.", "hipertensão arterial sistêmica severa"),
-    ("Sou portadora de esclerose lateral amiotrófica (ELA).", "(ELA)"),
+    ("Minha mãe tem lúpus eritematoso sistêmico (LES).", "(LES)"),
 ])
 def test_qualificadores_e_sigla_entram_no_trecho(anon, texto, trecho):
     assert trecho not in anon.anonimizar(texto).texto
@@ -59,15 +59,15 @@ def test_qualificadores_e_sigla_entram_no_trecho(anon, texto, trecho):
 
 def test_casamentos_sobrepostos_nao_cortam_a_condicao(anon):
     # "cirurgia de câncer" não pode impedir o reconhecimento de "câncer de próstata".
-    saida = anon.anonimizar("Aguardo a cirurgia de câncer de próstata do meu avô.").texto
+    saida = anon.anonimizar("Peço urgência na cirurgia de câncer de próstata marcada para o meu sogro.").texto
     assert "próstata" not in saida and "câncer" not in saida
 
 
 @pytest.mark.parametrize("texto,termo", [
     ("Minha filha está com suspeita de gastroenterite.", "gastroenterite"),
-    ("Ele sofreu uma fratura exposta na perna.", "fratura exposta na perna"),
-    ("Solicito o prontuário referente à intoxicação por monóxido de carbono.", "intoxicação por monóxido"),
-    ("Segue o laudo de autismo infantil emitido pela unidade.", "autismo infantil"),
+    ("Meu irmão sofreu uma fratura exposta no braço.", "fratura exposta no braço"),
+    ("Solicito cópia do prontuário sobre a intoxicação por metanol.", "intoxicação por metanol"),
+    ("Anexei o laudo de autismo infantil assinado pela neuropediatra.", "autismo infantil"),
     ("Condição clínica: paralisia cerebral", "paralisia cerebral"),
 ])
 def test_atribuicao_e_registro_clinico_sao_contextuais(anon, texto, termo):
@@ -92,7 +92,7 @@ def test_mesma_condicao_tarjada_em_todas_as_ocorrencias(anon):
 @pytest.mark.parametrize("texto,termo", [
     # Frase do termo trata de grupo ou estatística: a vizinha não o vincula a ninguém.
     ("Solicito o número de casos de tuberculose no município em 2024. Eu sou pesquisador da área.", "tuberculose"),
-    ("Peço o cronograma da campanha de vacinação contra a gripe. Moro no bairro central.", "gripe"),
+    ("Peço o calendário da campanha municipal contra a gripe. Moro no bairro central.", "gripe"),
     ("Quantos pacientes com diabetes aguardam consulta na rede? Eu gostaria de saber.", "diabetes"),
     # Fórmula de contato na vizinha não cria vínculo.
     ("Solicito informações sobre a oferta de mamografias na rede municipal. Meu e-mail é a@b.com.", "mamografias"),
@@ -104,7 +104,7 @@ def test_mencao_publica_continua_legivel(anon, texto, termo):
 
 
 @pytest.mark.parametrize("texto", [
-    "O órgão designou o encarregado pelo tratamento de dados pessoais.",
+    "A autarquia ainda não indicou encarregado pelo tratamento dos dados de seus usuários.",
     "A licitação para o tratamento de esgoto do bairro foi homologada.",
     "Houve deficiência no atendimento da unidade, conforme relatei.",
     "Aguardo com ansiedade a publicação do edital.",

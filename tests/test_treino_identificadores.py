@@ -10,11 +10,12 @@ import pytest
 
 VAZAMENTOS = [
     # (texto, trechos que NÃO podem sobrar na saída)
-    ("O número do protocolo que recebi no balcão foi o 20230101-1234. Obrigado.", ["20230101", "1234"]),
-    ("O processo que abri na regional de ensino é o 2023.0102.003 e aguardo.", ["0102.003"]),
+    ("Pelo que anotei, o número do protocolo entregue no guichê foi o 20230101-1234. Obrigado.",
+     ["20230101", "1234"]),
+    ("O processo que protocolei na coordenação regional é o 2023.0102.003 e sigo aguardando.", ["0102.003"]),
     ("Já abri uma solicitação anterior no sistema sob o número 2023.01.02.0001, sem retorno.", ["02.0001"]),
     ("A ocorrência foi registrada na delegacia sob o número 20230101-55.", ["20230101-55"]),
-    ("O número que me deram no papel foi 01234.567/2023-12.", ["01234.567"]),
+    ("O número que anotaram no meu papel foi 01234.567/2023-12.", ["01234.567"]),
     ("Me passaram o numero 12345/2023 por telefone.", ["12345/2023"]),
     ("O protocolo de reclamação anterior no sistema do órgão: 20240101-54321.", ["54321"]),
     ("O pedido de acesso, de acordo com o sistema, é o 12345/2024.", ["12345/2024"]),
@@ -23,8 +24,8 @@ VAZAMENTOS = [
      ["12345/2023", "54321/2022"]),
     ("Número do processo: 2023.07.XYZ.0123", ["XYZ", "0123"]),
     ("O processo administrativo 12345/2023-ABC e o PROCESSO nº 00123/2022-SMX estão parados.", ["ABC", "SMX"]),
-    ("Sou portador da cédula de identidade de estrangeiro RNM G123456-K.", ["G123456", "-K"]),
-    ("O número do RNE dele é V765432-K e ele precisa viajar.", ["V765432", "-K"]),
+    ("Meu documento de estrangeiro é o RNM G123456-K.", ["G123456", "-K"]),
+    ("Segundo a mãe, o RNE dele é V765432-K e ele vai viajar.", ["V765432", "-K"]),
     ("Passaporte: K12P45Z78, nacionalidade alemã.", ["K12P45Z78"]),
     ("O documento dele é 12.345.678-X e mora no centro.", ["12.345.678", "-X"]),
     ("Minha identidade militar é a 012345678-9.", ["012345678"]),
@@ -35,7 +36,7 @@ VAZAMENTOS = [
     ("Conta para recebimento: 01234567-8.", ["01234567"]),
     ("Informo meu dado bancario 0123-4 para o depósito.", ["0123-4"]),
     ("Agência 0001 e conta corrente 12.345-X.", ["12.345", "-X"]),
-    ("O valor foi depositado na cont 12345-6 da empresa.", ["12345-6"]),
+    ("A quantia foi depositada na cont 40871-3 da empresa.", ["40871-3"]),
 ]
 
 
@@ -47,13 +48,13 @@ def test_identificador_tarjado(anon, texto, proibidos):
 
 
 @pytest.mark.parametrize("texto", [
-    "A Lei nº 12.527/2011 e a Lei Complementar nº 101/2000 regem o tema.",
-    "O número da Lei é 12.527/2011 e o número do edital é 02/2024; o número do contrato é 123/2023.",
-    "O processo seletivo nº 12345/2023 foi publicado pelo Edital nº 02/2024.",
+    "A Lei nº 12.527/2011, junto com a Lei Complementar nº 101/2000, rege o tema.",
+    "O número da Lei é 12.527/2011 e o número do edital é 17/2024; o número do contrato é 123/2023.",
+    "O processo seletivo nº 12345/2023 foi publicado pelo Edital nº 17/2024.",
     "O número de servidores foi 12.345 e o número de vagas é 12345 no período 2023/2024.",
     "O processo tem 1.234 folhas e o pedido foi feito em 15/03/2024.",
     "O valor do processo é 1.234,56 e o valor do pedido foi 2.345,67.",
-    "Em caso de dúvida, o número do processo é o mesmo do pedido anterior.",
+    "Em caso de dúvida, saiba que seu número de processo é o mesmo usado no pedido anterior.",
     "O registro de preços nº 12345/2023 foi homologado pelo pregão nº 54321/2023.",
     "Número SIAFI: 2023NE000123, liquidado pela ordem bancária 2023OB004567.",
     "O boletim epidemiológico nº 12345/2023 foi divulgado.",

@@ -282,7 +282,7 @@ def identidade_chinesa_valida(valor: str) -> bool:
 
 # ---------------------------------------------------------------- Numeração com forma de IP ou de cartão
 #: Designações que precedem a numeração hierárquica de itens e códigos de classificação ("subitem
-#: 8.3.1.2", "cláusula 15.3.2.1", "COBRADE 1.3.2.1.4").
+#: 8.3.1.2", "cláusula 15.3.2.1", "COBRADE 1.5.1.3.2").
 _ANTES_ITEM = re.compile(r"\b(?:sub)?(?:ite(?:m|ns)|incisos?|al[íi]neas?|cl[áa]usulas?|se[çc](?:[ãa]o|[õo]es)|cap[íi]tulos?|"
                          r"anexos?|tabelas?|quadros?|t[óo]picos?|c[óo]digos?|classifica[çc](?:[ãa]o|[õo]es)|COBRADE|CNAE|"
                          r"CBO|natureza|elemento|rubrica|art(?:igo)?s?\.?|§)\s*(?:n[º°o]\.?\s*)?$", re.IGNORECASE)

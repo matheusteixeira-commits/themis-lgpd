@@ -23,7 +23,8 @@ VAZAMENTOS = [
     ("Conforme o laudo psicológico nº 3390/2030, a criança demanda acompanhamento.", ["3390/2030"]),
     ("PARECER MÉDICO-PERICIAL Nº 4.507/2030 – PERÍCIA OFICIAL\nServidora avaliada: FULANA", ["4.507/2030"]),
     ("Investigação nº QW-321/2030\nDeclaração de Óbito nº 61234567-8", ["321/2030", "61234567"]),
-    ("Foi emitida a CAT nº 41122334455 e a Comunicação de Acidente de Trabalho nº 2030.5511.204-7.",
+    ("Foi emitida a CAT nº 41122334455 e a Comunicação de Acidente de Trabalho de reabertura "
+     "nº 2030.5511.204-7.",
      ["41122334455", "2030.5511.204"]),
     ("Procedimento nº PQ-RST 0577/2030 instaurado pelo conselho tutelar.", ["0577/2030"]),
     ("Registrou BO nº 81234/2030 e depois o boletim pela internet (REDS 2030-000123456-001).",
@@ -32,7 +33,7 @@ VAZAMENTOS = [
     ("Foi aberta a Sindicância Administrativa Punitiva nº 977/2030 contra o agente.", ["977/2030"]),
     ("AUTO DE INFRAÇÃO AMBIENTAL Nº 7D3K5M2P lavrado contra o proprietário; Termo de Interdição nº HX92Q4T6.",
      ["7D3K5M2P", "HX92Q4T6"]),
-    ("Ficou preso em razão do auto de prisão em flagrante nº 6621/2030-DPY.", ["6621/2030"]),
+    ("Ficou preso em razão do auto de prisão em flagrante delito nº 6621/2030-DPY.", ["6621/2030"]),
     ("Foi lavrado o Termo Circunstanciado de Ocorrência (TCO) nº 0456/2030 na delegacia.", ["0456/2030"]),
     ("Investigação: QW-322/2030\nNotificante: unidade básica", ["322/2030"]),
     ("Processo GEDOC: SEPX-ADM-2030/55817\nServidora requerente: FULANA", ["2030/55817"]),
@@ -133,7 +134,7 @@ def test_extrato_de_contrato_com_pessoa_natural_tarja_processo(anon):
 @pytest.mark.parametrize("texto,esperado", [
     (AVISO_LICITACAO, True),
     ("EXTRATO DO TERMO ADITIVO Nº 2 AO CONTRATO Nº 77/2030\n\nPROCESSO: 31.220.507/2030\n"
-     "CONTRATADA: Empresa Exemplo Ltda., CNPJ 12.345.678/0001-95", True),
+     "CONTRATADA: Empresa Exemplo Ltda., CNPJ 63.918.402/0001-90", True),
     ("ATA DE JULGAMENTO – PREGÃO PRESENCIAL Nº 008/2030\nProcesso Administrativo nº 1207.008/2030", True),
     # Pedido de acesso em maiúsculas não é título de documento de licitação.
     ("SOLICITO CÓPIA DO PROCESSO 12345/2030 REFERENTE AO PREGÃO ELETRÔNICO 12/2030 DA SECRETARIA DE SAÚDE "

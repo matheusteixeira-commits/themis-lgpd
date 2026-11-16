@@ -57,8 +57,8 @@ OCULTOS = [
     ("30.111.222-3   2   QUEIROZ, Edinalva Moreira do        ASG    01  02\n"
      "                   Prado\n40.111.333-4   2   PEÇANHA, Ondina Aparecida           ASG    03  00",
      ["QUEIROZ", "Edinalva", "Prado", "PEÇANHA", "Ondina"]),
-    ('1;"QUEIROZ, LUANA BEATRIZ COSTA";***.512.111-**;CANOAGEM\n2;"CORDOVIL, PEDRO HENRIQUE LIMA";***.512.222-**;REMO',
-     ["QUEIROZ", "LUANA", "CORDOVIL", "PEDRO HENRIQUE"]),
+    ('1;"QUEIROZ, LUANA BEATRIZ COSTA";***.512.111-**;CANOAGEM\n2;"CORDOVIL, CAIO AUGUSTO LIMA";***.512.222-**;REMO',
+     ["QUEIROZ", "LUANA", "CORDOVIL", "CAIO AUGUSTO"]),
     ("Escala do mês\nCAMPOS, R. T.       D  N  N  D\nSAMPAIO, E. L.      N  D  D  N", ["CAMPOS", "SAMPAIO"]),
     # Nome de guerra após posto, corporação e matrícula
     ("RP 2201 – CMT: 2º SGT PM 100.200-3 CORDOVIL | MOT: SD PM 100.300-4 WANDEMBERG\n"

@@ -49,7 +49,7 @@ Hemoglobina glicada | 9,8% | até 5,7%
 Diagnósticos: N18.4; E11.2; I50.0.
 
 Prescrição: furosemida 40 mg pela manhã; insulina NPH 18 UI antes do café.
-Classificada com grau de dependência II, conforme a Lei nº 99.999/2099.
+Enquadrada no grau de dependência III, conforme a Lei nº 99.999/2099.
 
 Vale das Palmeiras, 3 de março de 2099.
 
@@ -87,7 +87,7 @@ def test_contexto_documental_reconhece_laudo_e_documento_agregado():
     "2,4 mg/dL", "9,8%",
     "N18.4; E11.2; I50.0",
     "furosemida 40 mg pela manhã", "insulina NPH 18 UI antes do café",
-    "grau de dependência II",
+    "grau de dependência III",
 ])
 def test_registro_clinico_tarjado(anon, trecho):
     assert _tarjado(anon.anonimizar(LAUDO), trecho)
@@ -103,8 +103,8 @@ def test_registro_clinico_preserva_instituicao_norma_titulo_e_assinatura(anon, t
 
 
 def test_documento_agregado_mantem_saude_legivel(anon):
-    texto = ("NOTA TÉCNICA Nº 3/2099\n\nAssunto: vacinação contra a influenza.\n\nAs crianças de 6 meses a menores de "
-             "6 anos devem receber duas doses. Os casos de síndrome respiratória aguda grave aumentaram 20% no "
+    texto = ("NOTA TÉCNICA Nº 3/2099\n\nAssunto: vacinação contra a influenza.\n\nAs crianças de 9 meses a menores de "
+             "4 anos devem receber duas doses. Os casos de síndrome respiratória aguda grave aumentaram 20% no "
              "período, e 5% das vagas são reservadas a pessoas com deficiência.")
     r = anon.anonimizar(texto)
     assert not [e for e in r.tarjadas if e.tipo in ("SAUDE", "DADO_DE_MENOR")]
@@ -112,16 +112,16 @@ def test_documento_agregado_mantem_saude_legivel(anon):
 
 def test_relatorio_social_vincula_saude_e_atributos_da_condicao(anon):
     texto = ("RELATÓRIO SOCIAL Nº 12/2099\n\n1. IDENTIFICAÇÃO\nUsuário: Beltrano de Teste\nIdade: 51 anos\n\n"
-             "3. SAÚDE\nRecebeu diagnóstico de tuberculose pulmonar, em tratamento desde fevereiro de 2099. "
-             "A filha é cadeirante em razão de paralisia cerebral.")
+             "3. SAÚDE\nRecebeu diagnóstico de hanseníase multibacilar, em tratamento desde agosto de 2099. "
+             "O neto é cadeirante em razão de lesão medular.")
     r = anon.anonimizar(texto)
-    assert _tarjado(r, "tuberculose pulmonar, em tratamento desde fevereiro de 2099")
-    assert _tarjado(r, "cadeirante em razão de paralisia cerebral")
+    assert _tarjado(r, "hanseníase multibacilar, em tratamento desde agosto de 2099")
+    assert _tarjado(r, "cadeirante em razão de lesão medular")
 
 
 def test_licenca_que_enuncia_motivo_de_saude_em_documento_de_servidor(anon):
     texto = ("DESPACHO Nº 8/2099\n\nServidor: Sicrano de Exemplo\nMatrícula: 0000000\n\nDefiro ao servidor licença "
-             "para tratamento de saúde por 30 dias.")
+             "para tratamento de saúde por 12 dias.")
     assert "licença para tratamento de saúde" not in anon.anonimizar(texto).texto
 
 
@@ -130,8 +130,8 @@ def test_licenca_que_enuncia_motivo_de_saude_em_documento_de_servidor(anon):
     ("Relatório de acompanhamento\nUsuária: Fulana de Teste\nIdade: 40 anos\nDeclarou-se membro da Igreja Exemplo "
      "do Bairro Novo e frequenta os cultos semanais.", "membro da Igreja Exemplo do Bairro Novo"),
     ("Requerimento\nRequerente: Fulana de Teste\nMatrícula: 1\nSolicita a exclusão da mensalidade sindical, "
-     "por ter se desfiliado do Sindicato dos Servidores de Exemplo (SINDEX).",
-     "desfiliado do Sindicato dos Servidores de Exemplo (SINDEX)"),
+     "já que está desfiliada do Sindicato dos Servidores de Exemplo (SINDEX).",
+     "desfiliada do Sindicato dos Servidores de Exemplo (SINDEX)"),
     ("Decisão\nRequerente: Fulana de Teste\nIdade: 30 anos\nA requerente mantém relacionamento homoafetivo há dois "
      "anos.", "relacionamento homoafetivo"),
 ])
@@ -159,13 +159,13 @@ def test_armadilhas_de_tarja_indevida(anon, texto, trecho):
 
 
 def test_negacao_vale_no_registro_e_nao_no_pedido(anon):
-    pedido = "Estou desesperada: o plano de saúde negou o tratamento quimioterápico que o meu médico indicou."
+    pedido = "Socorro: a operadora do meu plano negou o tratamento quimioterápico que me foi prescrito."
     assert "quimioterápico" not in anon.anonimizar(pedido).texto
 
 
 @pytest.mark.parametrize("texto,esperado", [
     ("Meu filho de 8 anos precisa de transporte escolar.", True),
-    ("A vacina é indicada para crianças de 6 meses a menores de 9 anos.", False),
+    ("A vacina é indicada para crianças de 9 meses a menores de 4 anos.", False),
     ("O serviço atende menores de 15 anos.", False),
 ])
 def test_idade_de_menor_exata_e_faixa(anon, texto, esperado):

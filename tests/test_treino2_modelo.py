@@ -46,9 +46,9 @@ def test_entidade_que_ja_e_candidata_volta_inteira(nlp_vazio, segmentar):
 
 
 def test_entidade_em_duas_linhas_vira_duas_partes(nlp_vazio, segmentar):
-    texto = "Prescrição:\nCaptopril 25 mg ...... 60 cp\n1 cp de 12/12 h\nValidade: 30 dias."
-    partes = _partes(nlp_vazio, segmentar, texto, "Captopril 25 mg ...... 60 cp\n1 cp de 12/12 h")
-    assert partes == ["Captopril 25 mg ...... 60 cp", "1 cp de 12/12 h"]
+    texto = "Prescrição:\nLosartana 50 mg ...... 1 caixa\nTomar 1 cp ao dia\nValidade: 30 dias."
+    partes = _partes(nlp_vazio, segmentar, texto, "Losartana 50 mg ...... 1 caixa\nTomar 1 cp ao dia")
+    assert partes == ["Losartana 50 mg ...... 1 caixa", "Tomar 1 cp ao dia"]
 
 
 def test_pontuacao_final_e_palavra_funcional_ficam_fora_da_parte(nlp_vazio, segmentar):
@@ -189,7 +189,7 @@ def test_nomes_em_caixa_alta_iniciais_e_campos_de_formulario(nlp_classificador, 
 
 
 @pytest.mark.parametrize(("texto", "trecho"), [
-    ("Em uso de carvedilol 25 mg de 12/12 horas e furosemida 40 mg pela manhã.", "carvedilol 25 mg de 12/12 horas"),
+    ("Faz uso de enalapril 10 mg de 8/8 horas, além de sinvastatina 20 mg à noite.", "enalapril 10 mg de 8/8 horas"),
     ("Ao exame, apresenta edema de membros inferiores e dispneia aos médios esforços.", "edema de membros inferiores"),
     ("Ficha de notificação. Paciente: Zenaide Correia Lobo. Agravo: tuberculose pulmonar.", "tuberculose pulmonar"),
 ])

@@ -21,7 +21,7 @@ def _saida(anon, texto):
 # Nome, ou partes dele, que não pode ficar visível.
 OCULTOS = [
     # Rótulo de campo com sobrenomes fora das listas
-    ("Membro: YURIKO AMAMIYA OKUBO – Matr. 445566", ["YURIKO", "AMAMIYA", "OKUBO"]),
+    ("Membro: YURIKO AMAMIYA OKUBO – Matr. 381927", ["YURIKO", "AMAMIYA", "OKUBO"]),
     ("Periciado: NADIM CHAHINE BOUSTANI\nCPF: 529.982.247-25", ["NADIM", "CHAHINE", "BOUSTANI"]),
     ("Nome: TOMOKO WATANUKI HIRAYAMA\nRG: 12.345.678-9", ["TOMOKO", "WATANUKI", "HIRAYAMA"]),
     ("Recorrente: Ivoneide Tabosa Quixadá\nCargo: Agente Comunitário de Saúde", ["Ivoneide", "Tabosa", "Quixadá"]),
@@ -48,10 +48,10 @@ OCULTOS = [
     ("SERVIDOR(A) | MATRÍCULA\nOSMARINA QUEIROGA\nTAVEIRA LUSTOSA | 456.789-1 A", ["OSMARINA", "TAVEIRA", "LUSTOSA"]),
     ("Exonerar GUMERCINDO PAIVA DE\nALBUQUERQUE, CPF ***.123.456-**, do cargo.", ["GUMERCINDO", "ALBUQUERQUE"]),
     ("NOME: ADALGISO FRANÇA TEIXEIRA\nNETO\nCPF: 529.982.247-25", ["ADALGISO", "NETO"]),
-    ("Fiscal do contrato | Wesley Barbosa\nde Albuquerque | 5130749", ["Wesley", "Albuquerque"]),
+    ("Fiscal do contrato | Wesley Barbosa\nde Albuquerque | 6283517", ["Wesley", "Albuquerque"]),
     # Iniciais e nomes com inicial no meio
     ("Filhos: P.R.S., 8 anos; L.M.S., 5 anos.", ["P.R.S", "L.M.S"]),
-    ("Alimentandos: A. B. C. D. e E. F. G. H., menores.", ["A. B. C. D", "E. F. G. H"]),
+    ("Alimentandos: R. T. M. S. e L. V. P. N., menores.", ["R. T. M. S", "L. V. P. N"]),
     ("As servidoras A. C. e B. D. confirmaram o fato.", ["A. C", "B. D"]),
     ("Interessada: Ivanilde K. Sarmento", ["Ivanilde", "K. Sarmento"]),
     # Prenome que também é palavra comum, dentro do nome
@@ -89,7 +89,7 @@ LEGIVEIS = [
     ("Teotônio Vilela, 12 de maio de 2025.", "Teotônio Vilela"),
     ("A equipe atenderá em Antônio Prado na próxima semana.", "Antônio Prado"),
     ("Município de residência: Fernando Pedroza", "Fernando Pedroza"),
-    ("Superintendência Regional de Ensino de Governador Valadares", "Governador Valadares"),
+    ("Superintendência Regional de Ensino de Carlos Chagas", "Carlos Chagas"),
     ("As remessas seguirão para Floriano Peixoto, Erechim e Bernardino de Campos.", "Floriano Peixoto"),
     ("EE Doutor Hilário Moura – Luís Eduardo Magalhães", "Luís Eduardo Magalhães"),
     # Razão social
@@ -102,7 +102,7 @@ LEGIVEIS = [
     ("Contrato com o Banco do Brasil S.A. para a U.E. Monte Alegre.", "S.A."),
     ("Foi ouvido o Sargento PM Gildásio Moura Teles.", "PM"),
     # Cargo e classe funcional antes da matrícula
-    ("ocupante do cargo de Assistente Social, Classe C, Padrão III, matrícula nº 0023597-1", "Padrão III"),
+    ("ocupante do cargo de Analista Ambiental, Classe B, Padrão III, matrícula nº 0061482-3", "Padrão III"),
     ("ocupante do cargo de Operador de Máquinas, matrícula nº 4455661", "Operador de Máquinas"),
     # Tabela de materiais com código numérico
     ("Item | Descrição | Código\n03 | FEIJÃO CARIOCA | 456789\n04 | CANETA AZUL | 456790", "FEIJÃO CARIOCA"),

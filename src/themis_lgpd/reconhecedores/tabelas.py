@@ -248,7 +248,7 @@ def _tipificar_composto(rotulo: str) -> _Coluna:
 
 
 # =========================================================================== forma dos valores
-#: Valor monetário: "R$ 1.234,56", "1.234,56", "1200,00".
+#: Valor monetário: "R$ 1.234,56", "1.234,56", "3450,00".
 _DINHEIRO = re.compile(r"(?<![\d.,])(?:R\$\s?)?(?:\d{1,3}(?:\.\d{3})+|\d+),\d{2}(?![\d,])")
 #: Data: "12/03/1987", "12.03.87", "12 03 1987" e "12031987".
 _DATA = re.compile(r"(?<![\d/.\-])(?P<d>\d{1,2})(?P<s>[/.\-]| ?)(?P<m>\d{1,2})(?P=s)(?P<a>(?:19|20)\d{2}|\d{2})"
@@ -256,7 +256,7 @@ _DATA = re.compile(r"(?<![\d/.\-])(?P<d>\d{1,2})(?P<s>[/.\-]| ?)(?P<m>\d{1,2})(?
 #: Idade numa célula: "45", "45 anos", "7 meses".
 _IDADE = re.compile(r"\d{1,3}(?:\s*(?:anos?|a|m[êe]s|meses|m))?", re.IGNORECASE)
 #: Palavra de identificador: dígitos (ou máscara) com pontuação de documento e, no máximo, sigla ou dígito
-#: verificador em letra ("140.496-ENF", "29.063/D", "52526-X", "***.306.237-**", "L0771838").
+#: verificador em letra ("213.587-ENF", "47.182/D", "60413-X", "***.582.914-**", "L0396254").
 _PALAVRA_ID = re.compile(r"(?:[A-Z]{1,4}[-/]?)?[\d*•#][\d*•#.\-/]*(?:[\dXx*•#]|[-/][A-Z]{1,4})|"
                          r"[A-Z]{1,3}\d[\dA-Z]{3,}|\d+[A-Z]{1,3}\d+")
 #: Formas que ocupam colunas de identificador sem serem identificadores: datas, horas e valores.
@@ -383,7 +383,7 @@ def _nome_confirmado(texto: str, a: int, b: int) -> bool:
 
 def _palavras(texto: str, tokens: list[tuple[int, int]]) -> list[tuple[int, int]]:
     """Identificadores entre as palavras de uma célula; palavras de identificador vizinhas, separadas
-    por um espaço, formam um só valor ("013 524608-3", "4345 0201 2747")."""
+    por um espaço, formam um só valor ("027 318459-6", "5812 0347 1906")."""
     achados: list[tuple[int, int]] = []
     atual: tuple[int, int] | None = None
     for a, b in tokens:

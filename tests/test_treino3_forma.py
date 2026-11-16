@@ -156,11 +156,11 @@ def test_registro_em_duas_linhas():
         "  LOCALIDADE / DATAS     DIAS        TOTAL (R$)\n"
         "LEOPOLDINO SAMPER        1234567     Motorista\n"
         "  Cidade Alfa 02 a 04    2,5         317,40\n"
-        "MARIETA OSTERNE          7654321     Analista\n"
+        "MARIETA OSTERNE          5803162     Analista\n"
         "  Cidade Beta 05 a 05    0,5         73,85\n"
     )
     achados = _achados(texto)
-    assert ("MATRICULA", "1234567") in achados and ("MATRICULA", "7654321") in achados
+    assert ("MATRICULA", "1234567") in achados and ("MATRICULA", "5803162") in achados
     assert set(_valores(texto, "VALOR_PESSOAL")) == {"317,40", "73,85"}
     assert ("NOME", "MARIETA OSTERNE") in achados
 

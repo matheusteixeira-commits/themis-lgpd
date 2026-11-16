@@ -499,7 +499,7 @@ class Anonimizador:
         """Indica se a frase anterior ou a seguinte se refere a uma pessoa determinada (ver :data:`_COLETIVO`).
 
         Só se aplica quando a frase do próprio trecho não trata de grupo ou estatística. Nas vizinhas,
-        valem os marcadores de :data:`_VINCULO`, exceto os de fórmulas de contato ("meu e-mail é…");
+        valem os marcadores de :data:`_VINCULO`, exceto os de fórmulas de contato ("meu telefone é…");
         identificadores detectados não bastam, pois uma assinatura não liga a pessoa ao termo.
         """
         a, b = self._frase(texto, ini, fim)
@@ -656,8 +656,8 @@ class Anonimizador:
     def _saude_consistente(entidades: list[Entidade]) -> None:
         """Tarja as demais ocorrências de um dado de saúde já tarjado no mesmo texto.
 
-        Em "tive complicações por diabetes tipo 2 … o afastamento para tratamento de diabetes tipo 2
-        interrompe o interstício?", a segunda menção revelaria a condição protegida na primeira. Só se
+        Em "estou em tratamento de hepatite autoimune … a licença por hepatite autoimune suspende o
+        estágio probatório?", a segunda menção revelaria a condição protegida na primeira. Só se
         aplica a ocorrências com o mesmo termo (sem distinção de caixa, acentos e espaços) ou contidas num
         trecho tarjado com qualificadores e atributos ("prótese" depois de "prótese na perna direita", "asma
         grave" depois de "crise de asma grave"), salvo os núcleos genéricos ("deficiência").

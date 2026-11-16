@@ -25,15 +25,16 @@ def _alertas(anon, texto):
     ("Quero o nome do motorista da linha 731, que passou às 7h15 no ponto.",
      "motorista da linha 731, que passou às 7h15 no ponto"),
     # Data por extenso e numérica
-    ("Fui atendido pela farmacêutica da unidade central na manhã de 03/09/2024.",
-     "farmacêutica da unidade central na manhã de 03/09/2024"),
+    ("Fui recebido pela nutricionista da unidade norte na tarde de 27/10/2023.",
+     "nutricionista da unidade norte na tarde de 27/10/2023"),
     # Função única
     ("A única intérprete de Libras da regional faltou.", "única intérprete de Libras da regional"),
     # Descrição do próprio requerente, com período de anos
     ("Trabalhei como merendeira da escola no turno da manhã entre 2016 e 2019.",
      "merendeira da escola no turno da manhã entre 2016 e 2019"),
     # Encontro narrado sem data
-    ("O técnico que fez a vistoria no meu sítio não deixou o laudo.", "técnico que fez a vistoria no meu sítio"),
+    ("O agrônomo que fez a inspeção na minha chácara não deixou o relatório.",
+     "agrônomo que fez a inspeção na minha chácara"),
     # Posto fixo (portão, guichê, balcão, guarita)
     ("Peço a identificação do vigilante do portão lateral.", "vigilante do portão lateral"),
     # Rótulo de formulário
@@ -50,8 +51,8 @@ def test_funcao_com_elemento_individualizante_e_sinalizada(anon, texto, trecho):
 
 
 def test_descricao_termina_antes_da_oracao_principal(anon):
-    texto = "O fiscal que esteve aqui no dia 12/05 às 10h disse que voltaria."
-    assert _alertas(anon, texto) == ["fiscal que esteve aqui no dia 12/05 às 10h"]
+    texto = "O fiscal que esteve aqui no dia 23/08 às 14h disse que voltaria."
+    assert _alertas(anon, texto) == ["fiscal que esteve aqui no dia 23/08 às 14h"]
 
 
 @pytest.mark.parametrize("texto", [
@@ -66,7 +67,7 @@ def test_descricao_termina_antes_da_oracao_principal(anon):
     "O servidor do plantão noturno deverá registrar as ocorrências no livro próprio.",
     "Compete ao diretor da escola, no início de cada semestre, divulgar o calendário.",
     "Cabe ao professor da rede pública cumprir a carga horária no período letivo.",
-    "O servidor que tiver interesse deverá comparecer no dia 12/05 às 10h.",
+    "O servidor que tiver interesse deverá comparecer no dia 23/08 às 14h.",
     # Função sem elemento que individualize, ou no plural
     "O fiscal do contrato encaminhou o relatório mensal.",
     "O técnico de enfermagem tem jornada de 30 horas semanais.",
