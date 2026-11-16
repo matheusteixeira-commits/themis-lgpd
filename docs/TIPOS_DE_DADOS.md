@@ -190,7 +190,7 @@ Três reconhecedores se complementam:
 |---|---|---|
 | `BR_Nomes_Modelo` | Entidades `PER` (e `MISC`/`LOC` iniciadas por prenome conhecido) do modelo `pt_core_news_lg`, divididas na quebra de linha, no travessão e na barra vertical (o cargo da linha de baixo não entra no nome) e filtradas: títulos e cargos iniciais, letras isoladas, algarismos romanos, palavras comuns e administrativas, siglas, nomes de instituições, empresas, normas e lugares | não |
 | `BR_Nomes_Lista` | Sequências iniciadas por um dos cerca de 700 prenomes brasileiros das listas (inclusive os mais frequentes por sexo, década e UF no Censo 2010 do IBGE), seguidos de sobrenomes, conectores ou iniciais ("Graziela B. Assunção"); em CAIXA ALTA, até três palavras fora das listas entre nomes ou no fim do nome; o nome continua na linha seguinte quando a linha termina em conector, quando a seguinte começa por "Filho", "Neto" ou "Júnior" ou quando a célula da tabela foi partida | sim |
-| `BR_Nomes_Gatilho` | Nome após gatilho de contexto ("meu nome é", "requerente:", "Atenciosamente,", "sou a…"), rótulo de campo ("Membro:", "Periciada:", "Contribuinte:"), papel ou ato de pessoal ("a servidora FULANA", "conduzido por", "Exonerar"); nome antes de identificador, idade ou cargo ("FULANO, matrícula", "FULANO – Membro"); linha só com o nome sobre a linha do cargo, na assinatura; célula de tabela com o nome em linha que traz CPF ou matrícula; iniciais de pessoa ("K.C.P.", "M. E. S."); apelidos ("vulgo “Fulano”"). Nesses contextos, nomes de imigrantes e indígenas fora das listas são aceitos em CAIXA ALTA | sim |
+| `BR_Nomes_Gatilho` | Nome após gatilho de contexto ("meu nome é", "requerente:", "Atenciosamente,", "sou a…"), rótulo de campo ("Membro:", "Periciada:", "Contribuinte:"), papel ou ato de pessoal ("a servidora FULANA", "conduzido por", "Exonerar"); nome antes de identificador, idade ou cargo ("FULANO, matrícula", "FULANO – Membro"); linha só com o nome sobre a linha do cargo, na assinatura; célula de tabela com o nome em linha que traz CPF ou matrícula, inclusive em tabela alinhada por espaços e com o restante do nome na linha de baixo; nomes um por linha em lista; nome invertido ("SOBRENOME, Fulana", "SOBRENOME, F. B."); nome de guerra após posto, corporação e matrícula ("SD PM 000.000-0 FULANO"); parentesco em aposto ("a esposa, FULANA", "a filha Fulana, de 15 anos"); papel em linha de título ("VÍTIMA⏎FULANA"); pronome de tratamento com nome fora das listas ("Dona Fulana", "Sr. Fulano"); iniciais de pessoa ("K.C.P.", "M. E. S."), também nas demais menções do documento; apelidos e nomes pelos quais a pessoa é chamada ("vulgo “Fulano”", "conhecida na vizinhança como Fulana", "prefere ser chamada de Fulana", "“Fulana” (nome social)"). Nesses contextos, nomes de imigrantes e indígenas fora das listas são aceitos em CAIXA ALTA, com partículas estrangeiras ("DEL", "VON DER", "AL"), e os do Leste Asiático, com o sobrenome em CAIXA ALTA à frente ("FULANO Bel-trano") | sim |
 
 Nomes que integram nomes de lugares, instituições, empresas ou normas não são tratados como pessoa:
 "São Paulo", "Escola Paulo Freire", "Lei Maria da Penha", "Unidade Básica de Saúde Doutor Fulano",
@@ -198,6 +198,16 @@ Nomes que integram nomes de lugares, instituições, empresas ou normas não sã
 vale para municípios com nome de pessoa citados como lugar: na linha de local e data ("Teotônio
 Vilela, 12 de maio de 2025"), com a UF, após "em" ou rótulo ("Município: …"), após unidade
 administrativa ("Superintendência Regional de Ensino de …") e em enumerações ou colunas de municípios.
+Também ficam legíveis o nome de embarcação, equipamento, honraria, bolsa, operação policial e política
+pública ("B/M Comandante Fulano", "Plenário Vereador Fulano", "Operação Fulana"); a escola abreviada em
+tabela ("E.E.E.F. PROF.ª FULANA") e a continuação do nome da escola na linha de baixo; a razão social com
+sobrenomes ou iniciais ("Fulano & Beltrano Engenharia Ltda.", "F. B. Fulano Comércio Ltda."); o bairro na
+linha de endereço; a sigla de órgão seguida do município ("SME Fulanópolis"); o distrito, o povoado e a
+região administrativa ("distrito de Fulano"); e as demais menções, inclusive como sujeito de oração, ao
+município, distrito ou logradouro que o próprio documento identifica ("PREFEITURA MUNICIPAL DE FULANO DE
+TAL … Fulano de Tal ampliou…", "ruas Fulano, Beltrano e Sicrano … Beltrano está concluída"), salvo
+quando o nome continua ou vem após tratamento ou parentesco ("a filha Fulana"). Já "a escola de Fulano"
+indica posse, e o nome é tarjado.
 
 O classificador de trechos treinado também propõe nomes (`BR_Sensivel_Aprendido`, origem
 `aprendido:nome_pessoa`), em especial em caixa alta, em tabelas, em assinaturas e por iniciais. Aplica
