@@ -165,13 +165,22 @@ PADROES: list[Padrao] = [
            r"(?P<v>\b\d{1,3}(?:\.?\d{3})*\s*[-/]?\s*(?:OAB|CRM|CREA|CRO|CRP|COREN|CAU)\s*[-/]\s*[A-Z]{2}\b)", 0.9,
            ignorar_caixa=False, nome="registro:numero-sigla"),
     # ---------------- Data de nascimento: só a data precedida de expressão de nascimento; datas
-    # isoladas são frequentes em documentos públicos e não são dado pessoal por si.
+    # isoladas são frequentes em documentos públicos e não são dado pessoal por si. Formatos: numérico
+    # ("12/03/1987", "12.03.87", "1987-03-12"), por extenso ("1º de março de 1987", "12 de mar. de
+    # 1987"), com mês abreviado ("12/mar/1987") e a fórmula de registro civil ("aos 12 dias do mês de
+    # março de 1987"). A idade da pessoa é reconhecida em :mod:`themis_lgpd.reconhecedores.pessoais`.
     Padrao("DATA_NASCIMENTO",
            r"(?:\bnascid[oa]s?|\bnascimento|\bnasc\b\.?|\bD\.?N\.?(?=\s*[:\-]|\s+\d)|\bdata de nasc\.?|\bnasceu|\bnasci|"
            r"\bnaci|\bnascida|\banivers[áa]rio|\bniver|\bdt\.?\s*nasc\.?)"
-           r"[^\d\n]{0,30}?(?P<v>\d{1,2}\s*[/.\-]\s*\d{1,2}\s*[/.\-]\s*(?:19|20)?\d{2}(?!\d)|"
-           r"\d{1,2}\s+de\s+(?:janeiro|fevereiro|mar[çc]o|abril|maio|junho|julho|agosto|setembro|outubro|"
-           r"novembro|dezembro)\s+de\s+\d{4})", 0.9, camada=CONTEXTUAL, grupo="v"),
+           r"[^\d\n]{0,30}?(?P<v>\d{1,2}\s*[/.\-]\s*\d{1,2}\s*[/.\-]\s*(?:19|20)?\d{2}(?!\d)|(?:19|20)\d{2}-\d{2}-\d{2}(?!\d)|"
+           r"\d{1,2}[/.\-\s](?:jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)[a-zç]*\.?[/.\-\s](?:19|20)?\d{2}(?!\d)|"
+           r"\d{1,2}[º°]?\s+(?:dias\s+do\s+m[êe]s\s+)?de\s+(?:janeiro|fevereiro|mar[çc]o|abril|maio|junho|julho|agosto|"
+           r"setembro|outubro|novembro|dezembro|jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\.?\s+"
+           r"(?:do\s+ano\s+)?de\s+\d{4})", 0.9, camada=CONTEXTUAL, grupo="v"),
+    # Só o ano, logo após "nascido em" ou "ano de nascimento" (no singular: "nascidos em 2023" é
+    # contagem de registros).
+    Padrao("DATA_NASCIMENTO", r"(?:\bnascid[oa]\s+em|\bano\s+de\s+nascimento\s*[:\-]?)\s*(?P<v>(?:19|20)\d{2})(?![\d/.\-])",
+           0.85, camada=CONTEXTUAL, grupo="v", nome="nascimento:ano"),
     # ---------------- Identificadores de cliente ou contribuinte (água, energia, IPTU, inscrições):
     # número com dígito após hífen, perto de uma expressão que indica o cadastro.
     Padrao("DOCUMENTO", ANTES_NUM + r"\d{3,12}-[\dXx]" + DEPOIS_NUM, 0.8,

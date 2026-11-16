@@ -17,6 +17,7 @@ Todos os exemplos deste documento são fictícios.
 | `CONTATO` | Contato pessoal | LGPD, art. 5º, I; LAI, art. 31, § 1º, I | sim |
 | `LOCALIZACAO` | Endereço | LGPD, art. 5º, I; LAI, art. 31, § 1º, I | sim |
 | `FINANCEIRO` | Dado financeiro | LGPD, art. 5º, I; LAI, art. 31, § 1º, I; LC 105/2001 | sim |
+| `ECONOMICO` | Situação econômica de pessoa natural | LGPD, art. 5º, I; LAI, art. 31, § 1º, I | não |
 | `VEICULO` | Identificação de veículo | LGPD, art. 5º, I; LAI, art. 31, § 1º, I | sim |
 | `PROCESSO` | Número de processo ou protocolo | LGPD, art. 5º, I; LAI, art. 31, § 1º, I | sim |
 | `SENSIVEL` | Dado pessoal sensível | LGPD, art. 5º, II, e art. 11; LAI, art. 31 | não |
@@ -58,7 +59,8 @@ coluna **Validação** indica o que é conferido além do formato.
 | `MATRICULA_ESCOLAR` | Matrícula escolar ou RA | `[MATRÍCULA ESCOLAR]` | 85 | Contexto obrigatório ("RA", "registro acadêmico", "matrícula do aluno") | RA 123456789-X |
 | `INSCRICAO_IMOVEL` | Inscrição imobiliária (IPTU, CCM) | `[INSCRIÇÃO]` | 80 | Contexto obrigatório | inscrição imobiliária 01.23.456.0789.001 |
 | `DOCUMENTO` | Número de documento | `[DOCUMENTO]` | 80 | Contexto obrigatório | Documento do cliente: 1234567-8 |
-| `DATA_NASCIMENTO` | Data de nascimento | `[DATA DE NASCIMENTO]` | 85 | Contexto ("nascido em", "data de nascimento") | nascida em 12/03/1985 |
+| `DATA_NASCIMENTO` | Data de nascimento | `[DATA DE NASCIMENTO]` | 85 | Contexto ("nascido em", "data de nascimento", "DN") ou coluna "Nascimento" de tabela; formatos numérico, ISO, por extenso, com mês abreviado e de registro civil | nascida em 12/03/1985; 1º de março de 1985 |
+| `IDADE` | Idade de pessoa | `[IDADE]` | 80 | Contexto que liga a idade a uma pessoa identificável (ver [Idade e valores de pessoa natural](#idade-e-valores-de-pessoa-natural)) | Idade: 52 anos; Fulano, 33 anos, CPF…; o filho, de 6 anos |
 
 ### Contato, localização e finanças
 
@@ -75,6 +77,7 @@ coluna **Validação** indica o que é conferido além do formato.
 | `CARTAO` | Cartão de pagamento | `[CARTÃO]` | 90 | Algoritmo de Luhn | 4111 1111 1111 1111 |
 | `CHAVE_PIX` | Chave PIX | `[CHAVE PIX]` | 90 | Contexto ("pix", "chave") | chave pix 61998765432 |
 | `CARTEIRA_CRIPTO` | Carteira de criptomoeda | `[CARTEIRA CRIPTO]` | 85 | Reconhecedor do Presidio | |
+| `VALOR_PESSOAL` | Valor recebido ou devido por pessoa natural | `[VALOR]` | 70 | Contexto que liga o valor a uma pessoa (ver [Idade e valores de pessoa natural](#idade-e-valores-de-pessoa-natural)) | aposentadoria de R$ 1.600,00; dívida de R$ 412,00 |
 
 ### Veículos e processos
 
@@ -145,6 +148,7 @@ Nomes que integram nomes de lugares, instituições ou normas ("São Paulo", "Es
 | `SENSIVEL` | vinculado | alertar | vinculado² | vinculado | vinculado³ | tarjar |
 | `INTIMIDADE` | vinculado | alertar | vinculado | vinculado | vinculado | tarjar |
 | `MENOR` | vinculado | alertar | vinculado | tarjar | tarjar | tarjar |
+| `ECONOMICO` | tarjar | alertar | tarjar | tarjar | tarjar | tarjar |
 | `EMPRESA` | manter | manter | manter | alertar | manter | tarjar |
 | `LOCALIDADE` | alertar | manter | alertar | tarjar | alertar | tarjar |
 | `URL` | manter | manter | manter | tarjar | manter | tarjar |
@@ -184,6 +188,53 @@ glargina. Minha filha tem diabetes tipo 1."). Essa extensão não se aplica quan
 de grupo ou estatística ("o número de casos de dengue", "a campanha de vacinação", "pacientes com
 diabetes"), e fórmulas de contato na frase vizinha ("meu e-mail é…") não contam como vínculo. Um termo
 de saúde já tarjado no texto é tarjado também nas demais ocorrências, que revelariam a mesma condição.
+
+### Idade e valores de pessoa natural
+
+Idade e valor monetário só são dado pessoal quando se referem a uma pessoa identificável; os mesmos
+números em normas, editais, estatísticas e contratos com empresas são informação pública. Por isso os
+tipos `IDADE` e `VALOR_PESSOAL` dependem do contexto (`src/themis_lgpd/reconhecedores/pessoais.py`).
+
+**Idade** é tarjada no campo de formulário ("Idade: 52 anos", "Idade: 47 a"), em aposto ao nome, às
+iniciais ou ao papel da pessoa ("Fulano, 33 anos, CPF…", "P.R.S., 8 anos;", "a genitora, de 29 anos",
+"um sobrinho de 12 anos"), com verbo ("hoje com 3 anos", "contava 20 anos", "tem 9 anos"), em "62
+(sessenta e dois) anos de idade", ao lado da data de nascimento ("10/10/2010 (15 anos)") e na coluna
+"Idade" de tabelas de pessoas. Permanecem legíveis faixas e requisitos ("de 6 a 14 anos", "idade
+mínima de 18 anos", "a partir de 60 anos", "18 anos ou mais"), durações ("há 10 anos", "pena de 6 anos",
+"36 anos de contribuição", "prazo de 2 anos"), grupos ("pessoas com 60 anos"), a idade em que algo
+ocorreu ("aos 14 anos") e disposições normativas sem pessoa identificada ("o servidor com 75 anos de
+idade será aposentado").
+
+**Valores recebidos, pagos ou devidos por pessoa natural** — remuneração, salário, proventos, renda,
+benefício, pensão, bolsa, aluguel, dívida, parcela, desconto em folha, multa, fiança, indenização,
+prejuízo alegado, bem subtraído ou avaliado — recebem `VALOR_PESSOAL`, na categoria `ECONOMICO`, em
+reais, em salários mínimos ("pensão de um salário mínimo") ou como percentual dos rendimentos ("pensão
+alimentícia de 30% dos rendimentos líquidos"). Decide a expressão mais próxima antes do valor, na mesma
+frase:
+
+- expressão de valor público (contrato, licitação, proposta, orçamento, dotação, repasse, empresa,
+  erário, tabela, valor estimado ou global, valor fixado, taxa, valor da causa) mantém o valor legível,
+  assim como limites e faixas ("até R$ 660,00", "de R$ 1.000,00 a R$ 10.000,00"), médias e valores por
+  grupo ("a renda média das famílias", "R$ 600,00 por família") e dívidas do próprio ente ("o débito do
+  Município");
+- expressão de vínculo pessoal (renda, remuneração, dívida, multa…) tarja o valor, salvo em oração
+  normativa ("fica fixado o subsídio do cargo em…", "o servidor fará jus a diárias de…") ou atribuída a
+  pessoa jurídica, quando a frase não identifica uma pessoa (CPF, iniciais, tratamento, primeira
+  pessoa);
+- expressão de vínculo fraco (benefício, auxílio, bolsa, recebeu, pagou) tarja o valor quando a frase
+  designa uma pessoa ("a requerente", "a família", "seu benefício").
+
+Também são tarjados os valores das tabelas de pessoas (com coluna de nome, parentesco, CPF, matrícula
+ou rubrica de contracheque), todos os valores de declarações de bens (Lei nº 8.429/1992, art. 13), os
+valores sem contexto decisivo em extratos de contrato ou termo de outorga cuja contraparte é pessoa
+física (identificada por CPF) e em frases com CPF e sem CNPJ, e as repetições, no mesmo documento, de um
+valor já reconhecido como pessoal. Agência, conta, cartão e chave PIX continuam nos tipos da categoria
+`FINANCEIRO`. Os valores de `VALOR_PESSOAL` não são propagados para outros trechos do documento, pois a
+mesma quantia pode ter outro sentido em outra frase.
+
+No perfil `identificadores`, `ECONOMICO` vira alerta; nos demais, é tarjado. Para manter legíveis as
+remunerações de agentes públicos publicadas em transparência ativa, use um perfil personalizado com
+`"ECONOMICO": "alertar"`.
 
 ### Falha fechada para identificadores
 
@@ -226,4 +277,5 @@ Categorias ausentes das regras recebem `alertar`.
 Em atenção à LAI, permanecem legíveis no perfil `lai`: números de leis, editais, contratos, notas
 fiscais, empenhos e termos de parceria; nomes de instituições; CNPJ; expressões genéricas de estado
 emocional ("estou chateada com a demora"); termos sensíveis sem vínculo com pessoa determinada (como
-alerta).
+alerta); idades em normas, requisitos, faixas e estatísticas; valores de contratos com empresas,
+orçamentos, repasses, totais de programas e valores fixados em norma.

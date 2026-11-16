@@ -56,7 +56,16 @@ from presidio_analyzer.predefined_recognizers import (
 )
 
 from .catalogo import tipo as info_tipo
-from .reconhecedores import aprendido, contatos, documentos, financeiro, localizacao, nomes, sensiveis
+from .reconhecedores import (
+    aprendido,
+    contatos,
+    documentos,
+    financeiro,
+    localizacao,
+    nomes,
+    pessoais,
+    sensiveis,
+)
 from .reconhecedores import base as B
 
 #: Código de idioma usado em todo o registro do Presidio.
@@ -263,6 +272,8 @@ def reconhecedores_brasileiros(com_modelo: bool = True) -> list[EntityRecognizer
                            "BR_Veiculos", CONTEXTO["veiculos"]),
         ReconhecedorThemis(B.ReconhecedorPadroes("processos", financeiro.PROCESSOS), _tipos(financeiro.PROCESSOS),
                            "BR_Processos", CONTEXTO["processos"]),
+        ReconhecedorThemis(pessoais.ReconhecedorIdades(), ["IDADE", "DATA_NASCIMENTO"], "BR_Idades"),
+        ReconhecedorThemis(pessoais.ReconhecedorValores(), ["VALOR_PESSOAL"], "BR_Valores"),
         ReconhecedorThemis(nomes.ReconhecedorNomesLista(), ["NOME"], "BR_Nomes_Lista"),
         ReconhecedorThemis(nomes.ReconhecedorNomesContexto(), ["NOME"], "BR_Nomes_Gatilho"),
         PhoneRecognizer(supported_language=IDIOMA, supported_entity="TELEFONE", supported_regions=("BR",),
