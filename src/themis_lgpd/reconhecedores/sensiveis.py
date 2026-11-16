@@ -1301,6 +1301,16 @@ _FUNCOES = (
     # Trabalho rural, doméstico e comunitário
     r"vaqueir[oa]", r"capataz", r"caseir[oa]", r"tratorista", r"diarista", r"bab[áa]", r"s[íi]ndic[oa]",
     r"l[íi]der(?:\s+comunit[áa]ri[oa])?", r"conselheir[oa]\s+tutelar",
+    # Trabalho informal e de rua ("o guardador de carros da praça", "o carroceiro que recolhe papelão")
+    r"guardador(?:a)?\s+de\s+(?:carros|ve[íi]culos)", r"flanelinha", r"ambulante", r"camel[ôo]", r"feirante",
+    r"vendedor(?:a)?", r"catador(?:a)?", r"carroceir[oa]", r"mototaxista", r"taxista", r"cambista",
+    r"pescador(?:a)?", r"barqueir[oa]", r"tradutor(?:a)?",
+    # Cargos e papéis comunitários, únicos na comunidade ("o cacique da aldeia", "a presidente da
+    # associação de moradores")
+    r"parteir[oa]", r"benzedeir[oa]", r"rezador(?:a)?", r"cacique", r"paj[ée]", r"tuxaua", r"aidamo",
+    r"presidente", r"vice-presidente", r"tesoureir[oa]",
+    # Pessoa designada pela responsabilidade ("o responsável pela biblioteca do bloco 2")
+    r"respons[áa]vel(?=\s+pel[oa]s?\b)",
     # Postos militares e policiais, que designam a pessoa pelo posto ("a soldado que dirigia a viatura")
     r"soldado", r"sargento", r"subtenente", r"tenente", r"delegad[oa]",
     # Vizinhança, descrita pela moradia ("a vizinha do apartamento 22")
@@ -1315,6 +1325,9 @@ _CONDICOES = (
     r"morador(?:a)?", r"residente", r"pessoa", r"mulher", r"homem", r"crian[çc]a", r"adolescente", r"jovem",
     r"alun[oa]", r"estudante", r"paciente", r"usu[áa]ri[oa]", r"idos[oa]", r"empregad[oa]",
     r"trabalhador(?:a)?", r"profissional", r"integrante", r"membro", r"candidat[oa]", r"benefici[áa]ri[oa]",
+    # Pela língua, pela origem ou pela família ("a única falante de guarani do abrigo", "a única operadora
+    # haitiana do turno", "a única família estrangeira da vila")
+    r"falante", r"operador(?:a)?", r"estrangeir[oa]", r"imigrante", r"migrante", r"refugiad[oa]", r"fam[íi]lia",
 )
 #: Palavra que introduz a função como pessoa: artigo, contração, demonstrativo, possessivo, "como",
 #: verbos de ligação ("sou motorista", "trabalhei como vigilante"), "na função de" e "na qualidade de"
@@ -1333,16 +1346,19 @@ _PREPOSICAO = (r"(?:d[oa]s?|de|n[oa]s?|em|num|numa|pel[oa]s?|ao|aos|à|às|a|as|
 #: Palavras que encerram a descrição: conjunções, pronomes, artigos, verbos de ligação e advérbios que
 #: costumam iniciar a oração principal ("o atendente do guichê 4 *me* disse…").
 _PARADA = (r"(?:que|quem|qual|quais|cuj[oa]s?|e|ou|nem|mas|pois|porque|por[ée]m|quando|onde|enquanto|se|n[ãa]o|"
-           r"me|nos|lhe|lhes|te|mim|ele|ela|eles|elas|eu|voc[êe]s?|o|os|um|uma|uns|umas|[ée]|foi|era|eram|s[ãa]o|"
+           r"me|nos|lhe|lhes|te|mim|ele|ela|eles|elas|eu|voc[êe]s?|o|os|um|uma|uns|umas|[ée]|foi|era|eram|(?-i:s[ãa]o)|"
            r"est[áa]|estava|estavam|esteve|tem|t[êe]m|tinha|teve|h[áa]|havia|pode|podia|deve|deveria|precisa|disse|"
            r"diz|fala|sabe|quer|vai|ia|fica|faz|fez|deu|d[áa]|sempre|nunca|tamb[ée]m|ainda|j[áa]|muito|mais|menos|"
            r"quase|s[óo]|apenas|ent[ãa]o|para|pra|pro|por|sem|sob|conforme|contra|perante|ap[óo]s|aqui|l[áa]|ali|"
            r"ontem|anteontem|hoje|cedo|(?-i:[a-zà-ú]+r(?:á|ão)))")
-_PALAVRA = r"(?:(?:av|r|rod|qd|cj|conj|lt|dr|dra|sr|sra|prof|profa)\.|\w+(?:[-'’./:]\w+)*)"
+#: Palavra, inclusive composta por hífen ou travessão ("Boa Hora–sede").
+_PALAVRA = r"(?:(?:av|r|rod|qd|cj|conj|lt|dr|dra|sr|sra|prof|profa)\.|\w+(?:[-–'’./:]\w+)*)"
 _NUCLEO = rf"(?!(?:{_PARADA}|{_PREPOSICAO})\b){_PALAVRA}"
 #: Modificador do núcleo; não pode ter terminação típica de verbo flexionado ou no infinitivo
-#: ("recebeu", "barrou", "cumprir").
-_MODIFICADOR = (rf"(?!(?:{_PARADA}|{_PREPOSICAO})\b)(?!\w+(?:ou|eu|iu|ava|avam|aram|eram|iram|ndo|er|ir)\b)"
+#: ("recebeu", "barrou", "cumprir"), salvo em nome próprio ("UBS Itoupava Central"). A capacidade
+#: linguística ("fluente em…") abre complemento próprio.
+_MODIFICADOR = (rf"(?!(?:{_PARADA}|{_PREPOSICAO}|fluente|falante|proficiente)\b)"
+                rf"(?!(?-i:(?![A-ZÀ-Ú][a-zà-ú]))\w+(?:ou|eu|iu|ava|avam|aram|eram|iram|ndo|er|ir)\b)"
                 rf"{_PALAVRA}")
 #: Número com a indicação que o acompanha: "4", "3º ano C", "204 Sul", "12/05/2024", "10h30".
 _NUMERO = (r"\d\w*(?:[./:\-]\w+)*(?:\s+(?:ano|s[ée]rie|semestre|andar|horas?))?"
@@ -1386,6 +1402,10 @@ _COMPLEMENTO = (
     rf"respons[áa]vel|{_PARTICIPIO}|{_DIA_SEMANA}",
     # Turno ou período em aposto ("da turma do 5º ano B, turno vespertino").
     rf"(?:turno|per[íi]odo|plant[ãa]o|escala)(?:\s+{_MODIFICADOR}){{1,2}}",
+    # Língua que a pessoa fala ("fluente em guarani", "falante de crioulo haitiano") e frequência
+    # ("toda madrugada", "todas as manhãs de sábado").
+    r"(?:fluente|falante|proficiente)\s+(?:em|de|d[oa])\s+[\wÀ-ú]+(?:\s+[\wÀ-ú]+)?",
+    rf"tod[oa]s?\s+(?:[ao]s?\s+)?(?:madrugadas?|manh[ãa]s?|tardes?|noites?|dias?|semanas?|{_DIA_SEMANA})",
 )
 #: Vírgula seguida de novo complemento de tempo ou lugar: "ontem, dia 10, por volta das 15h".
 _VIRGULA = (r"\s*,\s*(?=(?:n[oa]s?|num|numa|em|entre|durante|desde|at[ée]|sentido|por\s+volta|que|dia|ontem|"
@@ -1397,7 +1417,13 @@ _CADEIA = r"(?:(?:" + _VIRGULA + r"|\s+)(?:" + "|".join(_COMPLEMENTO) + r")|\s*\
 #: indicação de responsável ("responsável pela vistoria"). "Período", "horário" e "semana", sozinhos,
 #: não individualizam ("a carga horária no período letivo").
 _INDIVIDUALIZA = re.compile(
-    r"\b(?:turno|plant[ãa]o|escala|madrugada|manh[ãa]|tarde|noite|matutino|vespertino|noturno|diurno|temporada|"
+    # Chefia tradicional e presidência de entidade local, que só uma pessoa exerce ("o cacique da aldeia",
+    # "a presidente da associação de moradores").
+    r"\b(?:cacique|paj[ée]|tuxaua|aidamo)\b"
+    r"|\b(?:presidente|vice-presidente|tesoureir[oa]|l[íi]der)\s+d[aoe]s?\s+(?:associa[çc][ãa]o|cooperativa|col[ôo]nia|"
+    r"comunidade|aldeia|quilombo|assentamento|povoado|terreiro|moradores|fam[íi]lias)"
+    r"|\bmicro[áa]rea\s+\d+"
+    r"|\b(?:turno|plant[ãa]o|escala|madrugadas?|manh[ãa]s?|tardes?|noites?|matutino|vespertino|noturno|diurno|temporada|"
     r"ontem|anteontem|hoje|(?:semana|m[êe]s|ano|semestre)\s+passad[oa]|[úu]ltim[oa]\s+(?:semana|m[êe]s|ano|semestre)|"
     r"(?:d|n)(?:est|ess)[ea]\s+(?:semana|m[êe]s|ano|semestre)|"
     rf"{_DIA_SEMANA}|fins?\s+de\s+semana|\d{{1,2}}\s+de\s+{_MES}|"

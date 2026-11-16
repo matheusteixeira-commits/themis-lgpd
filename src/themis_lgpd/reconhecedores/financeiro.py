@@ -64,18 +64,61 @@ _NAO_PLACA = (r"ISO|NBR|IEC|ABNT|LAI|OUV|SEI|SIC|LEI|ART|CEP|CPF|CID|PEC|ADI|RES
               r"BRB|NOV|DEZ|JAN|FEV|MAR|ABR|MAI|JUN|JUL|AGO|SET|OUT")
 #: A placa não continua a numeração de um ato ("Contrato nº 214/PGE-2024") nem é o número de série de
 #: um equipamento ("medidor nº MVF-0137", "lacre nº ABC-1234"): o número de placa não é precedido de "nº".
-_ANTES_PLACA = r"(?<![\w-])(?=[A-Za-z]{3}[-\s]?\d)(?<!\d/)(?<!\bn[º°o]\.?\s{0,2})(?<!\bn[úu]mero\s{1,2})"
+_ANTES_PLACA = (r"(?<![\w-])(?=[A-Za-z]{3}(?:-[ \t]*\n[ \t]*|[-\s])?\d)(?<!\d/)(?<!\bn[º°o]\.?\s{0,2})"
+                r"(?<!\bn[úu]mero\s{1,2})")
+
+#: Placa estrangeira, citada com o país ("placa boliviana 2187-KXT", "placa argentina AB 123 CD"): cada
+#: país tem formato próprio, por isso vale qualquer combinação de duas a quatro letras e dígitos por bloco.
+_PLACA_ESTRANGEIRA = (r"\bplacas?\s+(?:estrangeira|boliviana|paraguaia|argentina|uruguaia|venezuelana|peruana|chilena|"
+                      r"colombiana|guianense|surinamesa|(?:do|da)\s+(?:Bol[íi]via|Paraguai|Argentina|Uruguai|Venezuela|"
+                      r"Peru|Chile|Col[ôo]mbia|Guiana|Suriname|exterior))\s*(?:n[º°o]\.?\s*)?[:\-]?\s*"
+                      r"(?P<v>(?-i:[A-Z0-9]{2,4}(?:[ \-][A-Z0-9]{2,4}){0,2}))(?![\w\-])")
+
+
+def _placa_estrangeira_plausivel(valor: str) -> bool:
+    """Placa estrangeira: cinco a oito caracteres, com letras e ao menos dois dígitos."""
+    chars = [c for c in valor if c.isalnum()]
+    return 5 <= len(chars) <= 8 and sum(c.isdigit() for c in chars) >= 2 and any(c.isalpha() for c in chars)
+
+
+#: Placa ou chassi, que denunciam o registro de um veículo na vizinhança de um número de onze dígitos.
+_PLACA_OU_CHASSI = re.compile(r"(?<![\w-])(?:[A-Z]{3}-?\d[A-Z0-9]\d{2}|(?=[A-HJ-NPR-Z0-9]{0,16}[A-Z])[A-HJ-NPR-Z0-9]{17})"
+                              r"(?![\w])")
+
+
+class _PadraoVizinhoDeVeiculo(Padrao):
+    """:class:`Padrao` cujo achado só é aceito ao lado de placa ou chassi: na mesma linha (célula de
+    tabela da frota ou do leilão) ou na linha vizinha (ficha de vistoria em coluna)."""
+
+    def detectar(self, texto: str) -> list[Deteccao]:
+        saida = []
+        for d in super().detectar(texto):
+            a = texto.rfind("\n", 0, max(0, texto.rfind("\n", 0, d.inicio))) + 1
+            fim_linha = texto.find("\n", d.fim)
+            b = len(texto) if fim_linha < 0 else texto.find("\n", fim_linha + 1)
+            if _PLACA_OU_CHASSI.search(texto, a, len(texto) if b < 0 else b):
+                saida.append(d)
+        return saida
+
 
 #: Regras de identificação de veículos.
 VEICULOS: list[Padrao] = [
-    # Placa Mercosul (AAA0A00): formato distintivo, reconhecido sem contexto, em maiúsculas.
-    Padrao("PLACA", r"(?<![\w-])[A-Z]{3}-?\d[A-Z]\d{2}(?![\w])", 0.85, ignorar_caixa=False, nome="placa:mercosul"),
+    # Placa Mercosul (AAA0A00): formato distintivo, reconhecido sem contexto, em maiúsculas. O hífen pode
+    # encerrar a linha, com o restante da placa na seguinte.
+    Padrao("PLACA", r"(?<![\w-])[A-Z]{3}(?:-[ \t]*\n[ \t]*|-)?\d[A-Z]\d{2}(?![\w])", 0.85, ignorar_caixa=False,
+           nome="placa:mercosul"),
     # Placa antiga (AAA-0000): o formato coincide com siglas seguidas de número ("ISO-9001",
     # "LEI-1234"), excluídas explicitamente.
     Padrao("PLACA",
-           _ANTES_PLACA + r"(?!(?:" + _NAO_PLACA + r")-)[A-Z]{3}-\d{4}(?![\w])",
+           _ANTES_PLACA + r"(?!(?:" + _NAO_PLACA + r")-)[A-Z]{3}-(?:[ \t]*\n[ \t]*)?\d{4}(?![\w])",
            0.8, ignorar_caixa=False, contexto=("placa", "ve[íi]culo", "carro", "moto(?:cicleta)?", "autom[óo]vel",
                                                "caminh[ãa]o", "[ôo]nibus", "renavam"), nome="placa:antiga"),
+    Padrao("PLACA", _PLACA_ESTRANGEIRA, 0.85, camada=CONTEXTUAL, grupo="v", validador=_placa_estrangeira_plausivel,
+           nome="placa:estrangeira"),
+    # RENAVAM sem a palavra-chave, com dígito verificador válido, na coluna da tabela ou na linha vizinha
+    # de placa ou chassi.
+    _PadraoVizinhoDeVeiculo("RENAVAM", ANTES_NUM + r"\d{11}" + DEPOIS_NUM, 0.85, validador=v.renavam_valido,
+                            nome="renavam:vizinho"),
     # Qualquer dos dois formatos, em minúsculas ou sem hífen, quando há menção a veículo.
     Padrao("PLACA", _ANTES_PLACA + r"(?!(?:" + _NAO_PLACA + r")[-\s])[A-Za-z]{3}[-\s]?\d[A-Za-z0-9]\d{2}(?![\w])", 0.85,
            contexto=("placa", "ve[íi]culo", "carro", "moto(?:cicleta)?", "autom[óo]vel", "caminh[ãa]o"),

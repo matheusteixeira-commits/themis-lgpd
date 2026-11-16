@@ -69,9 +69,9 @@ coluna **Validação** indica o que é conferido além do formato.
 |---|---|---|---|---|---|
 | `EMAIL` | E-mail | `[E-MAIL]` | 90 | Formato; inclui formas ofuscadas | maria.souza@exemplo.com.br; joao arroba gmail ponto com; joao [arroba] gmail [ponto] com; joao @ gmail . com |
 | `TELEFONE` | Telefone | `[TELEFONE]` | 85 | Padrões próprios e biblioteca phonenumbers (região BR) | (61) 99876-5432 |
-| `PERFIL_REDE_SOCIAL` | Perfil em rede social | `[PERFIL]` | 85 | `@usuario` com contexto ou URL de rede social | @maria.souza |
+| `PERFIL_REDE_SOCIAL` | Perfil em rede social | `[PERFIL]` | 85 | `@usuario` com contexto, URL de rede social ou identificador logo após o nome do aplicativo de mensagem ("WeChat: …", "Telegram: …") | @maria.souza |
 | `IP` | Endereço IP | `[IP]` | 80 | Reconhecedor do Presidio | 203.0.113.45 |
-| `ENDERECO` | Endereço | `[ENDEREÇO]` | 70 | Logradouro (inclusive abreviado, numerado, com ordem — "2ª Travessa" — e passarela) e componentes (inclusive barraco e "casa sem número"), com o ponto de referência que o completa ("ao lado da capela…"); propriedades e localidades rurais, ocupações e favelas; rodovias das 27 UFs; endereçamento do DF; município ou região de residência. Linha de tabela ("Rua X \| 9") não forma endereço | Rua B-15, Quadra 30, Lote 10; Sítio Boa Esperança; PE-060, km 10; QNM 12 Conjunto B Casa 4 |
+| `ENDERECO` | Endereço | `[ENDEREÇO]` | 70 | Logradouro (inclusive abreviado, numerado, com ordem — "2ª Travessa" — e passarela) e componentes (inclusive barraco e "casa sem número"), com o ponto de referência que o completa ("ao lado da capela…") e complementos atípicos ("fundos", "quarto 3", "2º andar", "beco 5"); propriedades e localidades rurais, ocupações e favelas, com a descrição da casa, a posição e a distância ("casa de taipa, segunda à esquerda depois da capela", "a 3 km da escola"); linha das colônias do Sul ("Linha São Pedro, s/n, km 7"); valor do campo de moradia ("Endereço:", "Residência:", "Local de pernoite:"), sem município, UF e território; ponto de pernoite de pessoa em situação de rua ("pernoita sob o viaduto…"); endereço no exterior ("Calle 7 con Carrera 9", "Rue X, nº 17"); lote de assentamento em texto de regularização fundiária; unidade de abrigo; coordenadas da moradia; rodovias das 27 UFs com expressão de residência ou propriedade (sem elas, "BR-163, km 410" é local de obra); endereçamento do DF; município ou região de residência. Linha de tabela ("Rua X \| 9") não forma endereço | Rua B-15, Quadra 30, Lote 10; Sítio Boa Esperança; PE-060, km 10; QNM 12 Conjunto B Casa 4 |
 | `CAR` | Recibo do Cadastro Ambiental Rural | `[CAR]` | 90 | Formato (UF, código IBGE do município e 32 caracteres hexadecimais) | MT-5107925-1A2B.3C4D.… |
 | `CEP` | CEP | `[CEP]` | 80 | Formato com hífen ou após "CEP" | 72215-120 |
 | `CONTA_BANCARIA` | Agência/conta bancária | `[CONTA BANCÁRIA]` | 85 | Contexto bancário; IBAN pelo Presidio | agência 1234, conta 56789-0 |
@@ -84,8 +84,8 @@ coluna **Validação** indica o que é conferido além do formato.
 
 | Código | Nome | Etiqueta | Prioridade | Validação | Exemplo fictício |
 |---|---|---|---|---|---|
-| `PLACA` | Placa de veículo | `[PLACA]` | 85 | Padrão Mercosul; padrão antigo com contexto | ABC1D23 |
-| `RENAVAM` | RENAVAM | `[RENAVAM]` | 90 | Contexto obrigatório ("RENAVAM", "renavan"); o dígito verificador eleva a confiança | RENAVAM 72510273464 |
+| `PLACA` | Placa de veículo | `[PLACA]` | 85 | Padrão Mercosul, inclusive com o hífen no fim da linha; padrão antigo com contexto; placa estrangeira citada com o país ("placa boliviana …") | ABC1D23 |
+| `RENAVAM` | RENAVAM | `[RENAVAM]` | 90 | Com a palavra-chave ("RENAVAM", "renavan"), o dígito verificador eleva a confiança; sem ela, só com dígito válido e ao lado de placa ou chassi (coluna de tabela, ficha em coluna) | RENAVAM 72510273464 |
 | `CHASSI` | Chassi (VIN) | `[CHASSI]` | 90 | Com "chassi", qualquer fabricante; sem a palavra, prefixo 9 (fabricantes no Brasil) com letras e dígitos | 9BWZZZ377VT004251 |
 | `PROCESSO_JUDICIAL` | Processo judicial (CNJ) | `[PROCESSO JUDICIAL]` | 85 | Módulo 97 (Resolução CNJ nº 65/2008); formato pontuado dispensa a validação | 4686958-42.2023.8.07.6678 |
 | `PROCESSO_ADMINISTRATIVO` | Processo administrativo (SEI/NUP) | `[PROCESSO]` | 80 | Ano plausível; formatos federais e estaduais (NUP-21, SEI-MG, SEI-PE, SEI-BA, RJ); contexto para formatos livres (PROA, eProtocolo, SGPe, sigla do sistema ou do órgão antes do número). Não se aplica a avisos de licitação, atas de pregão, termos de referência e extratos de contrato sem pessoa natural | 00410-00012345/2024-11; 1500.01.0012345/2024-12; Processo SIGLA: ABC-2024/01234 |
@@ -98,10 +98,13 @@ coluna **Validação** indica o que é conferido além do formato.
 | `CNPJ` | CNPJ | `[CNPJ]` | 90 | Módulo 11, inclusive o CNPJ alfanumérico (IN RFB nº 2.229/2024), como GM.Y1U.F3A/0001-01 |
 | `LOCALIDADE` | Cidade ou região administrativa | `[LOCALIDADE]` | 30 | Os 5.570 municípios do IBGE ("Cidade/UF" com conferência da UF, "município de Cidade", menção isolada não ambígua) e as regiões administrativas do DF; "moro em campinas" e "resido em Taguatinga" são classificados como `ENDERECO` |
 | `URL` | Endereço de internet | `[URL]` | 20 | |
-| `CONTATO_INSTITUCIONAL` | Telefone ou e-mail de órgão ou setor | `[CONTATO INSTITUCIONAL]` | 20 | Ver [Contatos, endereços e veículos do órgão](#contatos-endereços-e-veículos-do-órgão) |
-| `ENDERECO_INSTITUCIONAL` | Endereço de sede ou unidade de órgão | `[ENDEREÇO INSTITUCIONAL]` | 20 | "na sede da Secretaria, situada na Rua…"; cabeçalho do documento |
-| `PLACA_OFICIAL` | Placa de veículo da frota oficial | `[PLACA OFICIAL]` | 20 | "veículos oficiais de placas …"; tabela de unidades e placas em documento sobre a frota |
-| `QUASE_IDENTIFICADOR` | Quase-identificador | `[QUASE-IDENTIFICADOR]` | 15 | Função, local e turno ("atendente do guichê 4 na tarde de ontem"); função ou condição precedida de "único" ("única professora surda da escola", "o único apenado da galeria que atua como monitor"); aposto que descreve a pessoa ("o escrivão do plantão, um senhor grisalho de bigode"); descrição física com marca distintiva ("o mais alto, com tatuagem no pescoço") |
+| `CONTATO_INSTITUCIONAL` | Telefone ou e-mail de órgão ou setor | `[CONTATO INSTITUCIONAL]` | 20 | Ver [Contatos, endereços e veículos do órgão e de empresas](#contatos-endereços-e-veículos-do-órgão-e-de-empresas) |
+| `ENDERECO_INSTITUCIONAL` | Endereço de sede ou unidade de órgão | `[ENDEREÇO INSTITUCIONAL]` | 20 | "na sede da Secretaria, situada na Rua…"; cabeçalho e rodapé do documento; local público de serviço ("no Galpão da Defesa Civil, na Rua…") |
+| `PLACA_OFICIAL` | Placa de veículo da frota oficial | `[PLACA OFICIAL]` | 20 | "veículos oficiais de placas …"; "a viatura …", "o caminhão oficial da Secretaria, placa …"; tabela da frota e lotes de leilão de bens da frota |
+| `VEICULO_OFICIAL` | RENAVAM ou chassi de veículo da frota oficial | `[VEÍCULO OFICIAL]` | 20 | Na linha de tabela da placa oficial ou na frase que designa o veículo do órgão ("a van adaptada da Policlínica, RENAVAM …") |
+| `CONTATO_EMPRESA` | Telefone ou e-mail de empresa | `[CONTATO DE EMPRESA]` | 20 | E-mail comercial ("vendas@…", "comercial…@…") em frase sobre fornecedor ou contratada |
+| `ENDERECO_EMPRESA` | Endereço de empresa ou estabelecimento | `[ENDEREÇO DE EMPRESA]` | 20 | "…Ltda., CNPJ …, com sede na Rua…"; estabelecimento comercial logo antes ("Padaria X, Avenida…"); campo de endereço do bloco que qualifica a empresa ("Razão social:", "CNPJ:") |
+| `QUASE_IDENTIFICADOR` | Quase-identificador | `[QUASE-IDENTIFICADOR]` | 15 | Função, local e turno ("atendente do guichê 4 na tarde de ontem"); função ou condição precedida de "único" ("única professora surda da escola", "o único apenado da galeria que atua como monitor"); aposto que descreve a pessoa ("o escrivão do plantão, um senhor grisalho de bigode"); descrição física com marca distintiva ("o mais alto, com tatuagem no pescoço"); "único" com qualificador de língua, origem ou família ("a única falante de guarani do abrigo", "a única operadora haitiana do turno"); trabalho de rua com lugar e frequência ("o carroceiro que recolhe papelão na Rua X toda madrugada"); cargo comunitário ("o cacique da Aldeia X", "a presidente da associação de moradores", "a agente de saúde da microárea 4") |
 | `NUMERO_NAO_IDENTIFICADO` | Número longo não identificado | `[NÚMERO]` | 10 | Reservado; não é produzido pelos reconhecedores padrão |
 | `MANUAL` | Trecho tarjado manualmente | `[TARJADO]` | 110 | Lista de bloqueio e tarjas manuais da revisão |
 
@@ -231,39 +234,71 @@ permitiriam reconhecer quem se manifestou. O perfil `educacao` protege estudante
 art. 17): RA, matrícula, turma, série e dados de crianças e adolescentes são sempre tarjados.
 Perfis próprios do órgão são derivados destes no `themis.toml` ([CONFIGURACAO.md](CONFIGURACAO.md)).
 
-### Contatos, endereços e veículos do órgão
+### Contatos, endereços e veículos do órgão e de empresas
 
-Telefone e e-mail de setor, endereço de sede ou de unidade de atendimento e placa da frota oficial não
-são dados pessoais: a LAI manda divulgá-los (art. 8º, § 1º, I). Depois de todos os reconhecedores, o
-contexto do documento inteiro reclassifica esses achados para a categoria `INSTITUCIONAL`, que o perfil
-LAI mantém legível e sinaliza para revisão:
+Telefone e e-mail de setor, endereço de sede ou de unidade de atendimento e placa, RENAVAM e chassi da
+frota oficial não são dados pessoais: a LAI manda divulgá-los (art. 8º, § 1º, I). Também não o são o
+endereço e o contato de pessoa jurídica citados em contratos, licitações e registros. Depois de todos os
+reconhecedores, o contexto do documento inteiro reclassifica esses achados para a categoria
+`INSTITUCIONAL`, que o perfil LAI mantém legível e sinaliza para revisão:
 
 - **contato do órgão:** número de serviço (0800, 4004); telefone fixo ou e-mail de domínio público
   (`.gov.br`, `.jus.br`, `.mp.br`, `.leg.br`, `.def.br`, `.edu.br`, `.org.br`) sem nome de pessoa,
   quando o contexto é de canal de atendimento ("Dúvidas…", "Informações:", "telefone institucional",
-  "Telefone da unidade:", "à disposição para esclarecimentos", "poderão ser esclarecidas pelo telefone"),
-  quando a linha começa pelo nome de um órgão ou unidade ("Núcleo de Endemias – (69) 3216-7742"), no
-  cabeçalho do documento ou na mesma frase de outro contato do órgão ("pelo telefone … ou pelo e-mail
-  setor@orgao.gov.br");
-- **endereço do órgão:** no cabeçalho do documento (bloco de linhas curtas separado do corpo), após o
-  rótulo "Endereço da unidade:" ou o edifício-sede ("Palácio…", "Centro Administrativo…") ou introduzido
-  pela sede ou pela unidade ("na sede da Corregedoria, na Rua…", "a Diretoria de Atenção Primária,
-  situada na Avenida…", "na UBS Vila Nova, na Rua…") numa frase que anuncia o serviço — horário de
-  atendimento, hora do ato ou providência ("poderão ser retirados", "deverá ser protocolada"); num
+  "Telefone da unidade:", "à disposição para esclarecimentos", "poderão ser esclarecidas pelo telefone",
+  "Solicita-se resposta pelo e-mail…", "Atendimento presencial do SIC: …; telefone…"), quando a linha
+  começa pelo nome de um órgão ou unidade ("Núcleo de Endemias – (69) 3216-7742") ou o número vem logo
+  depois dele ("Fulana – Assessoria de Imprensa – (91) 3204-0000"), no cabeçalho ou no rodapé do
+  documento, sob o rótulo "Contato:" (o e-mail de domínio público) ou na mesma frase de outro contato do
+  órgão ("pelo telefone … ou pelo e-mail setor@orgao.gov.br"); e-mail do setor no cabeçalho de mensagem
+  ("Para: Núcleo de Saúde <saude@orgao.gov.br>", "De: setor@orgao.gov.br"); celular ou WhatsApp
+  qualificado como do órgão ("WhatsApp institucional", "(WhatsApp da Comissão de Contratação)") ou
+  anunciado entre os canais do órgão, ao lado de número de serviço ou de emergência ("Disque 181",
+  "Plantão: 199") ou de e-mail do órgão, sem pessoa designada na frase; e-mail em provedor gratuito ou
+  com nome próprio na parte local quando esta começa pela sigla ou pelo nome do setor ("cpl.municipio@…",
+  "premio.homenageado@…") e o órgão é citado por perto;
+- **endereço do órgão:** no cabeçalho do documento (bloco de linhas curtas separado do corpo) ou no
+  rodapé (linha de endereço e contatos de documento com timbre, repetida a cada página, ao lado da
+  paginação ou última linha depois do cargo do signatário, fora de bloco de destinatário), após o rótulo
+  "Endereço da unidade:", o canal de atendimento ("Atendimento presencial do SIC:") ou o edifício-sede
+  ("Palácio…", "Centro Administrativo…"), depois de local público de serviço ("Local: Auditório da
+  Regional – Rua…", "no Galpão da Defesa Civil, na Rua…", "no pátio da Garagem Municipal, Rua…") ou
+  introduzido pela sede ou pela unidade ("na sede da Corregedoria, na Rua…", "a Diretoria de Atenção
+  Primária, situada na Avenida…", "na UBS Vila Nova, na Rua…") numa frase que anuncia o serviço — horário
+  de atendimento, hora do ato ou providência ("poderão ser retirados", "deverá ser protocolada"); num
   pedido, a mesma construção costuma descrever o lugar que a pessoa frequenta. O CEP do mesmo endereço
   acompanha a classificação, e o nome de pessoa dentro dele é o nome do logradouro;
-- **placa oficial:** enumeração após "veículos oficiais de placas…" ou "viaturas de placas…" e linhas de
-  tabela que associam unidades do órgão a placas, em documento sobre a frota.
+- **contato e endereço de empresa** (`CONTATO_EMPRESA`, `ENDERECO_EMPRESA`): sede citada com a empresa
+  ("…Ltda., CNPJ …, com sede na Rua…", "estabelecida na Avenida…"), estabelecimento comercial logo antes
+  do endereço ("Padaria Pão de Ouro, Avenida…"), campo "Endereço:" de bloco que qualifica a empresa
+  ("Razão social:", "CNPJ:", sem campo de pessoa natural) e e-mail comercial ("vendas@…", "comercial…@…")
+  em frase sobre fornecedor ou contratada;
+- **veículo oficial** (`PLACA_OFICIAL`, `VEICULO_OFICIAL`): enumeração após "veículos oficiais de
+  placas…" ou "viaturas de placas…"; placa, RENAVAM ou chassi citados no singular com veículo de serviço
+  ("a viatura …", "a ambulância de placa…", "a unidade móvel…") ou qualificado como do órgão ("o caminhão
+  oficial da Secretaria", "a van adaptada da Policlínica"), sem marca de posse particular, ou em frase
+  sobre a frota; linhas de tabela sem nome de pessoa em documento sobre a frota ou sobre a alienação de
+  bens públicos (leilão de bens inservíveis; o leilão de veículos apreendidos ou removidos não entra),
+  com o RENAVAM e o chassi da mesma linha.
 
-Na dúvida, o achado continua pessoal e tarjado: celular nunca é institucional; e-mail de provedor de uso
-pessoal, de empresa (`.com.br`) ou com nome de pessoa (prenome, iniciais coladas ao sobrenome) também
-não; vínculo pessoal próximo ("meu telefone", "telefone da genitora", "residente na", campo de
-qualificação como "Nome:" e "Endereço:" na linha anterior) prevalece sobre a menção ao órgão. O mesmo
-número ou e-mail recebe a mesma classificação em todo o documento. A placa de viatura citada no singular
-continua tarjada, porque em relatos costuma identificar o servidor que a conduzia.
+Na dúvida, o achado continua pessoal e tarjado: celular em frase com pessoa designada ("com o fiscal
+do contrato pelo celular…", "pelo celular do leiloeiro"); e-mail de provedor de uso pessoal sem sigla de
+setor, de empresa (`.com.br`) fora de contexto de fornecimento ou com nome de pessoa (prenome, iniciais
+coladas ao sobrenome); vínculo pessoal próximo ("meu telefone", "telefone da genitora", "residente na",
+campo de qualificação como "Nome:" e "Endereço:" na linha anterior) prevalece sobre a menção ao órgão; o
+veículo designado por tipo comum ("o carro de placa…") ou com posse particular ("do declarante",
+"particular") continua tarjado. A citação de veículo no singular, a sede e o estabelecimento de empresa e
+o e-mail de fornecedor só são reclassificados em documento expedido pelo órgão (timbre nas três
+primeiras linhas): no pedido ou na manifestação do cidadão, a placa da viatura aponta o servidor que a
+conduzia, e a empresa costuma ser a própria requerente. O mesmo número, e-mail ou identificador de
+veículo recebe a mesma classificação em todo o documento.
 
-Códigos de natureza de despesa ("natureza de despesa 3.3.90.39"), que têm a forma de endereço IP, são
-descartados quando o contexto é orçamentário.
+Números públicos com forma de dado pessoal são descartados: códigos de natureza de despesa ("natureza
+de despesa 3.3.90.39") em contexto orçamentário e subitens ou códigos de classificação ("subitem
+8.3.1.2", "COBRADE 1.3.2.1.4") lidos como endereço IP; chave de acesso de nota fiscal eletrônica (44
+dígitos com dígito verificador) lida como telefone ou cartão; número logo após a designação
+de ato ("Convênio nº 912345/2021") lido como telefone; RENAVAM lido como telefone; símbolo de cargo em
+comissão ("símbolo CC-3") lido como conta.
 
 ### Regras
 
