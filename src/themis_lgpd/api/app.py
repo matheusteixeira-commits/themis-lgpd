@@ -47,6 +47,7 @@ from .. import __version__, relatorio
 from ..catalogo import CATEGORIAS, TIPOS
 from ..config import carregar
 from ..formatos import ArquivoInvalido, FalhaOCR, ResultadoArquivo, VazamentoDetectado
+from ..formatos.regioes import interpretar
 from ..operadores import MODOS
 from ..perfis import PERFIS
 from . import trabalho
@@ -309,7 +310,8 @@ class _PedidoArquivo:
 
 async def _pedido_arquivo(arquivo: UploadFile, perfil: str | None, modo: str | None, permitir: list[str],
                           bloquear: list[str], preservar_agentes_publicos: bool | None, coluna_integral: list[str],
-                          ocr: bool, resposta: str, pdfa: bool = False) -> _PedidoArquivo:
+                          ocr: bool, resposta: str, pdfa: bool = False, regiao: list[str] | None = None
+                          ) -> _PedidoArquivo:
     """Valida as opções de um envio de arquivo e lê o arquivo, respeitando o limite de tamanho."""
     try:
         op = Opcoes(perfil=perfil, modo=modo, permitir=permitir, bloquear=bloquear,
@@ -321,11 +323,18 @@ async def _pedido_arquivo(arquivo: UploadFile, perfil: str | None, modo: str | N
         raise HTTPException(status_code=422, detail="Requisição inválida: resposta deve ser 'arquivo' ou 'json'.")
     if len(coluna_integral) > 100 or any(len(c) > 200 for c in coluna_integral):
         raise HTTPException(status_code=422, detail="Requisição inválida: coluna_integral com itens demais.")
+    if len(regiao or []) > 200:
+        raise HTTPException(status_code=422, detail="Requisição inválida: regiao com itens demais.")
+    try:
+        regioes = [interpretar(r) for r in regiao or []]
+    except ValueError as erro:
+        raise HTTPException(status_code=422, detail=f"Requisição inválida: {erro}.") from erro
     dados = await arquivo.read(CFG.max_mb * 1024 * 1024 + 1)
     if len(dados) > CFG.max_mb * 1024 * 1024:
         raise HTTPException(status_code=413, detail=f"Arquivo maior que {CFG.max_mb} MB.")
     opcoes_arquivo = {"limite_bytes": CFG.max_mb * 1024 * 1024, "limite_paginas": CFG.max_paginas,
-                      "ocr": ocr and ORGAO.ocr, "colunas_integrais": coluna_integral or None, "pdfa": pdfa}
+                      "ocr": ocr and ORGAO.ocr, "colunas_integrais": coluna_integral or None, "pdfa": pdfa,
+                      "regioes": regioes}
     return _PedidoArquivo(dados, arquivo.filename or "documento", op, opcoes_arquivo, resposta)
 
 
@@ -394,7 +403,8 @@ async def analisar_texto(pedido: PedidoTexto):
 _CAMPOS_ARQUIVO = (
     " Campos do formulário (todos opcionais, exceto `arquivo`): `perfil`, `modo`, `permitir` e `bloquear` "
     "(repetíveis), `preservar_agentes_publicos`, `coluna_integral` (repetível; planilhas), `ocr`, `pdfa` (PDF/A-2b "
-    "para PDFs) e `resposta` "
+    "para PDFs), `regiao` (repetível; tarja manual em PDFs e imagens, `página:x0,y0,x1,y1` em porcentagem da página "
+    "exibida, ex.: `1:10,70,45,85`) e `resposta` "
     "(`arquivo`, padrão, ou `json`, que devolve o arquivo em base64 com o relatório de tarjamento)."
 )
 
@@ -413,11 +423,12 @@ async def anonimizar_arquivo_rota(
     coluna_integral: list[str] = Form([]),
     ocr: bool = Form(True),
     pdfa: bool = Form(False),
+    regiao: list[str] = Form([]),
     resposta: str = Form("arquivo"),
 ):
     """Anonimiza um arquivo e devolve o arquivo gerado (ou, com ``resposta=json``, também o relatório)."""
     pedido = await _pedido_arquivo(arquivo, perfil, modo, permitir, bloquear, preservar_agentes_publicos,
-                                   coluna_integral, ocr, resposta, pdfa)
+                                   coluna_integral, ocr, resposta, pdfa, regiao)
     try:
         res = await _executar(trabalho.anonimizar_arquivo, pedido.opcoes.sobrepor(), pedido.dados, pedido.nome,
                               pedido.arquivo)
@@ -499,6 +510,7 @@ async def criar_tarefa(
     coluna_integral: list[str] = Form([]),
     ocr: bool = Form(True),
     pdfa: bool = Form(False),
+    regiao: list[str] = Form([]),
     resposta: str = Form("arquivo"),
 ):
     """Agenda a anonimização de um arquivo."""
@@ -507,7 +519,7 @@ async def criar_tarefa(
         raise HTTPException(status_code=503, detail="Limite de tarefas em andamento atingido. Tente mais tarde.",
                             headers={"Retry-After": "60"})
     pedido = await _pedido_arquivo(arquivo, perfil, modo, permitir, bloquear, preservar_agentes_publicos,
-                                   coluna_integral, ocr, resposta, pdfa)
+                                   coluna_integral, ocr, resposta, pdfa, regiao)
     t = _Tarefa(id=secrets.token_urlsafe(24), dono=_dono(request), resposta=pedido.resposta)
     _TAREFAS[t.id] = t
     execucao = asyncio.create_task(_rodar(t, pedido))

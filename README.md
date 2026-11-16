@@ -46,7 +46,9 @@ arquivos; e verificação independente de cada arquivo gerado.
   arquivo pelo seu formato, nomes analisados, manifesto); DOC, XLS, PPT e RTF com o LibreOffice; PDF gerado
   pesquisável e acessível (rótulos das tarjas para leitores de tela, idioma declarado) e, opcionalmente,
   em PDF/A-2b para arquivamento, validado pelo veraPDF.
-- **Revisão humana** na interface web; relatório e nota de tarjamento com base legal.
+- **Revisão humana** na interface web: pré-visualização de todas as páginas, tarja manual por região
+  (assinaturas, fotos, carimbos) com o mouse ou por coordenadas, vários arquivos por envio (ZIP com
+  manifesto) e marcações acessíveis a leitores de tela; relatório e nota de tarjamento com base legal.
 - **Quatro interfaces:** interface web, linha de comando, biblioteca Python e API HTTP (com tarefas
   assíncronas para documentos longos e especificação OpenAPI versionada).
 - **Lotes com cadeia de custódia:** pastas inteiras, em paralelo, com a árvore preservada, manifesto

@@ -19,7 +19,10 @@ A interface deve ser iniciada por ``themis interface``, que aplica as opções s
 from __future__ import annotations
 
 import hashlib
+import io
+import json
 import time
+import zipfile
 
 import streamlit as st
 
@@ -27,11 +30,12 @@ from themis_lgpd import __version__, relatorio
 from themis_lgpd.config import carregar
 from themis_lgpd.configuracao import carregar as carregar_orgao
 from themis_lgpd.formatos import ArquivoInvalido, FalhaOCR, VazamentoDetectado, anonimizar_arquivo
+from themis_lgpd.formatos.regioes import Regiao
 from themis_lgpd.lote import EXTENSOES
 from themis_lgpd.motor import Anonimizador
 from themis_lgpd.operadores import MODOS
 from themis_lgpd.perfis import PERFIS
-from themis_lgpd.ui.realce import realcar_original, realcar_saida
+from themis_lgpd.ui.realce import legenda, realcar_original, realcar_saida
 
 CFG = carregar()
 #: Configuração do órgão (``THEMIS_CONFIG``): perfis próprios, listas, cargos e reconhecedores.
@@ -125,7 +129,7 @@ def _downloads_relatorio(resultados, nome: str, chave: str) -> None:
                                    f"{nome}_auditoria_INTERNO.csv", key=f"rv{chave}")
 
 
-aba_texto, aba_arquivo = st.tabs(["Texto", "Arquivo (PDF, Office, ODF, HTML, e-mail, imagem, ZIP)"])
+aba_texto, aba_arquivo = st.tabs(["Texto", "Arquivos (PDF, Office, ODF, HTML, e-mail, imagem, ZIP)"])
 
 # ------------------------------------------------------------------ texto
 with aba_texto:
@@ -142,7 +146,7 @@ with aba_texto:
         entidades = analise[1]
         st.subheader("2 · Revise")
         st.html(realcar_original(texto, entidades))
-        st.caption("🟥 será tarjado · 🟨 alerta para revisão (não tarjado) · passe o mouse para ver a base legal")
+        st.html(legenda())
         if entidades:
             import pandas as pd
 
@@ -177,58 +181,225 @@ with aba_texto:
             _downloads_relatorio([r], "texto", "t")
 
 # ------------------------------------------------------------------ arquivo
+#: Formatos gerados com páginas, que têm pré-visualização e admitem tarja manual por região.
+_COM_PAGINAS = {"pdf", "png", "tiff"}
+#: Arquivos aceitos num único envio.
+MAX_ARQUIVOS = 10 if CFG.demo else 50
+_LIMITES = {"limite_bytes": CFG.max_mb * 1024 * 1024, "limite_paginas": CFG.max_paginas}
+
+
+def _paginas(res) -> int:
+    """Número de páginas do arquivo gerado que podem ser pré-visualizadas (0 quando não há)."""
+    if res.formato == "pdf":
+        import pypdfium2 as pdfium
+
+        doc = pdfium.PdfDocument(res.dados)
+        total = len(doc)
+        doc.close()
+        return total
+    if res.formato in ("png", "tiff"):
+        from PIL import Image
+
+        with Image.open(io.BytesIO(res.dados)) as img:
+            return getattr(img, "n_frames", 1)
+    return 0
+
+
+def _pagina(res, indice: int):
+    """Página do arquivo gerado como imagem, para a pré-visualização."""
+    if res.formato == "pdf":
+        import pypdfium2 as pdfium
+
+        doc = pdfium.PdfDocument(res.dados)
+        img = doc[indice].render(scale=1.3).to_pil().convert("RGB")
+        doc.close()
+        return img
+    from PIL import Image
+
+    with Image.open(io.BytesIO(res.dados)) as img:
+        img.seek(indice)
+        return img.convert("RGB")
+
+
+def _contornos(img, regioes: list[Regiao]):
+    """Cópia da imagem com o contorno (vermelho) das regiões marcadas."""
+    from PIL import ImageDraw
+
+    img = img.copy()
+    desenho = ImageDraw.Draw(img)
+    for r in regioes:
+        desenho.rectangle(r.caixa(img.width, img.height), outline=(220, 38, 38), width=3)
+    return img
+
+
+def _regiao_do_arrasto(valor: dict, pagina: int) -> Regiao | None:
+    """Região de um arraste do mouse sobre a pré-visualização (em pixels da imagem exibida)."""
+    largura, altura = float(valor.get("width") or 0), float(valor.get("height") or 0)
+    if not largura or not altura:
+        return None
+    xs = sorted(min(max(float(valor[k]) / largura, 0.0), 1.0) for k in ("x1", "x2"))
+    ys = sorted(min(max(float(valor[k]) / altura, 0.0), 1.0) for k in ("y1", "y2"))
+    if xs[1] - xs[0] < 0.01 or ys[1] - ys[0] < 0.01:
+        return None  # clique simples, sem arraste
+    return Regiao(pagina, xs[0], ys[0], xs[1], ys[1])
+
+
+def _marcar_regioes(img, pagina: int, regioes: list[Regiao]) -> None:
+    """Marcação de regiões: arrastando o mouse sobre a página ou digitando as coordenadas."""
+    try:
+        from streamlit_image_coordinates import streamlit_image_coordinates
+    except ImportError:  # pragma: no cover - componente opcional
+        streamlit_image_coordinates = None
+    if streamlit_image_coordinates is not None:
+        st.caption("Arraste o mouse sobre a página para marcar uma região.")
+        valor = streamlit_image_coordinates(_contornos(img, [r for r in regioes if r.pagina == pagina]),
+                                            key=f"arraste_{pagina}", click_and_drag=True, width="stretch")
+        if valor and "x1" in valor and valor.get("unix_time") != st.session_state.get("ultimo_arraste"):
+            st.session_state["ultimo_arraste"] = valor.get("unix_time")
+            regiao = _regiao_do_arrasto(valor, pagina)
+            if regiao and regiao not in regioes:
+                regioes.append(regiao)
+                st.rerun()
+    st.caption("Ou informe as coordenadas, em porcentagem da página, a partir do canto superior esquerdo:")
+    c1, c2, c3, c4 = st.columns(4)
+    x0 = c1.number_input("Esquerda (%)", 0, 100, 0, key="regiao_x0")
+    y0 = c2.number_input("Topo (%)", 0, 100, 0, key="regiao_y0")
+    x1 = c3.number_input("Direita (%)", 0, 100, 100, key="regiao_x1")
+    y1 = c4.number_input("Base (%)", 0, 100, 100, key="regiao_y1")
+    if st.button(f"Adicionar região na página {pagina}"):
+        try:
+            regiao = Regiao(pagina, x0 / 100, y0 / 100, x1 / 100, y1 / 100)
+        except ValueError as erro:
+            st.error(f"Região inválida: {erro}.")
+        else:
+            if regiao not in regioes:
+                regioes.append(regiao)
+                st.rerun()  # atualiza o aviso de regiões pendentes e os contornos
+    for i, regiao in enumerate(list(regioes)):
+        a, b = st.columns([4, 1])
+        a.write(f"Página {regiao.pagina}: de {regiao.x0:.0%} a {regiao.x1:.0%} da largura e de {regiao.y0:.0%} a "
+                f"{regiao.y1:.0%} da altura")
+        if b.button("Remover", key=f"remover_regiao_{i}"):
+            regioes.remove(regiao)
+            st.rerun()
+
+
+def _um_arquivo(enviado) -> None:
+    """Um arquivo: anonimização, pré-visualização paginada, tarja por região e revisão dos achados."""
+    dados = enviado.getvalue()
+    identidade = (enviado.name, hashlib.sha256(dados).hexdigest())
+    if st.session_state.get("regioes_de") != identidade:
+        st.session_state["regioes_de"], st.session_state["regioes"] = identidade, []
+        st.session_state.pop("pagina_previa", None)
+    regioes: list[Regiao] = st.session_state["regioes"]
+    # Trechos que o revisor desmarcou; entram na lista de permissão da próxima execução.
+    nao_tarjar = st.session_state.setdefault("nao_tarjar", [])
+    if st.button("Anonimizar arquivo", type="primary") and _cota():
+        with st.spinner("Processando (PDFs digitalizados passam por OCR e podem demorar)…"):
+            try:
+                res = anonimizar_arquivo(dados, enviado.name, _anonimizador(extra_permitir=nao_tarjar),
+                                         regioes=list(regioes), **_LIMITES)
+                st.session_state["arquivo"] = (identidade, res, list(regioes))
+            except (ArquivoInvalido, VazamentoDetectado, FalhaOCR) as erro:
+                st.error(str(erro))
+            except Exception:  # noqa: BLE001 - os detalhes da exceção podem conter trechos do documento
+                st.error("Não foi possível processar o arquivo.")
+    guardado = st.session_state.get("arquivo")
+    if not guardado or guardado[0] != identidade:
+        return
+    res, aplicadas = guardado[1], guardado[2]
+    tarjadas = [e for r in res.resultados for e in r.tarjadas]
+    alertas = [e for r in res.resultados for e in r.alertas]
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Trechos tarjados", len(tarjadas))
+    c2.metric("Alertas para revisão", len(alertas))
+    c3.metric("Regiões tarjadas à mão", len(aplicadas))
+    for aviso in res.avisos:
+        st.info(aviso)
+    if regioes != aplicadas:
+        st.warning("Há regiões marcadas ainda não aplicadas: acione **Anonimizar arquivo** para gerar o arquivo "
+                   "com elas.")
+    total = _paginas(res)
+    if total:
+        pagina = st.number_input(f"Página da pré-visualização (de {total})", 1, total, 1,
+                                 key="pagina_previa") if total > 1 else 1
+        img = _pagina(res, pagina - 1)
+        marcar = res.formato in _COM_PAGINAS and st.toggle(
+            "Tarjar regiões manualmente (assinaturas, fotos, carimbos)", key="marcar_regioes")
+        if marcar:
+            _marcar_regioes(img, pagina, regioes)
+        else:
+            st.image(_contornos(img, [r for r in regioes if r.pagina == pagina]),
+                     caption=f"Página {pagina} de {total} do arquivo anonimizado")
+    st.download_button(f"Baixar {res.nome}", res.dados, res.nome, mime=res.mime, type="primary")
+    if tarjadas or alertas:
+        import pandas as pd
+
+        st.markdown("**Revisão** — desmarque o que *não* deve ser tarjado e clique em *Anonimizar arquivo* "
+                    "de novo; para tarjar algo a mais, use a lista *Sempre tarjar* na barra lateral.")
+        vistos, linhas_tab = set(), []
+        for e in tarjadas + alertas:
+            if (e.valor, e.tipo) not in vistos:
+                vistos.add((e.valor, e.tipo))
+                linhas_tab.append({"Tarjar": e.acao == "tarjar", "Tipo": e.rotulo, "Trecho": e.valor[:80],
+                                   "Motivo / base legal": e.motivo or e.base_legal})
+        tab = st.data_editor(pd.DataFrame(linhas_tab), hide_index=True, width="stretch",
+                             disabled=["Tipo", "Trecho", "Motivo / base legal"], key="editor_arquivo")
+        st.session_state["nao_tarjar"] = [linha["Trecho"] for linha, marcado in
+                                          zip(linhas_tab, tab["Tarjar"]) if linha["Tarjar"] and not marcado]
+    _downloads_relatorio(res.resultados, res.nome.rsplit(".", 1)[0], "a")
+
+
+def _varios_arquivos(enviados) -> None:
+    """Vários arquivos: processados como um ZIP, com download único e manifesto de cada arquivo."""
+    from themis_lgpd.formatos.compactado import MANIFESTO, anonimizar_zip
+
+    identidade = tuple((e.name, e.size) for e in enviados)
+    st.caption(f"{len(enviados)} arquivos: o resultado é um ZIP com os arquivos anonimizados e o manifesto. Para "
+               "revisar trecho a trecho ou tarjar regiões, envie um arquivo por vez.")
+    if st.button("Anonimizar arquivos", type="primary") and _cota():
+        with st.spinner(f"Processando {len(enviados)} arquivos…"):
+            pacote = io.BytesIO()
+            with zipfile.ZipFile(pacote, "w", zipfile.ZIP_DEFLATED) as z:
+                for e in enviados:
+                    z.writestr(e.name, e.getvalue())
+            try:
+                res = anonimizar_zip(pacote.getvalue(), _anonimizador(), "documentos_anonimizados.zip", **_LIMITES)
+                st.session_state["lote"] = (identidade, res)
+            except (ArquivoInvalido, VazamentoDetectado, FalhaOCR) as erro:
+                st.error(str(erro))
+            except Exception:  # noqa: BLE001 - os detalhes da exceção podem conter trechos do documento
+                st.error("Não foi possível processar os arquivos.")
+    guardado = st.session_state.get("lote")
+    if not guardado or guardado[0] != identidade:
+        return
+    res = guardado[1]
+    with zipfile.ZipFile(io.BytesIO(res.dados)) as z:
+        linhas = json.loads(z.read(MANIFESTO))["arquivos"]
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Arquivos anonimizados", sum(1 for linha in linhas if linha["situacao"] == "anonimizado"))
+    c2.metric("Arquivos removidos", sum(1 for linha in linhas if linha["situacao"] != "anonimizado"))
+    c3.metric("Trechos tarjados", sum(linha.get("tarjados", 0) for linha in linhas))
+    st.dataframe([{"Arquivo": linha["arquivo"], "Situação": linha["situacao"], "Tarjados": linha.get("tarjados", 0),
+                   "Motivo": linha.get("motivo", "")} for linha in linhas], hide_index=True, width="stretch")
+    for aviso in res.avisos:
+        st.info(aviso)
+    st.download_button("Baixar arquivos anonimizados (ZIP, com manifesto)", res.dados, res.nome, mime=res.mime,
+                       type="primary")
+    _downloads_relatorio(res.resultados, "documentos", "m")
+
+
 with aba_arquivo:
-    enviado = st.file_uploader("Envie o arquivo", type=sorted(e.lstrip(".") for e in EXTENSOES),
-                               help=f"Até {CFG.max_mb} MB" + (f" e {CFG.max_paginas} páginas" if CFG.max_paginas else ""))
-    if enviado is not None:
-        dados = enviado.getvalue()
-        # Trechos que o revisor desmarcou; entram na lista de permissão da próxima execução.
-        nao_tarjar = st.session_state.setdefault("nao_tarjar", [])
-        if st.button("Anonimizar arquivo", type="primary") and _cota():
-            with st.spinner("Processando (PDFs digitalizados passam por OCR e podem demorar)…"):
-                try:
-                    res = anonimizar_arquivo(dados, enviado.name, _anonimizador(extra_permitir=nao_tarjar),
-                                             limite_bytes=CFG.max_mb * 1024 * 1024, limite_paginas=CFG.max_paginas)
-                    st.session_state["arquivo"] = (enviado.name, len(dados), res)
-                except (ArquivoInvalido, VazamentoDetectado, FalhaOCR) as erro:
-                    st.error(str(erro))
-                except Exception:  # noqa: BLE001 - os detalhes da exceção podem conter trechos do documento
-                    st.error("Não foi possível processar o arquivo.")
-        guardado = st.session_state.get("arquivo")
-        if guardado and guardado[:2] == (enviado.name, len(dados)):
-            res = guardado[2]
-            tarjadas = [e for r in res.resultados for e in r.tarjadas]
-            alertas = [e for r in res.resultados for e in r.alertas]
-            c1, c2 = st.columns(2)
-            c1.metric("Trechos tarjados", len(tarjadas))
-            c2.metric("Alertas para revisão", len(alertas))
-            for aviso in res.avisos:
-                st.info(aviso)
-            if res.formato == "pdf":
-                import pypdfium2 as pdfium
-
-                doc = pdfium.PdfDocument(res.dados)
-                st.image(doc[0].render(scale=1.3).to_pil(), caption="Pré-visualização da 1ª página anonimizada")
-                doc.close()
-            elif res.formato == "png":
-                st.image(res.dados, caption="Imagem anonimizada")
-            st.download_button(f"Baixar {res.nome}", res.dados, res.nome, mime=res.mime, type="primary")
-            if tarjadas or alertas:
-                import pandas as pd
-
-                st.markdown("**Revisão** — desmarque o que *não* deve ser tarjado e clique em *Anonimizar arquivo* "
-                            "de novo; para tarjar algo a mais, use a lista *Sempre tarjar* na barra lateral.")
-                vistos, linhas_tab = set(), []
-                for e in tarjadas + alertas:
-                    if (e.valor, e.tipo) not in vistos:
-                        vistos.add((e.valor, e.tipo))
-                        linhas_tab.append({"Tarjar": e.acao == "tarjar", "Tipo": e.rotulo, "Trecho": e.valor[:80],
-                                           "Motivo / base legal": e.motivo or e.base_legal})
-                tab = st.data_editor(pd.DataFrame(linhas_tab), hide_index=True, width="stretch",
-                                     disabled=["Tipo", "Trecho", "Motivo / base legal"], key="editor_arquivo")
-                st.session_state["nao_tarjar"] = [linha["Trecho"] for linha, marcado in
-                                                  zip(linhas_tab, tab["Tarjar"]) if linha["Tarjar"] and not marcado]
-            _downloads_relatorio(res.resultados, res.nome.rsplit(".", 1)[0], "a")
+    enviados = st.file_uploader(
+        "Envie um ou mais arquivos", type=sorted(e.lstrip(".") for e in EXTENSOES), accept_multiple_files=True,
+        help=f"Até {CFG.max_mb} MB por arquivo" + (f" e {CFG.max_paginas} páginas" if CFG.max_paginas else "")
+             + f"; até {MAX_ARQUIVOS} arquivos por envio")
+    if len(enviados) > MAX_ARQUIVOS:
+        st.error(f"Envie no máximo {MAX_ARQUIVOS} arquivos por vez (ou um ZIP).")
+    elif len(enviados) == 1:
+        _um_arquivo(enviados[0])
+    elif enviados:
+        _varios_arquivos(enviados)
 
 st.divider()
 st.caption("Themis LGPD · software livre (MIT) · processamento local · "

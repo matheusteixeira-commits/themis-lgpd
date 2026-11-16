@@ -175,6 +175,7 @@ Requisição `multipart/form-data`:
 | `coluna_integral` | texto (repetível) | — | Em planilhas, coluna (pelo cabeçalho) tarjada por inteiro |
 | `ocr` | booleano | `true` | Permite OCR em páginas digitalizadas e imagens |
 | `pdfa` | booleano | `false` | Em PDFs, gera PDF/A-2b para arquivamento |
+| `regiao` | texto (repetível) | — | Tarja manual de uma região de PDF ou imagem, `página:x0,y0,x1,y1` em porcentagem da página exibida (ex.: `1:10,70,45,85`); até 200. Região inválida, fora do documento ou em formato sem páginas: 422 |
 | `resposta` | texto | `arquivo` | `arquivo` devolve o arquivo gerado; `json` devolve o arquivo em base64 com o relatório de tarjamento (resumo, itens sem valores originais) e a nota de tarjamento |
 
 ```bash

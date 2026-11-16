@@ -69,6 +69,8 @@ class Opcoes:
         cofre: Pasta (ou arquivo, para uma única entrada) dos cofres de reversão de arquivos de texto.
         senha_cofre: Senha dos cofres; nunca gravada.
         pdfa: Gera PDFs em PDF/A-2b.
+        regioes: Regiões tarjadas manualmente (``página:x0,y0,x1,y1``, em porcentagem), para um lote
+            de um único PDF ou imagem.
     """
 
     sobrepor: dict = field(default_factory=dict)
@@ -81,6 +83,7 @@ class Opcoes:
     cofre: str | None = None
     senha_cofre: str | None = field(default=None, repr=False)
     pdfa: bool = False
+    regioes: list[str] = field(default_factory=list)
 
     def configuracao(self):
         """Configuração do órgão carregada do arquivo (ou a padrão)."""
@@ -99,7 +102,7 @@ class Opcoes:
             if lista in sobrepor:
                 sobrepor[lista] = sha256("\n".join(sorted(sobrepor[lista])).encode("utf-8"))
         base = {"versao": __version__, "config": self.configuracao().impressao(), "sobrepor": sobrepor,
-                "ocr": self.ocr, "colunas": self.colunas_integrais, "pdfa": self.pdfa}
+                "ocr": self.ocr, "colunas": self.colunas_integrais, "pdfa": self.pdfa, "regioes": self.regioes}
         texto = json.dumps(base, sort_keys=True, ensure_ascii=False, default=str)
         return hashlib.sha256(texto.encode("utf-8")).hexdigest()[:16]
 
@@ -228,6 +231,7 @@ def processar(tarefa: Tarefa) -> dict:
     registrado, pois mensagens de bibliotecas podem citar o conteúdo).
     """
     from .formatos import ArquivoInvalido, FalhaOCR, VazamentoDetectado, anonimizar_arquivo
+    from .formatos.regioes import interpretar
 
     opcoes, anon = _OPCOES, _ANONIMIZADOR
     assert opcoes is not None and anon is not None, "processo de trabalho não iniciado"  # nosec B101
@@ -241,7 +245,8 @@ def processar(tarefa: Tarefa) -> dict:
         dados = tarefa.caminho.read_bytes()
         linha.update(sha256_entrada=sha256(dados), bytes_entrada=len(dados))
         res = anonimizar_arquivo(dados, tarefa.caminho.name, anon, ocr=opcoes.ocr, limite_bytes=opcoes.limite_bytes,
-                                 colunas_integrais=opcoes.colunas_integrais, pdfa=opcoes.pdfa)
+                                 colunas_integrais=opcoes.colunas_integrais, pdfa=opcoes.pdfa,
+                                 regioes=[interpretar(r) for r in opcoes.regioes])
         destino = destino_de(tarefa, opcoes, res.nome)
         if destino.resolve() == tarefa.caminho.resolve():
             raise ArquivoInvalido("a saída sobrescreveria a entrada")

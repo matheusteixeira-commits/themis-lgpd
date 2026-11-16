@@ -6,7 +6,7 @@ from html.parser import HTMLParser
 import pytest
 
 from themis_lgpd import Anonimizador, relatorio
-from themis_lgpd.ui.realce import realcar_original, realcar_saida
+from themis_lgpd.ui.realce import legenda, realcar_original, realcar_saida
 
 PAYLOADS = [
     '<img src=x onerror="alert(1)"',          # tag não fechada: contornaria um escape restrito a tags completas
@@ -34,8 +34,28 @@ def test_interface_nunca_renderiza_html_do_documento(anon, payload):
     for html in (realcar_original(texto, anon.analisar(texto)), realcar_saida(r)):
         coletor = _Coletor()
         coletor.feed(html)
-        assert coletor.tags <= {"div", "mark", "sup"}, coletor.tags  # só as tags da própria interface
-        assert coletor.atributos <= {"style", "title"}, coletor.atributos  # nenhum on*, href, src
+        assert coletor.tags <= {"div", "mark", "sup", "span"}, coletor.tags  # só as tags da própria interface
+        assert coletor.atributos <= {"style", "title", "aria-hidden"}, coletor.atributos  # nenhum on*, href, src
+
+
+def test_marcacoes_acessiveis_sem_depender_de_cor(anon):
+    """A ação e a base legal de cada trecho estão em texto (leitores de tela), não só na cor ou no title."""
+    import re
+
+    texto = "Maria Souza, CPF 529.982.247-25, natural de Campinas/SP."
+    entidades = anon.analisar(texto)
+    acoes = {e.acao for e in entidades}
+    assert {"tarjar", "alertar"} <= acoes, acoes
+    html = realcar_original(texto, entidades)
+    sem_title = re.sub(r'title="[^"]*"', "", html)  # o que resta é lido mesmo sem passar o mouse
+    assert "será tarjado" in sem_title and "alerta para revisão" in sem_title
+    cpf = next(e for e in entidades if e.tipo == "CPF")
+    assert cpf.base_legal and cpf.base_legal in sem_title
+    assert "2px solid" in html and "2px dashed" in html  # tarjar e revisar diferem também no sublinhado
+    assert "■ CPF" in html  # símbolo visível ao lado do rótulo
+    item = legenda()
+    for descricao in ("Será tarjado", "Alerta para revisão", "Mantido", "contínuo", "tracejado", "pontilhado"):
+        assert descricao in item, descricao
 
 
 def test_relatorio_padrao_nao_contem_valores(anon):

@@ -75,6 +75,14 @@
             ],
             "title": "Preservar Agentes Publicos"
           },
+          "regiao": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Regiao",
+            "type": "array"
+          },
           "resposta": {
             "default": "arquivo",
             "title": "Resposta",
@@ -160,6 +168,14 @@
               }
             ],
             "title": "Preservar Agentes Publicos"
+          },
+          "regiao": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Regiao",
+            "type": "array"
           },
           "resposta": {
             "default": "arquivo",
@@ -404,7 +420,7 @@
     },
     "/v1/arquivos/anonimizar": {
       "post": {
-        "description": "Anonimiza um arquivo e devolve o arquivo gerado. Os totais e os avisos são informados nos cabeçalhos `X-Themis-Tarjados`, `X-Themis-Para-Revisar` e `X-Themis-Avisos` (codificado para URL). Campos do formulário (todos opcionais, exceto `arquivo`): `perfil`, `modo`, `permitir` e `bloquear` (repetíveis), `preservar_agentes_publicos`, `coluna_integral` (repetível; planilhas), `ocr`, `pdfa` (PDF/A-2b para PDFs) e `resposta` (`arquivo`, padrão, ou `json`, que devolve o arquivo em base64 com o relatório de tarjamento).",
+        "description": "Anonimiza um arquivo e devolve o arquivo gerado. Os totais e os avisos são informados nos cabeçalhos `X-Themis-Tarjados`, `X-Themis-Para-Revisar` e `X-Themis-Avisos` (codificado para URL). Campos do formulário (todos opcionais, exceto `arquivo`): `perfil`, `modo`, `permitir` e `bloquear` (repetíveis), `preservar_agentes_publicos`, `coluna_integral` (repetível; planilhas), `ocr`, `pdfa` (PDF/A-2b para PDFs), `regiao` (repetível; tarja manual em PDFs e imagens, `página:x0,y0,x1,y1` em porcentagem da página exibida, ex.: `1:10,70,45,85`) e `resposta` (`arquivo`, padrão, ou `json`, que devolve o arquivo em base64 com o relatório de tarjamento).",
         "operationId": "anonimizar_arquivo_rota_v1_arquivos_anonimizar_post",
         "requestBody": {
           "content": {
@@ -458,7 +474,7 @@
     },
     "/v1/tarefas": {
       "post": {
-        "description": "Agenda a anonimização de um arquivo e responde imediatamente (HTTP 202), para documentos longos, como PDFs digitalizados, que excederiam o tempo de uma requisição. Consulte a situação em `GET /v1/tarefas/{id}` e baixe o resultado em `GET /v1/tarefas/{id}/resultado`; o resultado é apagado da memória após o download ou após `THEMIS_TAREFA_TTL_S` segundos. Campos do formulário (todos opcionais, exceto `arquivo`): `perfil`, `modo`, `permitir` e `bloquear` (repetíveis), `preservar_agentes_publicos`, `coluna_integral` (repetível; planilhas), `ocr`, `pdfa` (PDF/A-2b para PDFs) e `resposta` (`arquivo`, padrão, ou `json`, que devolve o arquivo em base64 com o relatório de tarjamento).",
+        "description": "Agenda a anonimização de um arquivo e responde imediatamente (HTTP 202), para documentos longos, como PDFs digitalizados, que excederiam o tempo de uma requisição. Consulte a situação em `GET /v1/tarefas/{id}` e baixe o resultado em `GET /v1/tarefas/{id}/resultado`; o resultado é apagado da memória após o download ou após `THEMIS_TAREFA_TTL_S` segundos. Campos do formulário (todos opcionais, exceto `arquivo`): `perfil`, `modo`, `permitir` e `bloquear` (repetíveis), `preservar_agentes_publicos`, `coluna_integral` (repetível; planilhas), `ocr`, `pdfa` (PDF/A-2b para PDFs), `regiao` (repetível; tarja manual em PDFs e imagens, `página:x0,y0,x1,y1` em porcentagem da página exibida, ex.: `1:10,70,45,85`) e `resposta` (`arquivo`, padrão, ou `json`, que devolve o arquivo em base64 com o relatório de tarjamento).",
         "operationId": "criar_tarefa_v1_tarefas_post",
         "requestBody": {
           "content": {

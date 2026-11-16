@@ -34,22 +34,44 @@ padrão, escuta somente em `127.0.0.1`; use `--endereco 0.0.0.0` apenas atrás d
 ### Texto
 
 1. Cole o texto e acione **1 · Analisar**.
-2. **2 · Revise:** o texto original é exibido com realce — vermelho para o que será tarjado, amarelo
-   para alertas. Passe o cursor sobre um trecho para ver o tipo e a base legal. Na tabela, marque ou
+2. **2 · Revise:** o texto original é exibido com realce — ■ vermelho com sublinhado contínuo para o
+   que será tarjado, ? amarelo com sublinhado tracejado para alertas, ✓ azul com sublinhado pontilhado
+   para o que é mantido. A ação, o tipo e a base legal de cada trecho são lidos pelos leitores de tela
+   junto com o trecho e aparecem ao passar o cursor. Na tabela, marque ou
    desmarque a coluna *Tarjar* de cada achado; em *Tarjar também*, informe trechos adicionais, um por
    linha.
 3. Acione **3 · Gerar versão anonimizada** para obter o resultado, que pode ser baixado em TXT.
 
-### Arquivo
+### Arquivos
 
-1. Envie um arquivo (PDF, DOCX, XLSX, PPTX, ODT, ODS, CSV, TXT, HTML, EML, PNG, JPEG, TIFF, ZIP e, com
-   o LibreOffice instalado, DOC, XLS, PPT e RTF) e acione **Anonimizar arquivo**.
-2. Confira os contadores de trechos tarjados e de alertas, os avisos (conteúdo removido, convertido ou
-   não analisado) e a pré-visualização da primeira página (PDF) ou da imagem.
-3. Baixe o arquivo anonimizado.
-4. Para corrigir excessos, desmarque na tabela de revisão os trechos que não devem ser tarjados e acione
+Formatos aceitos: PDF, DOCX, XLSX, PPTX, ODT, ODS, CSV, TXT, HTML, EML, PNG, JPEG, TIFF, ZIP e, com o
+LibreOffice instalado, DOC, XLS, PPT e RTF.
+
+**Um arquivo**
+
+1. Envie o arquivo e acione **Anonimizar arquivo**.
+2. Confira os contadores de trechos tarjados, de alertas e de regiões tarjadas à mão e os avisos
+   (conteúdo removido, convertido ou não analisado).
+3. Em PDFs, imagens e TIFF, percorra a pré-visualização página a página (campo *Página da
+   pré-visualização*).
+4. **Tarja manual por região** — para assinaturas manuscritas, fotos de rosto, carimbos e digitais, que
+   a análise automática não identifica: ative *Tarjar regiões manualmente*, escolha a página e arraste o
+   mouse sobre a área ou informe as coordenadas em porcentagem (esquerda, topo, direita, base) e acione
+   *Adicionar região*. As regiões marcadas aparecem contornadas em vermelho; acione **Anonimizar
+   arquivo** de novo para aplicá-las. Nos PDFs, as palavras sob a região também deixam de existir na
+   camada de texto.
+5. Para corrigir excessos, desmarque na tabela de revisão os trechos que não devem ser tarjados e acione
    **Anonimizar arquivo** novamente; esses trechos passam a integrar a lista de permissão da sessão.
    Para tarjar algo a mais, use a lista *Sempre tarjar* da barra lateral.
+6. Baixe o arquivo anonimizado.
+
+**Vários arquivos** (até 50 por envio; 10 na demonstração)
+
+Selecione os arquivos de uma vez e acione **Anonimizar arquivos**. O resultado é um ZIP com os arquivos
+anonimizados — nomes de arquivo também analisados — e o manifesto `manifesto_anonimizacao.json`, com a
+situação, a contagem de dados tarjados e os SHA-256 de cada arquivo. A tabela da tela mostra a situação
+de cada um e o motivo dos que não puderam ser anonimizados. Para revisar trecho a trecho ou tarjar
+regiões, envie um arquivo por vez.
 
 ### Relatórios
 
@@ -102,6 +124,7 @@ themis anonimizar ENTRADA [ENTRADA ...] [opções]
 | `-r`, `--relatorio` | Gera relatório consolidado do lote, que identifica o arquivo de cada item: `.json`, `.csv`, `.xlsx`, ou `.txt`/`.md` para a nota de tarjamento |
 | `--coluna-integral CABEÇALHO` | Em planilhas, tarja a coluna inteira com esse cabeçalho (repetível) |
 | `--sem-ocr` | Não usa OCR. Em PDFs, as páginas que o exigiriam são listadas em aviso como não analisadas; imagens continuam exigindo OCR e são recusadas |
+| `--regiao PÁG:X0,Y0,X1,Y1` | Tarja manual de uma região de PDF ou imagem (assinatura, foto, carimbo), em porcentagem da página exibida, a partir do canto superior esquerdo: `1:10,70,45,85` é a página 1, de 10% a 45% da largura e de 70% a 85% da altura. Repetível; só com um único arquivo |
 | `--pdfa` | Gera os PDFs em PDF/A-2b, para arquivamento: todas as páginas convertidas em imagem com camada de texto pesquisável, perfil de cor sRGB, fontes incorporadas e metadados só com a identificação PDF/A |
 | `--cofre ARQ\|PASTA` | Para arquivos `.txt`, grava um cofre cifrado que permite reverter a substituição: um arquivo, para uma entrada, ou uma pasta com um `.cofre` por documento (senha em `THEMIS_SENHA_COFRE` ou solicitada no terminal; mínimo de 12 caracteres) |
 | `--limite-mb N` | Tamanho máximo de arquivo, em MB (padrão: 50) |
@@ -325,6 +348,8 @@ else:
 | `colunas` | `None` | Planilhas: restringe o processamento a estas colunas (pelo cabeçalho) |
 | `colunas_integrais` | `None` | Planilhas: colunas a tarjar por inteiro |
 | `verificar` | `True` | Verificação final do arquivo gerado; desligar apenas em medições de desempenho |
+| `pdfa` | `False` | PDFs: gera PDF/A-2b |
+| `regioes` | `()` | PDFs e imagens: regiões a tarjar manualmente, como `Regiao(pagina, x0, y0, x1, y1)` em frações da página exibida (`themis_lgpd.formatos.regioes`); `interpretar("1:10,70,45,85")` lê a notação em porcentagem |
 
 Exceções:
 

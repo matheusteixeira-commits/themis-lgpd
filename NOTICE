@@ -18,6 +18,8 @@ Componentes e dados de terceiros
 - Tesseract OCR (Apache-2.0) e RapidOCR (Apache-2.0): usados para OCR, quando instalados.
 - pdfplumber (MIT), pypdfium2 (Apache-2.0/BSD-3-Clause; PDFium BSD-3-Clause), pikepdf (MPL-2.0),
   ReportLab (BSD), Pillow (MIT-CMU), python-docx (MIT), openpyxl (MIT): leitura e escrita de arquivos.
+- LibreOffice (MPL-2.0): conversão de DOC, XLS, PPT e RTF, quando instalado; não é distribuído.
+- streamlit-image-coordinates (MIT): marcação de regiões com o mouse na interface.
 - Benchmark: o conjunto EliMC/esic-ner (CC BY 4.0) é baixado sob demanda e não é redistribuído.
 - tests/data/casos_dificeis_participa.jsonl: casos sintéticos criados pelos autores para o
   1º Hackathon em Controle Social (Participa DF), redistribuídos sob a licença MIT.

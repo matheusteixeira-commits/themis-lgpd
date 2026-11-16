@@ -306,6 +306,7 @@ src/themis_lgpd/
 │   ├── email_eml.py     Mensagens de e-mail, com anexos
 │   ├── compactado.py    ZIP (exportação de processos), com manifesto
 │   ├── conversao.py     DOC, XLS, PPT e RTF pelo LibreOffice
+│   ├── regioes.py       Tarja manual por região em PDFs e imagens
 │   ├── imagem.py        PNG, JPEG e TIFF; imagens incorporadas
 │   ├── midia.py         Remoção de metadados de imagens sem recompressão
 │   ├── qr.py            Localização e leitura de QR codes (BR Code do PIX)

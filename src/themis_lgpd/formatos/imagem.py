@@ -213,7 +213,7 @@ def aviso_imagens(analisadas: int, tarjadas: int, ocr: bool) -> list[str]:
 
 
 def anonimizar_imagem(dados: bytes, anon: Anonimizador, nome: str, *, ocr: bool = True,
-                      verificar: bool = True) -> ResultadoArquivo:
+                      verificar: bool = True, regioes=()) -> ResultadoArquivo:
     """Anonimiza uma imagem.
 
     Args:
@@ -222,6 +222,7 @@ def anonimizar_imagem(dados: bytes, anon: Anonimizador, nome: str, *, ocr: bool 
         nome: Nome do arquivo de saída.
         ocr: Deve ser verdadeiro; imagens não têm outra fonte de texto.
         verificar: Relê a imagem gerada (OCR e QR codes) para confirmar que nada tarjado continua legível.
+        regioes: Regiões tarjadas manualmente (ver :mod:`themis_lgpd.formatos.regioes`).
 
     Returns:
         A imagem anonimizada em PNG, os resultados da análise e os avisos ao usuário.
@@ -239,6 +240,7 @@ def anonimizar_imagem(dados: bytes, anon: Anonimizador, nome: str, *, ocr: bool 
     if not mod_ocr.ocr_disponivel():
         raise FalhaOCR("Imagens exigem OCR: instale o Tesseract (idioma 'por') ou 'pip install themis-lgpd[ocr]'.")
     analise = ImagemAnalisada(img, anon.modo)
+    manuais = _regioes_manuais([analise], regioes)
     unidades = analise.unidades()
     resultados = X.analisar(unidades, anon) if unidades else []
     analise.desenhar()
@@ -250,7 +252,22 @@ def anonimizar_imagem(dados: bytes, anon: Anonimizador, nome: str, *, ocr: bool 
         avisos.append("O OCR não reconheceu nenhum texto na imagem: revise-a manualmente.")
     if analise.qr_tarjados:
         avisos.append(f"{analise.qr_tarjados} QR code(s) tarjado(s) (PIX, conteúdo com dado pessoal ou não legível).")
-    return ResultadoArquivo(analise.codificar("png"), "png", nome, resultados, avisos)
+    return ResultadoArquivo(analise.codificar("png"), "png", nome, resultados, avisos + manuais)
+
+
+def _regioes_manuais(analises: list[ImagemAnalisada], regioes) -> list[str]:
+    """Acrescenta às páginas as regiões tarjadas manualmente e devolve o aviso correspondente.
+
+    Raises:
+        ArquivoInvalido: Região numa página que a imagem não tem.
+    """
+    from .regioes import aviso, por_pagina
+
+    grupos = por_pagina(regioes, len(analises))
+    for indice, lista in grupos.items():
+        img = analises[indice].img
+        analises[indice].pagina.tarjas += [r.caixa(img.width, img.height) for r in lista]
+    return aviso([r for lista in grupos.values() for r in lista])
 
 
 def _paginas_tiff(dados: bytes, limite_paginas: int) -> tuple[list, str, tuple | None]:
@@ -287,7 +304,7 @@ def _paginas_tiff(dados: bytes, limite_paginas: int) -> tuple[list, str, tuple |
 
 
 def anonimizar_tiff(dados: bytes, anon: Anonimizador, nome: str, *, ocr: bool = True, verificar: bool = True,
-                    limite_paginas: int = 500) -> ResultadoArquivo:
+                    limite_paginas: int = 500, regioes=()) -> ResultadoArquivo:
     """Anonimiza um TIFF de uma ou várias páginas, como os gerados por digitalizadoras.
 
     O texto de todas as páginas é analisado no mesmo lote (um nome tarjado numa página é tarjado em
@@ -309,6 +326,7 @@ def anonimizar_tiff(dados: bytes, anon: Anonimizador, nome: str, *, ocr: bool = 
         raise FalhaOCR("Imagens exigem OCR: instale o Tesseract (idioma 'por') ou 'pip install themis-lgpd[ocr]'.")
     paginas, modo, dpi = _paginas_tiff(dados, limite_paginas)
     analises = [ImagemAnalisada(img, anon.modo) for img in paginas]
+    manuais = _regioes_manuais(analises, regioes)
     unidades = [u for a in analises for u in a.unidades()]
     resultados = X.analisar(unidades, anon) if unidades else []
     for analise in analises:
@@ -334,4 +352,4 @@ def anonimizar_tiff(dados: bytes, anon: Anonimizador, nome: str, *, ocr: bool = 
     qr = sum(a.qr_tarjados for a in analises)
     if qr:
         avisos.append(f"{qr} QR code(s) tarjado(s) (PIX, conteúdo com dado pessoal ou não legível).")
-    return ResultadoArquivo(saida.getvalue(), "tiff", nome, resultados, avisos)
+    return ResultadoArquivo(saida.getvalue(), "tiff", nome, resultados, avisos + manuais)

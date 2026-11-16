@@ -95,7 +95,8 @@ class Pagina:
         indice: Posição da página no documento (a partir de 0).
         largura: Largura em pontos (caixa visível da página).
         altura: Altura em pontos.
-        rotacao: Rotação declarada na página (``/Rotate``), em graus.
+        rotacao: Rotação declarada na página (``/Rotate``), em graus. As coordenadas de todo o
+            processamento (texto, OCR, QR codes, tarjas) são as da página exibida, já girada.
         segmentos: Fontes de texto da página.
         tarjas: Regiões a cobrir.
         rotulos: Texto a escrever dentro de cada tarja (etiqueta ou pseudônimo).
@@ -182,6 +183,47 @@ def _linhas_verticais(chars: list[dict], x_off: float, y_off: float) -> list[lis
             if palavras:
                 linhas.append(palavras)
     return linhas
+
+
+def _invertido(ch: dict) -> bool:
+    """Caractere de cabeça para baixo na página exibida (texto girado 180°, ou página com ``/Rotate 180``).
+
+    O pdfminer o considera "em pé", mas lido na ordem da página ele sairia invertido ("52-742.289.925").
+    """
+    matriz = ch.get("matrix") or (1, 0, 0, 1, 0, 0)
+    return matriz[0] < 0 and matriz[3] < 0
+
+
+def _linhas_invertidas(chars: list[dict], x_off: float, y_off: float, largura: float,
+                       altura: float) -> list[list[Palavra]]:
+    """Reconstrói o texto de cabeça para baixo na ordem correta de leitura.
+
+    Os caracteres são girados 180° em torno do centro da página, agrupados em palavras e linhas como o
+    texto horizontal e devolvidos, com as caixas, às coordenadas da página exibida.
+    """
+    if not chars:
+        return []
+    from pdfplumber.utils import extract_words
+
+    def girar(x0: float, top: float, x1: float, bottom: float) -> Caixa:
+        return largura - x1, altura - bottom, largura - x0, altura - top
+
+    girados = []
+    for c in chars:
+        x0, top, x1, bottom = girar(c["x0"] - x_off, c["top"] - y_off, c["x1"] - x_off, c["bottom"] - y_off)
+        girados.append({**c, "x0": x0, "x1": x1, "top": top, "bottom": bottom, "doctop": top, "upright": True})
+    palavras = sorted(extract_words(girados, return_chars=True, x_tolerance=1.5, y_tolerance=2),
+                      key=lambda w: (round(w["top"] / 3), w["x0"]))
+    linhas: list[list[dict]] = []
+    for w in palavras:
+        if linhas and abs(linhas[-1][0]["top"] - w["top"]) <= max(2.0, (w["bottom"] - w["top"]) * 0.5):
+            linhas[-1].append(w)
+        else:
+            linhas.append([w])
+    return [[(w["text"], girar(w["x0"], w["top"], w["x1"], w["bottom"]),
+              [girar(c["x0"], c["top"], c["x1"], c["bottom"]) for c in w.get("chars", [])])
+             for w in sorted(linha, key=lambda w: w["x0"])]
+            for linha in sorted(linhas, key=lambda linha: linha[0]["top"])]
 
 
 def _grupos_de_palavra(coluna: list[dict], de_baixo_para_cima: bool) -> list[list[dict]]:
@@ -281,7 +323,8 @@ def _extrair(pdf_bytes: bytes, limite_paginas: int, ocr: bool, avisos: list[str]
             x_off, y_off = page.bbox[0], page.bbox[1]
             pag = Pagina(i, float(page.width), float(page.height), int(page.rotation or 0) % 360)
             chars = page.chars
-            horizontais = page.filter(lambda o: o.get("object_type") != "char" or o.get("upright", True))
+            horizontais = page.filter(lambda o: o.get("object_type") != "char" or (o.get("upright", True)
+                                                                                 and not _invertido(o)))
             palavras: list[Palavra] = []
             for w in horizontais.extract_words(keep_blank_chars=False, use_text_flow=False, return_chars=True,
                                                x_tolerance=1.5, y_tolerance=2):
@@ -291,6 +334,10 @@ def _extrair(pdf_bytes: bytes, limite_paginas: int, ocr: bool, avisos: list[str]
                 palavras.append((w["text"], caixa, cxs))
             if palavras:
                 pag.segmentos.append(_montar_segmento(palavras, "texto"))
+            invertidas = _linhas_invertidas([c for c in chars if c.get("upright", True) and _invertido(c)],
+                                            x_off, y_off, pag.largura, pag.altura)
+            if invertidas:
+                pag.segmentos.append(_segmento_de_linhas(invertidas, "texto"))
             verticais = _linhas_verticais(chars, x_off, y_off)
             if verticais:
                 pag.segmentos.append(_segmento_de_linhas(verticais, "texto-vertical"))
@@ -364,10 +411,12 @@ def _lista_paginas(numeros: list[int]) -> str:
 
 
 def _renderizar(doc_pdfium, indice: int, pag: Pagina):
-    """Renderiza a página sem a rotação declarada, no mesmo sistema de coordenadas do pdfplumber."""
+    """Renderiza a página como é exibida, com a rotação declarada (``/Rotate``) aplicada.
+
+    É o mesmo sistema de coordenadas do pdfplumber, que também aplica a rotação: as caixas do texto,
+    do OCR e dos QR codes e as tarjas coincidem com os pixels.
+    """
     page = doc_pdfium[indice]
-    if pag.rotacao:
-        page.set_rotation(0)
     escala = DPI / 72
     if pag.largura * pag.altura * escala * escala > MAX_PIXELS:
         escala = (MAX_PIXELS / (pag.largura * pag.altura)) ** 0.5
@@ -928,7 +977,7 @@ def _gravar_links(pdf, links: list[tuple[int, list[float], str]]) -> None:
 
 
 def anonimizar_pdf(dados: bytes, anon: Anonimizador, nome: str, *, limite_paginas: int = 500, ocr: bool = True,
-                   verificar: bool = True, pdfa: bool = False) -> ResultadoArquivo:
+                   verificar: bool = True, pdfa: bool = False, regioes=()) -> ResultadoArquivo:
     """Anonimiza um PDF.
 
     Args:
@@ -941,6 +990,8 @@ def anonimizar_pdf(dados: bytes, anon: Anonimizador, nome: str, *, limite_pagina
         pdfa: Gera PDF/A-2b (arquivamento): todas as páginas são convertidas em imagem com camada de
             texto, com perfil de cor sRGB e metadados de identificação (ver
             :mod:`themis_lgpd.formatos.pdfa`).
+        regioes: Regiões tarjadas manualmente (assinaturas, fotos, carimbos), em frações da página
+            exibida (ver :mod:`themis_lgpd.formatos.regioes`).
 
     O documento gerado declara o idioma (``pt-BR``); as páginas digitalizadas sem tarja recebem a
     camada de texto do OCR; os marcadores (sumário) e os links para a web são mantidos quando o
@@ -962,10 +1013,13 @@ def anonimizar_pdf(dados: bytes, anon: Anonimizador, nome: str, *, limite_pagina
         raise ArquivoInvalido("Suporte a PDF requer: pip install 'themis-lgpd[arquivos]'") from erro
 
     from .pdfa import aplicar_idioma, aplicar_pdfa, camada_de_texto
+    from .regioes import aviso as aviso_regioes
+    from .regioes import por_pagina
 
     avisos: list[str] = []
     dados = _preparar(dados, avisos)
     paginas = _extrair(dados, limite_paginas, ocr, avisos)
+    manuais = por_pagina(regioes, len(paginas))
     segmentos = [(pag, seg) for pag in paginas for seg in pag.segmentos]
     try:
         with pikepdf.open(io.BytesIO(dados)) as original:
@@ -1007,6 +1061,9 @@ def anonimizar_pdf(dados: bytes, anon: Anonimizador, nome: str, *, limite_pagina
             pag.tarjas.append(codigo.caixa)
             pag.reler_pixels = True
     qr_tarjados = sum(1 for pag in paginas for c in pag.codigos if c.caixa in pag.tarjas)
+    for indice, lista in manuais.items():
+        pag = paginas[indice]
+        pag.tarjas += [r.caixa(pag.largura, pag.altura) for r in lista]
 
     try:
         origem = pikepdf.open(io.BytesIO(dados))
@@ -1018,16 +1075,20 @@ def anonimizar_pdf(dados: bytes, anon: Anonimizador, nome: str, *, limite_pagina
     doc_pdfium = pdfium.PdfDocument(dados)
     rasterizadas = pesquisaveis = 0
     camadas = []  # PDFs das camadas de texto, abertos até a gravação do documento
+    # Páginas convertidas em imagem: as que têm tarja, todas no PDF/A e as digitalizadas com rotação
+    # declarada, cuja camada de texto do OCR (nas coordenadas da página exibida) não se alinharia ao
+    # conteúdo original, que está nas coordenadas da página sem rotação. A página gerada já está na
+    # orientação de exibição e não recebe ``/Rotate``.
+    converter = {p.indice for p in paginas
+                 if p.tarjas or pdfa or (p.rotacao and _palavras_visiveis(p, origens=("ocr",)))}
     with origem:
-        geradas = _rasterizar_paginas(doc_pdfium, [p for p in paginas if p.tarjas or pdfa])
+        geradas = _rasterizar_paginas(doc_pdfium, [p for p in paginas if p.indice in converter])
         for pag in paginas:
-            if pag.tarjas or pdfa:
+            if pag.indice in converter:
                 nova = pikepdf.open(io.BytesIO(geradas[pag.indice]))
                 camadas.append(nova)
                 _jpeg_sem_ascii85(nova.pages[0])
                 saida.pages.append(nova.pages[0])
-                if pag.rotacao:
-                    saida.pages[-1].obj["/Rotate"] = pag.rotacao
                 rasterizadas += 1
                 continue
             saida.pages.append(origem.pages[pag.indice])
@@ -1041,7 +1102,7 @@ def anonimizar_pdf(dados: bytes, anon: Anonimizador, nome: str, *, limite_pagina
                 pagina.add_overlay(camada.pages[0], pikepdf.Rectangle(*[float(v) for v in pagina.cropbox]))
                 pesquisaveis += 1
         doc_pdfium.close()
-        _sanear(saida, frozenset(p.indice for p in paginas if p.tarjas or pdfa))
+        _sanear(saida, frozenset(converter))
         aplicar_idioma(saida)
         if marcadores:
             _gravar_sumario(saida, marcadores, titulos)
@@ -1062,6 +1123,8 @@ def anonimizar_pdf(dados: bytes, anon: Anonimizador, nome: str, *, limite_pagina
         if _imagens_com_metadados(pdf_final):
             raise VazamentoDetectado("Imagem com metadados (EXIF, GPS ou XMP) no PDF gerado.")
         _reler_pixels(pdf_final, [p for p in paginas if p.reler_pixels], resultados, anon.permitir)
+        _verificar_regioes(pdf_final, paginas, manuais)
+    avisos += aviso_regioes([r for lista in manuais.values() for r in lista])
     if pdfa:
         avisos.append(f"PDF/A-2b: as {rasterizadas} página(s) foram convertidas em imagem com camada de texto "
                       "pesquisável, perfil de cor sRGB e fontes incorporadas.")
@@ -1110,3 +1173,27 @@ def _reler_pixels(pdf_bytes: bytes, paginas: list[Pagina], resultados: list[Resu
         doc.close()
     if verificar_ausencia("\n".join(textos), valores_tarjados(resultados), valores_protegidos(resultados, permitir)):
         raise VazamentoDetectado("Trecho tarjado ainda legível na imagem de uma página do PDF gerado.")
+
+
+def _verificar_regioes(pdf_bytes: bytes, paginas: list[Pagina], manuais: dict) -> None:
+    """Confirma que nenhuma palavra do PDF gerado está dentro de uma região tarjada manualmente.
+
+    Só os rótulos das tarjas (``[TARJADO]``, ``[CPF]``…), escritos para leitores de tela, são admitidos.
+
+    Raises:
+        VazamentoDetectado: Palavra legível dentro de uma região.
+    """
+    if not manuais:
+        return
+    import pdfplumber
+
+    with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+        for indice, lista in manuais.items():
+            pag = paginas[indice]
+            caixas = [r.caixa(pag.largura, pag.altura) for r in lista]
+            rotulos = {parte for _, rotulo in _rotulos_das_tarjas(pag) for parte in rotulo.split()}
+            for palavra in pdf.pages[indice].extract_words():
+                x = (palavra["x0"] + palavra["x1"]) / 2
+                y = (palavra["top"] + palavra["bottom"]) / 2
+                if palavra["text"] not in rotulos and any(x0 <= x <= x1 and y0 <= y <= y1 for x0, y0, x1, y1 in caixas):
+                    raise VazamentoDetectado("Texto legível dentro de região tarjada manualmente no PDF gerado.")

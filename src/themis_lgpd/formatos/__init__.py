@@ -242,6 +242,7 @@ def anonimizar_arquivo(
     colunas_integrais: list[str] | None = None,
     verificar: bool = True,
     pdfa: bool = False,
+    regioes=(),
 ) -> ResultadoArquivo:
     """Anonimiza um arquivo e devolve um novo arquivo no mesmo formato.
 
@@ -258,6 +259,8 @@ def anonimizar_arquivo(
             ser desligado em testes de desempenho.
         pdfa: Em PDFs, gera PDF/A-2b para arquivamento (ver :mod:`themis_lgpd.formatos.pdfa`); sem
             efeito nos demais formatos.
+        regioes: Regiões a tarjar manualmente em PDFs e imagens — assinaturas, fotos, carimbos (ver
+            :class:`themis_lgpd.formatos.regioes.Regiao`).
 
     Returns:
         O arquivo gerado, os resultados da análise e os avisos ao usuário.
@@ -272,6 +275,9 @@ def anonimizar_arquivo(
         raise ArquivoInvalido("Arquivo vazio.")
     anon = anonimizador or Anonimizador()
     formato = detectar_formato(dados, nome)
+    regioes = list(regioes or ())
+    if regioes and formato not in {"pdf", "png", "jpg", "tiff"}:
+        raise ArquivoInvalido("A tarja por região só se aplica a PDFs e imagens (PNG, JPEG e TIFF).")
     if formato in {"doc", "xls", "ppt", "rtf"}:
         return _anonimizar_convertido(dados, nome, formato, anon, limite_bytes=limite_bytes,
                                       limite_paginas=limite_paginas, ocr=ocr, colunas=colunas,
@@ -301,11 +307,12 @@ def anonimizar_arquivo(
                               limite_bytes=limite_bytes, colunas_integrais=colunas_integrais, pdfa=pdfa)
     if formato == "tiff":
         from .imagem import anonimizar_tiff
-        return anonimizar_tiff(dados, anon, saida, ocr=ocr, verificar=verificar, limite_paginas=limite_paginas)
+        return anonimizar_tiff(dados, anon, saida, ocr=ocr, verificar=verificar, limite_paginas=limite_paginas,
+                               regioes=regioes)
     if formato == "pdf":
         from .pdf import anonimizar_pdf
         return anonimizar_pdf(dados, anon, saida, limite_paginas=limite_paginas, ocr=ocr, verificar=verificar,
-                              pdfa=pdfa)
+                              pdfa=pdfa, regioes=regioes)
     if formato == "eml":
         from .email_eml import anonimizar_eml
         return anonimizar_eml(dados, anon, saida, ocr=ocr, verificar=verificar, limite_paginas=limite_paginas)
@@ -317,7 +324,7 @@ def anonimizar_arquivo(
         from .odf import anonimizar_odf
         return anonimizar_odf(dados, anon, saida, ocr=ocr, verificar=verificar)
     from .imagem import anonimizar_imagem
-    return anonimizar_imagem(dados, anon, saida, ocr=ocr, verificar=verificar)
+    return anonimizar_imagem(dados, anon, saida, ocr=ocr, verificar=verificar, regioes=regioes)
 
 
 def _anonimizar_convertido(dados: bytes, nome: str, origem: str, anon: Anonimizador, **opcoes) -> ResultadoArquivo:

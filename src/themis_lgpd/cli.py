@@ -138,6 +138,18 @@ def cmd_anonimizar(args) -> int:
         extensoes = ", ".join(sorted(e.lstrip(".") for e in lote.EXTENSOES))
         print(f"✗ nenhum arquivo suportado encontrado (extensões: {extensoes}).", file=sys.stderr)
         return 1
+    if args.regiao:
+        from .formatos.regioes import interpretar
+
+        if len(tarefas) != 1:
+            print("✗ --regiao só pode ser usado com um único arquivo.", file=sys.stderr)
+            return 1
+        try:
+            for regiao in args.regiao:
+                interpretar(regiao)
+        except ValueError as erro:
+            print(f"✗ {erro}", file=sys.stderr)
+            return 1
 
     # Uma única entrada de arquivo com --saida que não é pasta: --saida é o próprio arquivo gerado.
     saida_arquivo = (bool(args.saida) and len(args.entradas) == 1 and Path(args.entradas[0]).is_file()
@@ -150,7 +162,7 @@ def cmd_anonimizar(args) -> int:
         sobrepor=_sobrepor(args), config=_caminho_config(args), ocr=cfg.ocr and not args.sem_ocr,
         limite_bytes=args.limite_mb * 1024 * 1024, colunas_integrais=args.coluna_integral,
         saida=None if saida_arquivo else args.saida, arquivo_saida=args.saida if saida_arquivo else None,
-        cofre=args.cofre, senha_cofre=senha, pdfa=args.pdfa,
+        cofre=args.cofre, senha_cofre=senha, pdfa=args.pdfa, regioes=args.regiao,
     )
     if args.retomar:
         tarefas = _pendentes(tarefas, lote.concluidos(lote.ler_manifesto(args.manifesto), opcoes.identificador()))
@@ -381,6 +393,10 @@ def main(argv: list[str] | None = None) -> int:
     a.add_argument("--coluna-integral", action="append", metavar="CABEÇALHO",
                    help="em planilhas, tarjar a coluna inteira (repetível)")
     a.add_argument("--sem-ocr", action="store_true", help="não usar OCR em páginas digitalizadas")
+    a.add_argument("--regiao", action="append", default=[], metavar="PÁG:X0,Y0,X1,Y1",
+                   help="tarja manual de uma região de PDF ou imagem (assinatura, foto, carimbo), em porcentagem "
+                        "da página exibida: 1:10,70,45,85 = página 1, de 10%% a 45%% da largura e de 70%% a 85%% "
+                        "da altura (repetível; um único arquivo)")
     a.add_argument("--pdfa", action="store_true",
                    help="PDFs em PDF/A-2b (arquivamento): páginas em imagem com camada de texto, sRGB e fontes "
                         "incorporadas")

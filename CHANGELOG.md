@@ -34,6 +34,11 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
   substantivo comum.
 - RENAVAM com dígito verificador inválido ao lado da palavra-chave passa a ser tarjado: a palavra-chave
   exigida pela própria regra conta como contexto.
+- PDF com rotação declarada (`/Rotate` 90, 180 ou 270): as tarjas eram desenhadas na página sem
+  rotação, fora da posição do texto, que continuava legível na imagem gerada (a verificação textual não
+  o via, pois a camada de texto era recriada sem ele). Texto, OCR, QR codes e tarjas passam a usar as
+  coordenadas da página exibida, a página gerada sai na orientação de exibição e o texto de cabeça para
+  baixo é lido na ordem correta; teste de regressão nas quatro rotações, com releitura por OCR.
 
 ### Adicionado — cobertura nacional
 
@@ -152,6 +157,19 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
   ou HTML identificado pelo conteúdo; sem o LibreOffice, recusa com orientação. Testado no CI com o
   LibreOffice instalado.
 - A CLI em lote, a interface e a API aceitam todos os formatos novos.
+
+### Adicionado — interface de revisão
+
+- Vários arquivos por envio (até 50; 10 na demonstração): processados como um ZIP, com download único,
+  manifesto e tabela da situação de cada arquivo.
+- Pré-visualização de todas as páginas de PDFs, imagens e TIFF, uma por vez.
+- Tarja manual por região (assinaturas manuscritas, fotos, carimbos), arrastando o mouse sobre a
+  página (`streamlit-image-coordinates`, MIT) ou informando as coordenadas em porcentagem, com as
+  regiões contornadas antes de aplicar. O núcleo (`formatos/regioes.py`) também está na CLI
+  (`--regiao 1:10,70,45,85`), na API (campo `regiao`) e na biblioteca (`regioes=`); a verificação
+  final confirma que nenhuma palavra do PDF gerado está dentro de uma região.
+- Marcações acessíveis: a ação de cada trecho tem símbolo e sublinhado próprios, além da cor, e a ação,
+  o tipo e a base legal são lidos pelos leitores de tela junto com o trecho; legenda em texto.
 
 ### Desempenho
 
