@@ -177,6 +177,11 @@ classificação do caso no cabeçalho ("Assunto:", "Natureza:"), negado ou hipot
 cor ou etnia que integra nome próprio ou qualifica serviço ("Terra Indígena …", "saúde indígena") e o
 trecho em maiúsculas do classificador treinado sem termo do léxico.
 
+O classificador de trechos treinado (ver [Configuração](CONFIGURACAO.md#classificador-de-dados-sensíveis))
+complementa essas regras com condições descritas em linguagem clínica ou com palavras próprias, achados de
+exame, medicamentos com posologia e descrições de origem étnica, religião, filiação ou orientação sexual;
+o tipo do dado sensível é inferido do vocabulário do trecho. Os achados seguem a mesma regra de vínculo.
+
 ### Nomes de pessoas
 
 Três reconhecedores se complementam:
@@ -193,6 +198,12 @@ Nomes que integram nomes de lugares, instituições, empresas ou normas não sã
 vale para municípios com nome de pessoa citados como lugar: na linha de local e data ("Teotônio
 Vilela, 12 de maio de 2025"), com a UF, após "em" ou rótulo ("Município: …"), após unidade
 administrativa ("Superintendência Regional de Ensino de …") e em enumerações ou colunas de municípios.
+
+O classificador de trechos treinado também propõe nomes (`BR_Sensivel_Aprendido`, origem
+`aprendido:nome_pessoa`), em especial em caixa alta, em tabelas, em assinaturas e por iniciais. Aplica
+o mesmo critério de lugares, instituições e normas, descarta o nome que encerra o nome próprio de uma
+unidade ou honraria ("Unidade Básica de Saúde Dr. …", "Prêmio … Fulano de Tal") e o que é, por inteiro,
+nome de município, e retira pronomes de tratamento do início.
 
 ## Perfis
 

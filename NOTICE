@@ -22,10 +22,12 @@ Componentes e dados de terceiros
 - streamlit-image-coordinates (MIT): marcação de regiões com o mouse na interface.
 - Benchmark: o conjunto EliMC/esic-ner (CC BY 4.0) é baixado sob demanda e não é redistribuído.
 - src/themis_lgpd/dados/modelos/sensivel: classificador de trechos (spaCy spancat) para dados de
-  saúde e quase-identificadores, treinado pelos autores sobre a partição de treino do conjunto
-  EliMC/esic-ner (https://huggingface.co/datasets/EliMC/esic-ner), licença CC BY 4.0
-  (https://creativecommons.org/licenses/by/4.0/). Os pesos são obra derivada desse conjunto, que não é
-  redistribuído; o script de treino é benchmark/treino/treinar_spancat.py. Os vetores do
+  saúde, dados sensíveis, nomes de pessoas e quase-identificadores, treinado pelos autores sobre a
+  partição de treino do conjunto EliMC/esic-ner (https://huggingface.co/datasets/EliMC/esic-ner),
+  licença CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/), sobre a partição de ajuste do
+  corpus de documentos oficiais fictícios em benchmark/oficial, de produção própria, e sobre textos
+  gerados pelo próprio script de treino. Os pesos são obra derivada do conjunto EliMC/esic-ner, que não
+  é redistribuído; o script de treino é benchmark/treino/treinar_spancat.py. Os vetores do
   pt_core_news_lg são usados em tempo de execução e não fazem parte do artefato.
 - tests/data/casos_dificeis_participa.jsonl: casos sintéticos criados pelos autores para o
   1º Hackathon em Controle Social (Participa DF), redistribuídos sob a licença MIT.

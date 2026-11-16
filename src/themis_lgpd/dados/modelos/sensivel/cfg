@@ -1,6 +1,8 @@
 {
   "labels": [
     "DADO_SAUDE",
+    "DADO_SENSIVEL",
+    "NOME_PESSOA",
     "QUASI_IDENTIFICADOR"
   ],
   "spans_key": "themis_sensivel",

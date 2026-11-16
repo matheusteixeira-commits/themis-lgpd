@@ -98,19 +98,32 @@ Não grave a chave HMAC nem a senha do cofre em arquivos versionados ou em hist�
 
 ## Classificador de dados sensíveis
 
-Além das regras, a detecção de dados de saúde e de quase-identificadores usa um classificador de trechos
-treinado (componente `spancat` do spaCy, em `src/themis_lgpd/dados/modelos/sensivel`), acrescentado ao
-pipeline do `pt_core_news_lg` com o mesmo vocabulário e os mesmos vetores. Os dados de saúde que ele
-encontra seguem a regra de vínculo do perfil: no perfil LAI, só são tarjados em frase que se refere a uma
-pessoa; os demais são sinalizados para revisão.
+Além das regras, a detecção usa um classificador de trechos treinado (componente `spancat` do spaCy, em
+`src/themis_lgpd/dados/modelos/sensivel`), acrescentado ao pipeline do `pt_core_news_lg` com o mesmo
+vocabulário e os mesmos vetores. Ele foi treinado com pedidos de acesso à informação (EliMC/esic-ner), com
+um corpus de documentos oficiais fictícios de produção própria (laudos, prontuários, relatórios sociais,
+portarias, processos disciplinares) e com textos-modelo em inglês e texto de preenchimento, sem nada
+anotado, para que não reaja a mestres de apresentações e cabeçalhos de planilhas. Cada rótulo tem limiar
+próprio, definido pela ablação no sistema completo e registrado em `meta.json`:
+
+| Rótulo | Achado | Tratamento no perfil LAI |
+|---|---|---|
+| `DADO_SAUDE` | `SAUDE` (camada semântica) | Regra de vínculo: tarjado em frase que se refere a uma pessoa, sinalizado nos demais casos |
+| `DADO_SENSIVEL` | `ORIGEM_RACIAL`, `RELIGIAO`, `OPINIAO_POLITICA`, `FILIACAO_SINDICAL`, `VIDA_SEXUAL` ou `GENETICO_BIOMETRICO`, conforme o vocabulário do trecho; sem indicação da categoria, nenhum achado | Regra de vínculo |
+| `NOME_PESSOA` | `NOME` (nomes em caixa alta, em tabelas, em assinaturas, iniciais) | Tarjado. Nomes de homenageados em instituições, logradouros, normas e honrarias e nomes de municípios são descartados |
+| `QUASI_IDENTIFICADOR` | `QUASE_IDENTIFICADOR` | Desativado: sinalizava frases de expediente e funções descritas em abstrato; as regras cobrem os quase-identificadores |
+
+Um rótulo sem limiar em `meta.json` não produz achados (`rotulos_desativados` registra o motivo). O campo
+`limiares_contextuais` permite tarjar dados de saúde de alta probabilidade sem a regra de vínculo; fica
+vazio por padrão, pois tarjava termos de saúde de interesse público em pedidos de acesso à informação.
 
 | Variável | Padrão | Efeito |
 |---|---|---|
 | `THEMIS_MODELO_SENSIVEL` | definido no artefato (ligado) | `0` desliga e `1` liga o classificador na CLI, na API, na interface e na biblioteca. Lida quando o modelo de linguagem é carregado |
 
 Sem o modelo de linguagem (`THEMIS_USAR_NER=false`) o classificador não é usado. O treino é reproduzido
-por `benchmark/treino/treinar_spancat.py`; a comparação com e sem o classificador, por
-`benchmark/treino/ablacao_spancat.py`.
+por `benchmark/treino/treinar_spancat.py`; a ablação no sistema completo, a escolha da época e dos limiares
+e a gravação da decisão no artefato, por `benchmark/treino/ablacao_spancat.py`.
 
 ## Configuração da interface (Streamlit)
 

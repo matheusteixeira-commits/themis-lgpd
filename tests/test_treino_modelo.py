@@ -1,4 +1,4 @@
-"""Classificador de trechos para dados de saúde (reconhecedor aprendido; rótulo de quase-identificadores desativado).
+"""Classificador de trechos (reconhecedor aprendido): seleção, confiança, artefato e achados no pipeline.
 
 Cobre a seleção dos trechos, a conversão da probabilidade em confiança, o funcionamento sem o artefato
 e o carregamento sobre o vocabulário e os vetores do modelo de linguagem. Os exemplos são fictícios.
@@ -113,14 +113,14 @@ def test_saude_descrita_com_palavras_proprias(nlp_classificador):
     assert any(t == "SAUDE" and "tonturas" in v for t, v, _, _ in achados), achados
 
 
-def test_rotulo_de_quase_identificador_desativado(nlp_classificador):
-    # O classificador continua estimando o rótulo, mas só as regras produzem o achado: no sistema
-    # integrado o rótulo aprendido não acrescentava acertos e sinalizava frases de expediente.
+def test_rotulo_de_quase_identificador_respeita_a_ativacao(nlp_classificador):
+    # O classificador sempre estima o rótulo; o achado só existe quando a ablação o ativa (limiar nos
+    # metadados), e o perfil LAI apenas sinaliza quase-identificadores.
     texto = "Reclamo do cobrador do ônibus da linha 210 que passou às 7h40 de ontem."
     doc = nlp_classificador(texto)
-    assert "QUASI_IDENTIFICADOR" not in A.metadados()["limiares"]
     assert any(r == "QUASI_IDENTIFICADOR" and "7h40" in texto[i:f] for i, f, r, _ in A.candidatos_do_doc(doc))
-    assert not any(t == "QUASE_IDENTIFICADOR" for t, *_ in _achados(nlp_classificador, texto))
+    ativo = "QUASI_IDENTIFICADOR" in A.metadados()["limiares"]
+    assert any(t == "QUASE_IDENTIFICADOR" for t, *_ in _achados(nlp_classificador, texto)) is ativo
 
 
 @pytest.mark.parametrize("texto", [
