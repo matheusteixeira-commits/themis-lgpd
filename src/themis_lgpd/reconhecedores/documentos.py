@@ -428,10 +428,11 @@ class ColunasIdentificadoras:
     mais espaços, curtas e sem dígitos (salvo a numeração de dias de uma escala); a coluna do
     documento pode ser a célula inteira ou uma palavra dela ("CLASS. INSCRIÇÃO"). Nas linhas
     seguintes, até uma linha de texto corrido ou duas linhas em branco, é reconhecido o valor que
-    começa sob o cabeçalho da coluna.
+    começa sob o cabeçalho da coluna; as linhas de pessoa jurídica (com "LTDA", "S/A", CNPJ) são
+    ignoradas.
 
-    Linhas de pessoa jurídica (com "LTDA", "S/A", CNPJ) são ignoradas. Os tipos produzidos são os
-    dos cabeçalhos; o objeto pode integrar uma lista de :class:`~themis_lgpd.reconhecedores.base.Padrao`.
+    Os tipos produzidos são os dos cabeçalhos; o objeto pode integrar uma lista de
+    :class:`~themis_lgpd.reconhecedores.base.Padrao`.
 
     Args:
         colunas: Tipo e expressão de cada cabeçalho reconhecido; padrão, :data:`_COLUNAS`.
@@ -514,7 +515,7 @@ class ColunasIdentificadoras:
                     continue
                 celulas = pendente[:-1] + [(pendente[-1][0], celulas[0][1])] + celulas[1:]
             pendente = None
-            if len(celulas) != largura or _LINHA_PJ.search(texto, celulas[0][0], celulas[-1][1]):
+            if len(celulas) != largura:
                 continue
             for i, tipo in colunas.items():
                 a, b = celulas[i]

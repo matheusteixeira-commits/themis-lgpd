@@ -163,6 +163,18 @@ def test_contrato_com_pessoa_natural_tarja_processo(anon):
     assert "4410/2026" not in anon.anonimizar(texto).texto
 
 
+@pytest.mark.parametrize("texto,numero", [
+    ("Gostaria de cópia do auto de infração nº 2026/0099 lavrado contra a empresa Delta Ltda.", "2026/0099"),
+    ("Solicito o andamento do processo nº 4321/2026 – Pregão Eletrônico nº 3/2026, em que sou interessado.",
+     "4321/2026"),
+    ("Preciso validar o documento: código verificador 7654321.", "7654321"),
+])
+def test_pedido_em_primeira_pessoa_mantem_tarja(anon, texto, numero):
+    """No pedido redigido em primeira pessoa, o número citado pelo autor continua tarjado, ainda que
+    envolva empresa, contratação ou documento eletrônico."""
+    assert numero not in anon.anonimizar(texto).texto
+
+
 def test_auto_contra_pessoa_natural_continua_tarjado(anon):
     texto = "Auto de Infração nº 123/2026 lavrado contra o proprietário, Sr. Fulano, que tem obra em andamento."
     assert "123/2026" not in anon.anonimizar(texto).texto

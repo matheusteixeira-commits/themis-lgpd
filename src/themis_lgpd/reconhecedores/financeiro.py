@@ -25,8 +25,8 @@ _NUM = r"(?:(?:de\s+)?n(?:[º°o]|úm(?:ero)?|um(?:ero)?)?\.?\s*)?"
 #: sigla do órgão emissor entre a designação e o número ("Resolução CONTRAN nº 619/2016",
 #: "Portaria GM/MS nº 2.436/2017").
 _NAO_NORMA = (r"(?<!\b(?:lei|decreto|portaria|resolu[çc][ãa]o|instru[çc][ãa]o\s+normativa|edital|termo(?:\s+de\s+\w+)*|"
-              r"of[íi]cio|memorando|nota\s+fiscal|nota\s+t[ée]cnica|parecer|ac[óo]rd[ãa]o|delibera[çc][ãa]o|empenho|"
-              r"contrato|conv[êe]nio|preg[ãa]o|licita[çc][ãa]o)"
+              r"of[íi]cio|memorando|nota\s+fiscal|nota\s+t[ée]cnica|empenho|contrato|conv[êe]nio|preg[ãa]o|"
+              r"licita[çc][ãa]o)"
               r"(?:\s+(?-i:[A-Z][A-Za-z]*(?:/[A-Z][A-Za-z]*)*)){0,2}\s{1,3}(?:n[º°o.]*\s*)?)")
 #: Separador opcional entre a palavra-chave e o valor: "agência: 1234", "a conta é 5678", "o processo
 #: é o 123", "registrado sob o nº 123".
@@ -167,9 +167,7 @@ _ATOS_PUBLICOS = (r"leis?|decretos?|portarias?|resolu[çc](?:[ãa]o|[õo]es)|ins
                   r"chamamentos?|credenciamentos?|ac[óo]rd(?:[ãa]o|[ãa]os)|pareceres|parecer|emendas?|s[úu]mulas?|"
                   r"delibera[çc](?:[ãa]o|[õo]es)|medidas?\s+provis[óo]rias?|of[íi]cios?|memorandos?|despachos?|atas?|"
                   r"pre[çc]os|parcerias?|fomento|colabora[çc][ãa]o|coopera[çc][ãa]o|termos?\s+de\s+refer[êe]ncia|"
-                  r"cnpj|habeas\s+corpus\s+coletivo|mandado\s+de\s+seguran[çc]a\s+coletivo|"
-                  r"a[çc](?:[ãa]o|[õo]es)\s+(?:civil\s+p[úu]blica|civis\s+p[úu]blicas|popular|populares|direta)|"
-                  r"recursos?\s+(?:extraordin[áa]rios?|especia(?:l|is))")
+                  r"cnpj")
 #: A designação não pode estar logo após o nome de um ato público ("Lei número 12.527/2011").
 _NAO_ATO = r"(?<!\b(?:" + _ATOS_PUBLICOS + r")\s{1,3})"
 #: Designações de processo, pedido ou atendimento da própria pessoa, no singular ("os pedidos foram
@@ -298,17 +296,18 @@ _ATO_CONTRATACAO = (r"(?:contrato|conv[êe]nio|termo\s+(?:de\s+)?(?:fomento|cola
                     r"credenciamento|licita[çc][ãa]o)")
 _DESIGNACOES_PROCESSO = (r"(?:(?:processo|proc\.)(?:\s+(?:administrativo|adm\.|sei|eletr[ôo]nico|licitat[óo]rio))*|"
                          r"NUP|SEI)")
-#: Número de ato de contratação logo antes do processo, separado só por pontuação ou quebra de linha:
+#: Número de ato de contratação logo antes do processo, separado só por travessão ou quebra de linha:
 #: "Contrato nº 12/2025 – Processo SEI nº …", "EXTRATO DO TERMO DE FOMENTO Nº 3/2025⏎Processo nº …".
 _ATO_ANTES_DO_PROCESSO = re.compile(
-    r"\b" + _ATO_CONTRATACAO + r"\b[^\n\d]{0,40}?(?:n[º°o]\.?|n[úu]mero)\s*[\w./\-]*\d[\w./\-]*\s*[–—\-:.;,]?\s*"
-    r"(?:\n\s*)?" + _DESIGNACOES_PROCESSO + r"\s*[:\-]?\s*(?:n[º°o]\.?|n[úu]mero)?\s*[:\-]?\s*$", re.IGNORECASE)
-#: Número precedido diretamente da designação do ato de contratação ou de transferência ("Proposta
-#: FNS nº …", "Convênio nº …"), e não da designação de processo.
-_ATO_ANTES_DO_NUMERO = re.compile(r"\b" + _ATO_CONTRATACAO + r"(?:\s+(?-i:[A-Z]{2,10}))?\s*(?:n[º°o]\.?|n[úu]mero)?"
-                                  r"\s*[:\-]?\s*$", re.IGNORECASE)
-#: Número de ato de contratação logo depois do processo ("Processo nº … – Pregão Eletrônico nº 9/2025").
-_ATO_DEPOIS = re.compile(r"\s*[–—\-;,.]?\s*" + _ATO_CONTRATACAO + r"\b[^\n\d]{0,40}?(?:n[º°o]\.?|n[úu]mero)", re.IGNORECASE)
+    r"\b" + _ATO_CONTRATACAO + r"\b[^\n\d]{0,40}?(?:n[º°o]\.?|n[úu]mero)\s*[\w./\-]*\d[\w./\-]*\s*"
+    r"(?:[–—\-]\s*|\n\s*)" + _DESIGNACOES_PROCESSO + r"\s*[:\-]?\s*(?:n[º°o]\.?|n[úu]mero)?\s*[:\-]?\s*$", re.IGNORECASE)
+#: Número precedido diretamente da designação de proposta de transferência de recursos ("Proposta FNS
+#: nº …"), e não da designação de processo.
+_ATO_ANTES_DO_NUMERO = re.compile(r"\bproposta(?:\s+(?-i:[A-Z]{2,10}))?\s*(?:n[º°o]\.?|n[úu]mero)?\s*[:\-]?\s*$",
+                                  re.IGNORECASE)
+#: Número de ato de contratação logo depois do processo, após travessão ("Processo nº … – Pregão
+#: Eletrônico nº 9/2025").
+_ATO_DEPOIS = re.compile(r"\s*[–—\-]\s*" + _ATO_CONTRATACAO + r"\b[^\n\d]{0,40}?(?:n[º°o]\.?|n[úu]mero)", re.IGNORECASE)
 #: Ação coletiva ou de controle abstrato: o número da ação civil pública, da ação popular e da ação
 #: direta não se refere a uma pessoa natural.
 _ACAO_COLETIVA = re.compile(r"\b(?:a[çc][ãa]o\s+civil\s+p[úu]blica|(?-i:ACP)|a[çc][ãa]o\s+popular|"
@@ -336,12 +335,34 @@ def _parte_pessoa_natural(texto: str) -> bool:
                for m in _CAMPO_PARTE.finditer(texto))
 
 
+#: Marcas de texto redigido em primeira pessoa, como pedidos de acesso, requerimentos e manifestações.
+_PRIMEIRA_PESSOA = re.compile(
+    r"\b(?:eu|me|mim|comigo|meus?|minhas?|nós|nossos?|nossas?|sou|somos|estou|estamos|quero|queria|desejo|"
+    r"gostaria|gostar[íi]amos|solicito|solicitamos|venho|vimos|vem\s+(?:,\s*respeitosamente,\s*)?requerer|requeiro|"
+    r"requeremos|preciso|precisamos|pe[çc]o|pedimos|sirvo-me|reporto-me|apresento|apresentamos|submeto|represento|"
+    r"aguardo|agrade[çc]o)\b", re.IGNORECASE)
+
+
+@lru_cache(maxsize=32)
+def _primeira_pessoa(texto: str) -> bool:
+    """Indica se o texto é redigido em primeira pessoa (pedido de acesso, requerimento, manifestação).
+
+    Nesses textos, os números de processo, auto ou notificação citados pelo autor se referem, em regra,
+    a assuntos dele, ainda que envolvam empresa ou contrato: os descartes por alvo coletivo e por
+    contratação vizinha (ver :func:`_processo_de_contratacao` e :func:`_registro_coletivo`) só se
+    aplicam a documentos institucionais.
+    """
+    return bool(_PRIMEIRA_PESSOA.search(texto))
+
+
 def _processo_de_contratacao(texto: str, inicio: int, fim: int) -> bool:
     """Indica se o processo citado em ``texto[inicio:fim]`` é o de uma contratação, de uma
     transferência de recursos ou de uma ação coletiva, pela designação vizinha (ver
     :data:`_ATO_ANTES_DO_PROCESSO`, :data:`_ATO_ANTES_DO_NUMERO`, :data:`_ATO_DEPOIS` e
     :data:`_ACAO_COLETIVA`). Não se aplica quando a parte contratada ou beneficiária é pessoa natural
-    (ver :func:`_parte_pessoa_natural`)."""
+    (ver :func:`_parte_pessoa_natural`) nem a textos em primeira pessoa (ver :func:`_primeira_pessoa`)."""
+    if _primeira_pessoa(texto):
+        return False
     antes = texto[max(0, inicio - 160):inicio]
     if _ACAO_COLETIVA.search(antes[-80:]) or _REGISTRO_PJ.search(antes[-60:]):
         return True
@@ -391,6 +412,9 @@ _QUANTIDADE = re.compile(r"\d{1,3}(?:\.\d{3})+")
 #: Designação de item, cláusula ou dispositivo logo antes do número ("subitem 8.3.1", "cláusula 12.4").
 _ITEM_ANTES = re.compile(r"\b(?:sub)?(?:ite(?:m|ns)|cl[áa]usulas?|incisos?|al[íi]neas?|art(?:igo)?s?\.?|§)\s*"
                          r"(?:n[º°o]\.?\s*)?$", re.IGNORECASE)
+#: Código de autenticação do documento eletrônico ("código verificador 1234567", "código CRC 1A2B3C4D").
+_AUTENTICACAO = re.compile(r"\bc[óo]digo\s+(?:CRC|verificador|de\s+(?:verifica[çc][ãa]o|autenticidade|autentica[çc][ãa]o))"
+                           r"\s*[:=]?\s*$", re.IGNORECASE)
 #: Documento publicado em diário oficial: o título do jornal no cabeçalho.
 _DIARIO_OFICIAL = re.compile(r"\bDI[ÁA]RIO\s+OFICIAL\b", re.IGNORECASE)
 
@@ -411,15 +435,18 @@ def _registro_coletivo(texto: str, d: Deteccao) -> bool:
     """Indica se o número em ``d`` não é de documento sobre pessoa natural.
 
     É o caso de notificação, auto, laudo ou relatório dirigido a pessoa jurídica ou sobre obra ou
-    análise de água, sem menção a pessoa natural na mesma frase; de quantidade com separador de
-    milhar seguida de substantivo, sem indicação de número ("41.870 atendimentos e 1.032 partos"); da
-    numeração de item, cláusula ou artigo ("cláusula 12.4.1"); e do protocolo de publicação no diário
-    oficial ("Protocolo 1234567" ao fim da matéria).
+    análise de água, sem menção a pessoa natural na mesma frase, e do código verificador ou CRC de
+    autenticação, em documento institucional (ver :func:`_primeira_pessoa`); de quantidade com
+    separador de milhar seguida de substantivo, sem indicação de número ("41.870 atendimentos e 1.032
+    partos"); da numeração de item, cláusula ou artigo ("cláusula 12.4.1"); e do protocolo de
+    publicação no diário oficial ("Protocolo 1234567" ao fim da matéria).
     """
     antes = texto[max(0, d.inicio - 60):d.inicio]
     if _ITEM_ANTES.search(antes):
         return True
-    if _DOCUMENTO_DIRIGIDO.search(antes):
+    if _AUTENTICACAO.search(antes) and not _primeira_pessoa(texto):
+        return True
+    if _DOCUMENTO_DIRIGIDO.search(antes) and not _primeira_pessoa(texto):
         a, b = _frase(texto, d.inicio, d.fim)
         trecho = texto[a:b]
         if _ALVO_COLETIVO.search(trecho) and not _ALVO_PESSOAL.search(trecho):
@@ -524,8 +551,7 @@ PROCESSOS: list[Padrao] = [
            r"(?<!(?-i:\bEDITA(?:L|IS)\s+DE)\s+)"
            r"(?:\bocorr[êe]ncias?|\bboletim(?!\s+(?:epidemiol[óo]gico|informativo|oficial|interno|t[ée]cnico|"
            r"estat[íi]stico|de\s+servi[çc]o|de\s+pessoal|d[oa]\s+(?-i:[A-Z])))|\bB\.O\.|"
-           r"\bc[óo]digo(?!\s+(?:d[oa]\s+)?(?-i:IBGE|CNAE|CBO|CID|NCM|SIAFI|CRC)\b|\s+d[oa]\s+munic[íi]pio|"
-           r"\s+(?:verificador|de\s+(?:verifica[çc][ãa]o|autenticidade|autentica[çc][ãa]o|barras)))(?:\s+num[ée]rico)?"
+           r"\bc[óo]digo(?!\s+(?:d[oa]\s+)?(?-i:IBGE|CNAE|CBO|CID|NCM|SIAFI)\b|\s+d[oa]\s+munic[íi]pio)(?:\s+num[ée]rico)?"
            r"(?![^\d\n;]{0,12}\d{3,4}-\d{1,2}(?:/\d{2})?\s+[–—-]\s)|\bidentificador|"
            r"\bexpediente(?=\s*(?:n[º°o]|n[úu]mero|:|\d))|"
            r"\bregistro\s+(?:de\s+atendimento|policial|da\s+ocorr[êe]ncia)|\batendimento|\bpedido|\bchamado|"
