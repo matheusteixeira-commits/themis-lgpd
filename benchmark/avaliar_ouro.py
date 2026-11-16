@@ -8,7 +8,9 @@ recall este conjunto mede a **precisão real**:
 * **tarja fora do gabarito**: fração dos caracteres tarjados fora de todo dado pessoal anotado;
 * **preservação de trechos públicos**: fração dos trechos que devem permanecer legíveis (órgãos,
   normas, programas) que ficaram intactos;
-* **documentos com vazamento**: documentos com algum dado pessoal visível.
+* **documentos com vazamento**: documentos com algum dado pessoal visível;
+* **entidades não tarjadas, por causa**: *sinalizadas* (detectadas e enviadas à revisão, como
+  manda o perfil) ou *não detectadas*, como em ``benchmark/esic_ner.py``.
 
 Cada métrica acompanha o intervalo de confiança de 95% por *bootstrap* de documentos, e
 ``--detalhes`` grava o resultado por documento para a comparação pareada
@@ -53,6 +55,7 @@ def avaliar_documento(d: dict, ents) -> dict:
         for a, b in lista:
             pessoal[a:b] = [True] * (b - a)
     total, prot, estr = Counter(), Counter(), Counter()
+    sinalizadas, nao_detectadas = Counter(), Counter()
     vazou = False
     for (tipo, _valor), lista in ocorr.items():
         if not lista:
@@ -63,8 +66,12 @@ def avaliar_documento(d: dict, ents) -> dict:
             estr[tipo] += 1
         if all(coberto(texto, a, b, alvo) for a, b in lista):
             prot[tipo] += 1
-        elif tipo not in SO_ALERTA:
-            vazou = True
+            continue
+        if all(coberto(texto, a, b, revisao) for a, b in lista):
+            sinalizadas[tipo] += 1
+        else:
+            nao_detectadas[tipo] += 1
+        vazou = vazou or tipo not in SO_ALERTA
     tarjas = [e for e in ents if e.acao == "tarjar"]
     tarjas_fora = sum(1 for e in tarjas if not any(pessoal[k] for k in range(e.inicio, min(e.fim, len(texto)))
                                                    if texto[k].isalnum()))
@@ -73,6 +80,7 @@ def avaliar_documento(d: dict, ents) -> dict:
     return {
         "chave": chave(texto), "id": d["id"], "total": dict(total), "protegidas": dict(prot), "estritas": dict(estr),
         "tem_pii": bool(total), "vazou": vazou, "chars_tarjados": len(chars),
+        "sinalizadas": dict(sinalizadas), "nao_detectadas": dict(nao_detectadas),
         "chars_fora": sum(1 for k in chars if not pessoal[k]),
         "tarjas_total": len(tarjas), "tarjas_fora": tarjas_fora,
         "publicos_total": len(publicos),
@@ -97,14 +105,18 @@ def main() -> None:
     from esic_ner import agregadas
 
     pontual = agregadas(detalhes)
-    total = Counter()
+    total, sinalizadas, nao_detectadas = Counter(), Counter(), Counter()
     for x in detalhes:
         total.update(x["total"])
+        sinalizadas.update(x["sinalizadas"])
+        nao_detectadas.update(x["nao_detectadas"])
     resultado = {
         "sistema": f"Themis LGPD (perfil {args.perfil})", "documentos": len(docs),
         "arquivos": [Path(a).name for a in arquivos],
         "entidades_por_rotulo": dict(sorted(total.items())),
         **{k: round(v, 4) for k, v in sorted(pontual.items())},
+        "nao_tarjadas": {k: {"sinalizadas": sinalizadas[k], "nao_detectadas": nao_detectadas[k]}
+                         for k in sorted(set(sinalizadas) | set(nao_detectadas))},
         "segundos_por_documento": round(duracao / max(1, len(docs)), 4),
         "intervalos_95": intervalos(detalhes),
     }

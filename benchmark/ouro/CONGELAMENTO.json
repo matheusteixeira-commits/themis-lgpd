@@ -1,0 +1,40 @@
+{
+  "ouro_a.jsonl": {
+    "sha256": "5a85a138866c09b8529c4dd350a3ec384aa84742bb4e7f3ffb2efb4791e3ed54",
+    "documentos": 60,
+    "entidades": {
+      "CONTATO": 34,
+      "DADO_FINANCEIRO": 30,
+      "DADO_SAUDE": 62,
+      "DADO_SENSIVEL": 12,
+      "DATA_NASC": 20,
+      "DOC_PESSOAL": 53,
+      "DOC_PROFISSIONAL": 59,
+      "ENDERECO": 31,
+      "ID_PROCESSUAL": 40,
+      "ID_VEICULO": 5,
+      "NOME_PESSOA": 172,
+      "QUASI_IDENTIFICADOR": 5
+    },
+    "publicos": 836
+  },
+  "ouro_b.jsonl": {
+    "sha256": "a8acb60fe8e65b77ad783f3d87cce9aaf41f1f15e0ccda606d5fd33c0a9e4173",
+    "documentos": 60,
+    "entidades": {
+      "CONTATO": 62,
+      "DADO_FINANCEIRO": 30,
+      "DADO_SAUDE": 251,
+      "DADO_SENSIVEL": 15,
+      "DATA_NASC": 46,
+      "DOC_PESSOAL": 74,
+      "DOC_PROFISSIONAL": 36,
+      "ENDERECO": 31,
+      "ID_PROCESSUAL": 36,
+      "ID_VEICULO": 5,
+      "NOME_PESSOA": 189,
+      "QUASI_IDENTIFICADOR": 8
+    },
+    "publicos": 565
+  }
+}
