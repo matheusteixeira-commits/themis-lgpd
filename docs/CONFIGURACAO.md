@@ -113,7 +113,9 @@ próprio, definido pela ablação no sistema completo e registrado em `meta.json
 | `NOME_PESSOA` | `NOME` (nomes em caixa alta, em tabelas, em assinaturas, iniciais) | Tarjado. Nomes de homenageados em instituições, logradouros, normas e honrarias e nomes de municípios são descartados |
 | `QUASI_IDENTIFICADOR` | `QUASE_IDENTIFICADOR` | Desativado: sinalizava frases de expediente e funções descritas em abstrato; as regras cobrem os quase-identificadores |
 
-Um rótulo sem limiar em `meta.json` não produz achados (`rotulos_desativados` registra o motivo). O campo
+Um rótulo sem limiar em `meta.json` não produz achados (`rotulos_desativados` registra o motivo). Um
+rótulo só é desativado quando a ablação mostra dano (tarja indevida, perda de precisão ou de preservação,
+portão reprovado); a falta de efeito numa partição de seleção pequena não basta. O campo
 `limiares_contextuais` permite tarjar dados de saúde de alta probabilidade sem a regra de vínculo; fica
 vazio por padrão, pois tarjava termos de saúde de interesse público em pedidos de acesso à informação.
 

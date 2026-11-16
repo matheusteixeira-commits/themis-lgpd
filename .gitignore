@@ -14,8 +14,9 @@ venv/
 coverage.xml
 htmlcov/
 
-# Benchmark (dados baixados sob demanda)
+# Benchmark (dados baixados sob demanda e resultados intermediários do treino)
 benchmark/.cache/
+.trabalho/
 
 # Segredos e configuração local
 .env

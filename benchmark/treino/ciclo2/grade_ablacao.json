@@ -1,0 +1,12 @@
+[
+  {"nome": "sem_classificador", "limiares": {}},
+  {"nome": "artefato", "limiares": {"DADO_SAUDE": 0.8, "DADO_SENSIVEL": 0.8, "NOME_PESSOA": 0.98}},
+  {"nome": "sem_saude", "limiares": {"DADO_SENSIVEL": 0.8, "NOME_PESSOA": 0.98}},
+  {"nome": "sem_sensivel", "limiares": {"DADO_SAUDE": 0.8, "NOME_PESSOA": 0.98}},
+  {"nome": "sem_nome", "limiares": {"DADO_SAUDE": 0.8, "DADO_SENSIVEL": 0.8}},
+  {"nome": "saude_0.6", "limiares": {"DADO_SAUDE": 0.6, "DADO_SENSIVEL": 0.8, "NOME_PESSOA": 0.98}},
+  {"nome": "saude_0.9", "limiares": {"DADO_SAUDE": 0.9, "DADO_SENSIVEL": 0.8, "NOME_PESSOA": 0.98}},
+  {"nome": "nome_0.95", "limiares": {"DADO_SAUDE": 0.8, "DADO_SENSIVEL": 0.8, "NOME_PESSOA": 0.95}},
+  {"nome": "saude_contextual_0.95", "limiares": {"DADO_SAUDE": 0.8, "DADO_SENSIVEL": 0.8, "NOME_PESSOA": 0.98},
+   "limiares_contextuais": {"DADO_SAUDE": 0.95}}
+]

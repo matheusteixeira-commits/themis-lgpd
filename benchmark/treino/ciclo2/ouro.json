@@ -1,0 +1,161 @@
+{
+  "sistema": "Themis LGPD (perfil lai)",
+  "documentos": 120,
+  "arquivos": [
+    "ouro_a.jsonl",
+    "ouro_b.jsonl"
+  ],
+  "entidades_por_rotulo": {
+    "CONTATO": 96,
+    "DADO_FINANCEIRO": 60,
+    "DADO_SAUDE": 313,
+    "DADO_SENSIVEL": 27,
+    "DATA_NASC": 66,
+    "DOC_PESSOAL": 127,
+    "DOC_PROFISSIONAL": 95,
+    "ENDERECO": 62,
+    "ID_PROCESSUAL": 76,
+    "ID_VEICULO": 10,
+    "NOME_PESSOA": 361,
+    "QUASI_IDENTIFICADOR": 13
+  },
+  "documentos_com_vazamento": 0.5385,
+  "precisao_tarjas": 0.929,
+  "preservacao_publicos": 0.9542,
+  "recall:CONTATO": 0.9896,
+  "recall:DADO_FINANCEIRO": 0.8667,
+  "recall:DADO_SAUDE": 0.8722,
+  "recall:DADO_SENSIVEL": 0.5556,
+  "recall:DATA_NASC": 0.8485,
+  "recall:DOC_PESSOAL": 0.9528,
+  "recall:DOC_PROFISSIONAL": 0.9895,
+  "recall:ENDERECO": 0.9032,
+  "recall:ID_PROCESSUAL": 0.9079,
+  "recall:ID_VEICULO": 1.0,
+  "recall:NOME_PESSOA": 0.9778,
+  "recall:QUASI_IDENTIFICADOR": 0.4615,
+  "recall_entidades": 0.9188,
+  "recall_estrito": 0.9028,
+  "tarja_fora_do_gabarito": 0.1845,
+  "nao_tarjadas": {
+    "CONTATO": {
+      "sinalizadas": 1,
+      "nao_detectadas": 0
+    },
+    "DADO_FINANCEIRO": {
+      "sinalizadas": 0,
+      "nao_detectadas": 8
+    },
+    "DADO_SAUDE": {
+      "sinalizadas": 5,
+      "nao_detectadas": 35
+    },
+    "DADO_SENSIVEL": {
+      "sinalizadas": 1,
+      "nao_detectadas": 11
+    },
+    "DATA_NASC": {
+      "sinalizadas": 0,
+      "nao_detectadas": 10
+    },
+    "DOC_PESSOAL": {
+      "sinalizadas": 0,
+      "nao_detectadas": 6
+    },
+    "DOC_PROFISSIONAL": {
+      "sinalizadas": 0,
+      "nao_detectadas": 1
+    },
+    "ENDERECO": {
+      "sinalizadas": 0,
+      "nao_detectadas": 6
+    },
+    "ID_PROCESSUAL": {
+      "sinalizadas": 0,
+      "nao_detectadas": 7
+    },
+    "NOME_PESSOA": {
+      "sinalizadas": 0,
+      "nao_detectadas": 8
+    },
+    "QUASI_IDENTIFICADOR": {
+      "sinalizadas": 0,
+      "nao_detectadas": 7
+    }
+  },
+  "segundos_por_documento": 0.0843,
+  "intervalos_95": {
+    "documentos_com_vazamento": [
+      0.4455,
+      0.6373
+    ],
+    "precisao_tarjas": [
+      0.9108,
+      0.9463
+    ],
+    "preservacao_publicos": [
+      0.9417,
+      0.9664
+    ],
+    "recall:CONTATO": [
+      0.9655,
+      1.0
+    ],
+    "recall:DADO_FINANCEIRO": [
+      0.7581,
+      0.9412
+    ],
+    "recall:DADO_SAUDE": [
+      0.82,
+      0.9157
+    ],
+    "recall:DADO_SENSIVEL": [
+      0.3684,
+      0.75
+    ],
+    "recall:DATA_NASC": [
+      0.75,
+      0.9474
+    ],
+    "recall:DOC_PESSOAL": [
+      0.9147,
+      0.985
+    ],
+    "recall:DOC_PROFISSIONAL": [
+      0.9655,
+      1.0
+    ],
+    "recall:ENDERECO": [
+      0.8226,
+      0.9697
+    ],
+    "recall:ID_PROCESSUAL": [
+      0.8462,
+      0.963
+    ],
+    "recall:ID_VEICULO": [
+      1.0,
+      1.0
+    ],
+    "recall:NOME_PESSOA": [
+      0.9614,
+      0.9916
+    ],
+    "recall:QUASI_IDENTIFICADOR": [
+      0.1818,
+      0.7778
+    ],
+    "recall_entidades": [
+      0.9016,
+      0.9351
+    ],
+    "recall_estrito": [
+      0.8833,
+      0.9211
+    ],
+    "tarja_fora_do_gabarito": [
+      0.1527,
+      0.2174
+    ]
+  }
+}

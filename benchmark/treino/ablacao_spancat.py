@@ -157,7 +157,8 @@ def instalar(relatorio: dict, decisao: dict, artefato: Path, pontos: Path, desti
         registro = next(e for e in epocas if e["epoca"] == epoca)
         meta["selecao"] = {"f1_medio": registro["f1_medio_selecao"],
                            **{c: v["melhor_por_rotulo"] for c, v in registro["selecao"].items()}}
-    meta["treino"]["epoca_escolhida"] = epoca or meta["treino"].get("melhor_epoca")
+    # Sem época na configuração, os pesos são os do artefato, e a época registrada nele continua valendo.
+    meta["treino"]["epoca_escolhida"] = epoca or meta["treino"].get("epoca_escolhida") or meta["treino"].get("melhor_epoca")
     meta.update({
         "descricao": decisao["descricao"],
         "limiares": escolhida["limiares"],

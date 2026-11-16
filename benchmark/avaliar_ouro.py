@@ -18,8 +18,9 @@ Cada métrica acompanha o intervalo de confiança de 95% por *bootstrap* de docu
 
 O conjunto de referência é exclusivamente de avaliação: não examine erros nele para ajustar regras.
 O mesmo avaliador mede o corpus de desenvolvimento de documentos oficiais (``benchmark/oficial``),
-anotado segundo as mesmas diretrizes; ``--erros`` lista os erros documento a documento e só é aceito
-na partição de ajuste desse corpus.
+anotado segundo as mesmas diretrizes, e os lotes adversariais (``benchmark/adversarial``); ``--erros``
+lista os erros documento a documento e só é aceito na partição de ajuste do corpus de desenvolvimento e
+nos lotes adversariais.
 
 Uso::
 
@@ -44,6 +45,8 @@ from ouro.ferramentas import SO_ALERTA, ler, ocorrencias  # noqa: E402
 from themis_lgpd import Anonimizador  # noqa: E402
 
 PASTA = Path(__file__).parent / "ouro"
+#: Documentos adversariais (``benchmark/adversarial``): redigidos para provocar erros, só de desenvolvimento.
+ADVERSARIAL = Path(__file__).parent / "adversarial"
 
 
 def avaliar_documento(d: dict, ents) -> dict:
@@ -126,11 +129,15 @@ def erros_documento(d: dict, ents) -> dict:
 
 
 def _somente_ajuste(arquivos: list[Path]) -> None:
-    """Recusa a listagem de erros fora da partição de ajuste do corpus de desenvolvimento."""
+    """Recusa a listagem de erros fora da partição de ajuste do corpus de desenvolvimento e dos lotes
+    adversariais."""
     for arq in arquivos:
         caminho = Path(arq).resolve()
-        if caminho.parent == PASTA.resolve() or not caminho.stem.startswith("ajuste"):
-            raise SystemExit(f"--erros só é aceito na partição de ajuste do corpus de desenvolvimento: {arq}")
+        if caminho.is_relative_to(PASTA.resolve()):
+            raise SystemExit(f"--erros não é aceito no conjunto de referência: {arq}")
+        if not (caminho.stem.startswith("ajuste") or caminho.is_relative_to(ADVERSARIAL.resolve())):
+            raise SystemExit(f"--erros só é aceito na partição de ajuste do corpus de desenvolvimento e nos lotes "
+                             f"adversariais: {arq}")
 
 
 def main() -> None:

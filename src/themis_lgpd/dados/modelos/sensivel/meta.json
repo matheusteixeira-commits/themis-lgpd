@@ -176,28 +176,28 @@
   "rotulos_desativados": {
     "QUASI_IDENTIFICADOR": {
       "limiar_na_selecao": 0.8,
-      "motivo": "Ablação no sistema completo (final_mais_quasi_identificador0.8): ativado, só acrescenta alertas (+3,2 pontos de recall de quase-identificadores no esic-ner e +22 nos documentos oficiais, sem efeito em tarjas), mas sinaliza frases de expediente e funções descritas em abstrato, que os testes de regressão das regras de quase-identificadores exigem legíveis e sem alerta (probabilidade de 0,87 a 0,99 em 'O técnico de enfermagem tem jornada de 30 horas semanais.' e 'A nota fiscal emitida em … às 10h foi anexada ao processo.'); nenhum limiar separa os dois casos. As regras continuam responsáveis pelos quase-identificadores."
+      "motivo": "Ablação no sistema completo do treino (final_mais_quasi_identificador0.8): ativado, só acrescenta alertas, mas sinaliza frases de expediente e funções descritas em abstrato, que os testes de regressão das regras de quase-identificadores exigem legíveis e sem alerta; nenhum limiar separa os dois casos. As regras continuam responsáveis pelos quase-identificadores."
     }
   },
-  "escolha_dos_limiares": "Grade avaliada no sistema completo (perfil LAI), nas partições de seleção do esic-ner e do corpus de documentos oficiais (benchmark/treino/ablacao_spancat.json), contra o sistema do ciclo anterior. Com DADO_SAUDE 0,5, todas as épocas aumentam a tarja fora do gabarito do esic-ner em mais de 0,5 ponto; com DADO_SAUDE de 0,7 a 0,85, as épocas 4, 6, 7, 9 e 10 passam nos portões. Entre elas, a época 4 com DADO_SAUDE 0,8 tem o maior recall de entidades nos documentos oficiais (0,5659, igual ao da época 6 com 0,85) e o maior recall de saúde no esic-ner (0,675 contra 0,669), mantendo a precisão das tarjas acima da do ciclo anterior. As épocas 6 e 10 deixam abaixo do limiar descrições de sintomas com palavras próprias que o classificador anterior reconhecia ('dores fortes no joelho', probabilidade 0,64 a 0,66). NOME_PESSOA 0,98: com 0,95, mesmo recall e precisão das tarjas 0,14 ponto menor. DADO_SENSIVEL 0,8: 0,5 e 0,8 dão o mesmo resultado no primeiro treino; vale o mais conservador. Decodificação 'uniao' (trechos sobrepostos do mesmo rótulo fundidos): no primeiro treino, o modo 'maximo' teve recall menor nos documentos oficiais sem reduzir a tarja fora do gabarito do esic-ner. Limiar contextual de DADO_SAUDE (tarjar sem a regra de vínculo acima da probabilidade dada): com 0,97, o recall de saúde sobe 25,9 pontos nos documentos oficiais e 12,5 no esic-ner, mas a tarja fora do gabarito do esic-ner sobe 1,1 ponto (termos de saúde de interesse público em pedidos, como campanhas de vacinação e filas de cirurgia), acima do portão; fica desligado (limiares_contextuais vazio).",
-  "ativacao": "Ablação por rótulo no sistema completo, retirando um rótulo de cada vez da configuração escolhida (final_sem_*) e sem o classificador (sem_modelo): cada rótulo ativo aumenta o recall do seu rótulo sem reduzir a precisão das tarjas nem a preservação de trechos públicos em mais de 0,5 ponto e sem aumentar a tarja fora do gabarito do esic-ner em mais de 0,5 ponto. DADO_SAUDE: +3,75 pontos no esic-ner e +16,9 pontos nos documentos oficiais (precisão das tarjas -0,22 e preservação -0,11 ponto; tarja fora do gabarito do esic-ner +0,33 ponto). NOME_PESSOA: +0,24 ponto no esic-ner e +11,4 pontos nos documentos oficiais (precisão +0,02 ponto, preservação -0,11 ponto), com o filtro de nomes de instituições, logradouros, normas, honrarias e municípios (aprendido.limites_do_nome). DADO_SENSIVEL: +22 pontos nos documentos oficiais (2 de 9 entidades), sem efeito no esic-ner. Portões: o sistema com o classificador perde, na seleção dos documentos oficiais, 1 entidade de DADO_FINANCEIRO (de 41), 1 de DOC_PESSOAL (de 50) e 1 de ID_PROCESSUAL (de 60) em relação ao ciclo anterior; o sistema sem classificador perde as mesmas três, que o classificador anterior cobria por acaso ao tarjar como saúde trechos que as continham. Nas partições de ajuste nenhuma entidade desses rótulos depende do classificador.",
+  "escolha_dos_limiares": "Grade avaliada no sistema integrado do ciclo 2 (perfil LAI), nas partições de seleção do esic-ner e do corpus de documentos oficiais (benchmark/treino/ciclo2/ablacao_integrada.json). DADO_SAUDE 0,8: com 0,6, o recall dos documentos oficiais sobe 0,7 ponto, mas a precisão das tarjas cai 1,7 ponto e a tarja fora do gabarito do esic-ner sobe 0,4 ponto; com 0,9, o recall de saúde dos documentos oficiais cai 2,5 pontos. NOME_PESSOA 0,98: com 0,95, mesmo recall e precisão 0,13 ponto menor. Limiar contextual de DADO_SAUDE 0,95: recall de saúde do esic-ner +14 pontos, sem ganho nos documentos oficiais, com a tarja fora do gabarito do esic-ner 1,3 ponto acima (termos de saúde de interesse público em pedidos); reprovado no portão, fica desligado. Época 4 e decodificação 'uniao', escolhidas no treino (benchmark/treino/ablacao_spancat.json).",
+  "ativacao": "Ablação por rótulo no sistema integrado, retirando um rótulo de cada vez (sem_saude, sem_sensivel, sem_nome) e sem o classificador (sem_classificador). Critério: um rótulo de proteção só é desativado quando causa dano medido (tarja indevida, perda de precisão ou de preservação, portão reprovado); a ausência de efeito numa seleção pequena não basta. Classificador completo contra nenhum: recall de entidades +4,5 pontos nos documentos oficiais e +0,32 no esic-ner; documentos com vazamento 76,3% → 65,8% nos oficiais e 11,0% → 9,9% no esic-ner; precisão das tarjas -0,86 ponto e preservação -0,33 ponto nos oficiais; tarja fora do gabarito do esic-ner +0,33 ponto. DADO_SAUDE: +11,9 pontos de recall de saúde nos oficiais e +3,1 no esic-ner. NOME_PESSOA: +2,3 pontos de recall de nomes nos oficiais e +0,24 no esic-ner, com documentos com vazamento 73,7% → 65,8% nos oficiais. DADO_SENSIVEL: sem efeito mensurável nas seleções (9 entidades de dados sensíveis na seleção oficial, nenhuma no esic-ner) e sem dano; fica ativo.",
   "escolha": {
-    "configuracao": "C_e4_saude0.8_nome0.98",
-    "epoca": 4,
+    "configuracao": "artefato",
+    "epoca": null,
     "esic_selecao": {
       "recall_entidades": 0.96,
       "recall:DADO_SAUDE": 0.675,
       "recall:NOME_PESSOA": 0.9952,
-      "tarja_fora_do_gabarito": 0.0812
+      "tarja_fora_do_gabarito": 0.0765
     },
     "oficial_selecao": {
-      "recall_entidades": 0.5659,
-      "recall:DADO_SAUDE": 0.2798,
-      "recall:NOME_PESSOA": 0.9659,
-      "recall:DADO_SENSIVEL": 0.2222,
-      "recall:QUASI_IDENTIFICADOR": 0.3333,
-      "precisao_tarjas": 0.7813,
-      "preservacao_publicos": 0.8691
+      "recall_entidades": 0.9162,
+      "recall:DADO_SAUDE": 0.8848,
+      "recall:NOME_PESSOA": 0.9943,
+      "recall:DADO_SENSIVEL": 0.4444,
+      "recall:QUASI_IDENTIFICADOR": 0.4444,
+      "precisao_tarjas": 0.9044,
+      "preservacao_publicos": 0.9461
     },
     "diferenca_para_ciclo_anterior": {
       "esic_selecao": {
@@ -214,894 +214,119 @@
         "recall:NOME_PESSOA": 0.0024,
         "recall:QUASI_IDENTIFICADOR": 0.0,
         "recall_entidades": 0.0021,
-        "recall_estrito": 0.0021,
-        "tarja_fora_do_gabarito": 0.0016
+        "recall_estrito": 0.0016,
+        "tarja_fora_do_gabarito": -0.0031
       },
       "oficial_selecao": {
-        "documentos_com_vazamento": -0.079,
-        "precisao_tarjas": 0.0023,
-        "preservacao_publicos": -0.0022,
+        "documentos_com_vazamento": -0.3158,
+        "precisao_tarjas": 0.1254,
+        "preservacao_publicos": 0.0748,
         "recall:CONTATO": 0.0,
-        "recall:DADO_FINANCEIRO": -0.0244,
-        "recall:DADO_SAUDE": 0.1522,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:DATA_NASC": 0.0,
-        "recall:DOC_PESSOAL": -0.02,
-        "recall:DOC_PROFISSIONAL": 0.0,
+        "recall:DADO_FINANCEIRO": 0.7073,
+        "recall:DADO_SAUDE": 0.7572,
+        "recall:DADO_SENSIVEL": 0.4444,
+        "recall:DATA_NASC": 0.7381,
+        "recall:DOC_PESSOAL": 0.18,
+        "recall:DOC_PROFISSIONAL": 0.0926,
         "recall:ENDERECO": 0.0,
-        "recall:ID_PROCESSUAL": -0.0167,
+        "recall:ID_PROCESSUAL": 0.3833,
         "recall:ID_VEICULO": 0.0,
-        "recall:NOME_PESSOA": 0.1136,
-        "recall:QUASI_IDENTIFICADOR": 0.0,
-        "recall_entidades": 0.0769,
-        "recall_estrito": 0.0852,
-        "tarja_fora_do_gabarito": -0.0217
-      },
-      "oficial_ajuste": {
-        "documentos_com_vazamento": -0.0945,
-        "precisao_tarjas": 0.022,
-        "preservacao_publicos": 0.0018,
-        "recall:CONTATO": 0.0,
-        "recall:DADO_FINANCEIRO": 0.0,
-        "recall:DADO_SAUDE": 0.2437,
-        "recall:DADO_SENSIVEL": 0.3236,
-        "recall:DATA_NASC": 0.0,
-        "recall:DOC_PESSOAL": 0.0,
-        "recall:DOC_PROFISSIONAL": 0.0,
-        "recall:ENDERECO": 0.0,
-        "recall:ID_PROCESSUAL": 0.0,
-        "recall:ID_VEICULO": 0.0,
-        "recall:NOME_PESSOA": 0.1707,
-        "recall:QUASI_IDENTIFICADOR": 0.0,
-        "recall_entidades": 0.1215,
-        "recall_estrito": 0.126,
-        "tarja_fora_do_gabarito": -0.0366
+        "recall:NOME_PESSOA": 0.142,
+        "recall:QUASI_IDENTIFICADOR": 0.1111,
+        "recall_entidades": 0.4272,
+        "recall_estrito": 0.4355,
+        "tarja_fora_do_gabarito": -0.0757
       }
     },
     "portoes": {
       "esic_selecao:recall_por_rotulo": true,
-      "oficial_selecao:recall_por_rotulo": false,
-      "oficial_selecao:perdas": {
-        "DADO_FINANCEIRO": -0.0244,
-        "DOC_PESSOAL": -0.02,
-        "ID_PROCESSUAL": -0.0167
-      },
+      "oficial_selecao:recall_por_rotulo": true,
       "esic_selecao:tarja_fora_do_gabarito": true,
       "oficial_selecao:precisao_tarjas": true,
       "oficial_selecao:preservacao_publicos": true,
-      "aprovada": false
+      "aprovada": true
     }
   },
   "grade": [
     {
-      "configuracao": "B_e3_completo",
-      "epoca": 3,
-      "limiares": {
-        "DADO_SAUDE": 0.5,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.98,
-        "QUASI_IDENTIFICADOR": 0.8
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.9611,
-        "recall:DADO_SAUDE": 0.6813,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0897
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5879,
-        "recall:DADO_SAUDE": 0.3292,
-        "recall:NOME_PESSOA": 0.9659,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.5556,
-        "precisao_tarjas": 0.7656,
-        "preservacao_publicos": 0.868
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "B_e4_completo",
-      "epoca": 4,
-      "limiares": {
-        "DADO_SAUDE": 0.5,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.98,
-        "QUASI_IDENTIFICADOR": 0.8
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.9617,
-        "recall:DADO_SAUDE": 0.6813,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0877
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5879,
-        "recall:DADO_SAUDE": 0.3374,
-        "recall:NOME_PESSOA": 0.9659,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.5556,
-        "precisao_tarjas": 0.7636,
-        "preservacao_publicos": 0.8669
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "B_e5_completo",
-      "epoca": 5,
-      "limiares": {
-        "DADO_SAUDE": 0.5,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.98,
-        "QUASI_IDENTIFICADOR": 0.8
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.9622,
-        "recall:DADO_SAUDE": 0.6813,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0947
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5852,
-        "recall:DADO_SAUDE": 0.3539,
-        "recall:NOME_PESSOA": 0.9318,
-        "recall:DADO_SENSIVEL": 0.0,
-        "recall:QUASI_IDENTIFICADOR": 0.7778,
-        "precisao_tarjas": 0.7641,
-        "preservacao_publicos": 0.8658
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "B_e6_completo",
-      "epoca": 6,
-      "limiares": {
-        "DADO_SAUDE": 0.5,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.98,
-        "QUASI_IDENTIFICADOR": 0.8
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.9611,
-        "recall:DADO_SAUDE": 0.6813,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0887
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5797,
-        "recall:DADO_SAUDE": 0.3251,
-        "recall:NOME_PESSOA": 0.9432,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.6667,
-        "precisao_tarjas": 0.7715,
-        "preservacao_publicos": 0.8702
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "B_e7_completo",
-      "epoca": 7,
-      "limiares": {
-        "DADO_SAUDE": 0.5,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.98,
-        "QUASI_IDENTIFICADOR": 0.8
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.9595,
-        "recall:DADO_SAUDE": 0.6687,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0853
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5783,
-        "recall:DADO_SAUDE": 0.3128,
-        "recall:NOME_PESSOA": 0.9545,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.5556,
-        "precisao_tarjas": 0.7754,
-        "preservacao_publicos": 0.8702
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "B_e8_completo",
-      "epoca": 8,
-      "limiares": {
-        "DADO_SAUDE": 0.5,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.98,
-        "QUASI_IDENTIFICADOR": 0.8
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.9606,
-        "recall:DADO_SAUDE": 0.675,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.1103
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5865,
-        "recall:DADO_SAUDE": 0.3416,
-        "recall:NOME_PESSOA": 0.9432,
-        "recall:DADO_SENSIVEL": 0.3333,
-        "recall:QUASI_IDENTIFICADOR": 0.6667,
-        "precisao_tarjas": 0.7581,
-        "preservacao_publicos": 0.8625
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "B_e9_completo",
-      "epoca": 9,
-      "limiares": {
-        "DADO_SAUDE": 0.5,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.98,
-        "QUASI_IDENTIFICADOR": 0.8
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.9606,
-        "recall:DADO_SAUDE": 0.6687,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0855
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5577,
-        "recall:DADO_SAUDE": 0.2551,
-        "recall:NOME_PESSOA": 0.9602,
-        "recall:DADO_SENSIVEL": 0.0,
-        "recall:QUASI_IDENTIFICADOR": 0.6667,
-        "precisao_tarjas": 0.7817,
-        "preservacao_publicos": 0.8702
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "B_e10_completo",
-      "epoca": 10,
-      "limiares": {
-        "DADO_SAUDE": 0.5,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.98,
-        "QUASI_IDENTIFICADOR": 0.8
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.9617,
-        "recall:DADO_SAUDE": 0.675,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0848
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5659,
-        "recall:DADO_SAUDE": 0.2675,
-        "recall:NOME_PESSOA": 0.9545,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.7778,
-        "precisao_tarjas": 0.7749,
-        "preservacao_publicos": 0.8669
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "B_e4_saude0.7_nome0.95",
-      "epoca": 4,
-      "limiares": {
-        "DADO_SAUDE": 0.7,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.95,
-        "QUASI_IDENTIFICADOR": 0.8
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.9611,
-        "recall:DADO_SAUDE": 0.675,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0841
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5755,
-        "recall:DADO_SAUDE": 0.3004,
-        "recall:NOME_PESSOA": 0.9659,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.5556,
-        "precisao_tarjas": 0.7731,
-        "preservacao_publicos": 0.8658
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "B_e4_saude0.85_nome0.95",
-      "epoca": 4,
-      "limiares": {
-        "DADO_SAUDE": 0.85,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.95,
-        "QUASI_IDENTIFICADOR": 0.8
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.9611,
-        "recall:DADO_SAUDE": 0.675,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0805
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5646,
-        "recall:DADO_SAUDE": 0.2675,
-        "recall:NOME_PESSOA": 0.9659,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.5556,
-        "precisao_tarjas": 0.7838,
-        "preservacao_publicos": 0.8691
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "B_e7_saude0.7_nome0.95",
-      "epoca": 7,
-      "limiares": {
-        "DADO_SAUDE": 0.7,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.95,
-        "QUASI_IDENTIFICADOR": 0.8
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.959,
-        "recall:DADO_SAUDE": 0.6625,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.083
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5646,
-        "recall:DADO_SAUDE": 0.2716,
-        "recall:NOME_PESSOA": 0.9545,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.5556,
-        "precisao_tarjas": 0.776,
-        "preservacao_publicos": 0.868
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "B_e7_saude0.85_nome0.95",
-      "epoca": 7,
-      "limiares": {
-        "DADO_SAUDE": 0.85,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.95,
-        "QUASI_IDENTIFICADOR": 0.8
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.9584,
-        "recall:DADO_SAUDE": 0.6562,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0811
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5591,
-        "recall:DADO_SAUDE": 0.2551,
-        "recall:NOME_PESSOA": 0.9545,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.5556,
-        "precisao_tarjas": 0.7811,
-        "preservacao_publicos": 0.868
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "B_e10_saude0.7_nome0.95",
-      "epoca": 10,
-      "limiares": {
-        "DADO_SAUDE": 0.7,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.95,
-        "QUASI_IDENTIFICADOR": 0.8
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.9606,
-        "recall:DADO_SAUDE": 0.6625,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0836
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5604,
-        "recall:DADO_SAUDE": 0.251,
-        "recall:NOME_PESSOA": 0.9545,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.7778,
-        "precisao_tarjas": 0.7805,
-        "preservacao_publicos": 0.8669
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "B_e10_saude0.85_nome0.95",
-      "epoca": 10,
-      "limiares": {
-        "DADO_SAUDE": 0.85,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.95,
-        "QUASI_IDENTIFICADOR": 0.8
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.96,
-        "recall:DADO_SAUDE": 0.6625,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0813
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5522,
-        "recall:DADO_SAUDE": 0.2263,
-        "recall:NOME_PESSOA": 0.9545,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.7778,
-        "precisao_tarjas": 0.7813,
-        "preservacao_publicos": 0.868
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "B_e4_saude0.8_nome0.98",
-      "epoca": 4,
-      "limiares": {
-        "DADO_SAUDE": 0.8,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.98,
-        "QUASI_IDENTIFICADOR": 0.8
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.9611,
-        "recall:DADO_SAUDE": 0.675,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0812
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5687,
-        "recall:DADO_SAUDE": 0.2798,
-        "recall:NOME_PESSOA": 0.9659,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.5556,
-        "precisao_tarjas": 0.7813,
-        "preservacao_publicos": 0.8691
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "B_e4_saude0.85_nome0.98",
-      "epoca": 4,
-      "limiares": {
-        "DADO_SAUDE": 0.85,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.98,
-        "QUASI_IDENTIFICADOR": 0.8
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.9611,
-        "recall:DADO_SAUDE": 0.675,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0805
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5646,
-        "recall:DADO_SAUDE": 0.2675,
-        "recall:NOME_PESSOA": 0.9659,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.5556,
-        "precisao_tarjas": 0.7852,
-        "preservacao_publicos": 0.8702
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "B_e6_saude0.85_nome0.95",
-      "epoca": 6,
-      "limiares": {
-        "DADO_SAUDE": 0.85,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.95,
-        "QUASI_IDENTIFICADOR": 0.8
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.96,
-        "recall:DADO_SAUDE": 0.6687,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0809
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5701,
-        "recall:DADO_SAUDE": 0.284,
-        "recall:NOME_PESSOA": 0.9602,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.6667,
-        "precisao_tarjas": 0.7813,
-        "preservacao_publicos": 0.8702
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "B_e5_saude0.85_nome0.95",
-      "epoca": 5,
-      "limiares": {
-        "DADO_SAUDE": 0.85,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.95,
-        "QUASI_IDENTIFICADOR": 0.8
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.9617,
-        "recall:DADO_SAUDE": 0.6813,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0844
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5673,
-        "recall:DADO_SAUDE": 0.2881,
-        "recall:NOME_PESSOA": 0.9489,
-        "recall:DADO_SENSIVEL": 0.0,
-        "recall:QUASI_IDENTIFICADOR": 0.7778,
-        "precisao_tarjas": 0.7759,
-        "preservacao_publicos": 0.8669
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "B_e8_saude0.85_nome0.95",
-      "epoca": 8,
-      "limiares": {
-        "DADO_SAUDE": 0.85,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.95,
-        "QUASI_IDENTIFICADOR": 0.8
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.9606,
-        "recall:DADO_SAUDE": 0.675,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0929
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5755,
-        "recall:DADO_SAUDE": 0.3128,
-        "recall:NOME_PESSOA": 0.9432,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.6667,
-        "precisao_tarjas": 0.7737,
-        "preservacao_publicos": 0.8669
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "B_e6_saude0.8_nome0.95",
-      "epoca": 6,
-      "limiares": {
-        "DADO_SAUDE": 0.8,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.95,
-        "QUASI_IDENTIFICADOR": 0.8
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.9606,
-        "recall:DADO_SAUDE": 0.675,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.082
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5742,
-        "recall:DADO_SAUDE": 0.2963,
-        "recall:NOME_PESSOA": 0.9602,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.6667,
-        "precisao_tarjas": 0.777,
-        "preservacao_publicos": 0.8702
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "B_e6_saude0.85_nome0.98",
-      "epoca": 6,
-      "limiares": {
-        "DADO_SAUDE": 0.85,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.98,
-        "QUASI_IDENTIFICADOR": 0.8
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.96,
-        "recall:DADO_SAUDE": 0.6687,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0809
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5659,
-        "recall:DADO_SAUDE": 0.284,
-        "recall:NOME_PESSOA": 0.9432,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.6667,
-        "precisao_tarjas": 0.7813,
-        "preservacao_publicos": 0.8702
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "B_e6_saude0.85_nome0.95_sem_quasi_identificador",
-      "epoca": 6,
-      "limiares": {
-        "DADO_SAUDE": 0.85,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.95
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.9595,
-        "recall:DADO_SAUDE": 0.6687,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0809
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5659,
-        "recall:DADO_SAUDE": 0.284,
-        "recall:NOME_PESSOA": 0.9602,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.3333,
-        "precisao_tarjas": 0.7813,
-        "preservacao_publicos": 0.8702
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "sem_modelo",
-      "epoca": 6,
+      "configuracao": "sem_classificador",
+      "epoca": null,
       "limiares": {},
       "limiares_contextuais": {},
       "decodificacao": "uniao",
       "esic_selecao": {
-        "recall_entidades": 0.9563,
-        "recall:DADO_SAUDE": 0.6375,
-        "recall:NOME_PESSOA": 0.9928,
-        "tarja_fora_do_gabarito": 0.0779
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.4794,
-        "recall:DADO_SAUDE": 0.1111,
-        "recall:NOME_PESSOA": 0.8523,
-        "recall:DADO_SENSIVEL": 0.0,
-        "recall:QUASI_IDENTIFICADOR": 0.3333,
-        "precisao_tarjas": 0.7841,
-        "preservacao_publicos": 0.8713
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "C_e4_saude0.8_nome0.98",
-      "epoca": 4,
-      "limiares": {
-        "DADO_SAUDE": 0.8,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.98
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.96,
-        "recall:DADO_SAUDE": 0.675,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0812
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5659,
-        "recall:DADO_SAUDE": 0.2798,
-        "recall:NOME_PESSOA": 0.9659,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.3333,
-        "precisao_tarjas": 0.7813,
-        "preservacao_publicos": 0.8691
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "C_e4_saude0.8_nome0.95",
-      "epoca": 4,
-      "limiares": {
-        "DADO_SAUDE": 0.8,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.95
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.96,
-        "recall:DADO_SAUDE": 0.675,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0812
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5659,
-        "recall:DADO_SAUDE": 0.2798,
-        "recall:NOME_PESSOA": 0.9659,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.3333,
-        "precisao_tarjas": 0.7799,
-        "preservacao_publicos": 0.868
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "C_e9_saude0.7_nome0.95",
-      "epoca": 9,
-      "limiares": {
-        "DADO_SAUDE": 0.7,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.95
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.9595,
-        "recall:DADO_SAUDE": 0.6687,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.083
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5508,
-        "recall:DADO_SAUDE": 0.2387,
-        "recall:NOME_PESSOA": 0.9716,
-        "recall:DADO_SENSIVEL": 0.0,
-        "recall:QUASI_IDENTIFICADOR": 0.3333,
-        "precisao_tarjas": 0.7803,
-        "preservacao_publicos": 0.8691
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "C_e9_saude0.85_nome0.95",
-      "epoca": 9,
-      "limiares": {
-        "DADO_SAUDE": 0.85,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.95
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.959,
-        "recall:DADO_SAUDE": 0.6625,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0822
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5453,
-        "recall:DADO_SAUDE": 0.2222,
-        "recall:NOME_PESSOA": 0.9716,
-        "recall:DADO_SENSIVEL": 0.0,
-        "recall:QUASI_IDENTIFICADOR": 0.3333,
-        "precisao_tarjas": 0.7813,
-        "preservacao_publicos": 0.8691
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "C_e7_saude0.7_nome0.95",
-      "epoca": 7,
-      "limiares": {
-        "DADO_SAUDE": 0.7,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.95
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.959,
-        "recall:DADO_SAUDE": 0.6625,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.083
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5618,
-        "recall:DADO_SAUDE": 0.2716,
-        "recall:NOME_PESSOA": 0.9545,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.3333,
-        "precisao_tarjas": 0.776,
-        "preservacao_publicos": 0.868
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "C_e6_saude0.85_nome0.95",
-      "epoca": 6,
-      "limiares": {
-        "DADO_SAUDE": 0.85,
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.95
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
-        "recall_entidades": 0.9595,
-        "recall:DADO_SAUDE": 0.6687,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0809
-      },
-      "oficial_selecao": {
-        "recall_entidades": 0.5659,
-        "recall:DADO_SAUDE": 0.284,
-        "recall:NOME_PESSOA": 0.9602,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.3333,
-        "precisao_tarjas": 0.7813,
-        "preservacao_publicos": 0.8702
-      },
-      "aprovada": false
-    },
-    {
-      "configuracao": "final_sem_dado_saude",
-      "epoca": 4,
-      "limiares": {
-        "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.98
-      },
-      "limiares_contextuais": {},
-      "decodificacao": "uniao",
-      "esic_selecao": {
         "recall_entidades": 0.9568,
-        "recall:DADO_SAUDE": 0.6375,
-        "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0779
+        "recall:DADO_SAUDE": 0.6438,
+        "recall:NOME_PESSOA": 0.9928,
+        "tarja_fora_do_gabarito": 0.0732
       },
       "oficial_selecao": {
-        "recall_entidades": 0.5096,
-        "recall:DADO_SAUDE": 0.1111,
-        "recall:NOME_PESSOA": 0.9659,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.3333,
-        "precisao_tarjas": 0.7835,
-        "preservacao_publicos": 0.8702
+        "recall_entidades": 0.8709,
+        "recall:DADO_SAUDE": 0.7654,
+        "recall:NOME_PESSOA": 0.9716,
+        "recall:DADO_SENSIVEL": 0.4444,
+        "recall:QUASI_IDENTIFICADOR": 0.4444,
+        "precisao_tarjas": 0.913,
+        "preservacao_publicos": 0.9494
       },
       "aprovada": false
     },
     {
-      "configuracao": "final_sem_dado_sensivel",
-      "epoca": 4,
+      "configuracao": "artefato",
+      "epoca": null,
+      "limiares": {
+        "DADO_SAUDE": 0.8,
+        "DADO_SENSIVEL": 0.8,
+        "NOME_PESSOA": 0.98
+      },
+      "limiares_contextuais": {},
+      "decodificacao": "uniao",
+      "esic_selecao": {
+        "recall_entidades": 0.96,
+        "recall:DADO_SAUDE": 0.675,
+        "recall:NOME_PESSOA": 0.9952,
+        "tarja_fora_do_gabarito": 0.0765
+      },
+      "oficial_selecao": {
+        "recall_entidades": 0.9162,
+        "recall:DADO_SAUDE": 0.8848,
+        "recall:NOME_PESSOA": 0.9943,
+        "recall:DADO_SENSIVEL": 0.4444,
+        "recall:QUASI_IDENTIFICADOR": 0.4444,
+        "precisao_tarjas": 0.9044,
+        "preservacao_publicos": 0.9461
+      },
+      "aprovada": true
+    },
+    {
+      "configuracao": "sem_saude",
+      "epoca": null,
+      "limiares": {
+        "DADO_SENSIVEL": 0.8,
+        "NOME_PESSOA": 0.98
+      },
+      "limiares_contextuais": {},
+      "decodificacao": "uniao",
+      "esic_selecao": {
+        "recall_entidades": 0.9573,
+        "recall:DADO_SAUDE": 0.6438,
+        "recall:NOME_PESSOA": 0.9952,
+        "tarja_fora_do_gabarito": 0.0731
+      },
+      "oficial_selecao": {
+        "recall_entidades": 0.8764,
+        "recall:DADO_SAUDE": 0.7654,
+        "recall:NOME_PESSOA": 0.9943,
+        "recall:DADO_SENSIVEL": 0.4444,
+        "recall:QUASI_IDENTIFICADOR": 0.4444,
+        "precisao_tarjas": 0.9105,
+        "preservacao_publicos": 0.9472
+      },
+      "aprovada": false
+    },
+    {
+      "configuracao": "sem_sensivel",
+      "epoca": null,
       "limiares": {
         "DADO_SAUDE": 0.8,
         "NOME_PESSOA": 0.98
@@ -1112,22 +337,22 @@
         "recall_entidades": 0.96,
         "recall:DADO_SAUDE": 0.675,
         "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0812
+        "tarja_fora_do_gabarito": 0.0765
       },
       "oficial_selecao": {
-        "recall_entidades": 0.5632,
-        "recall:DADO_SAUDE": 0.2798,
-        "recall:NOME_PESSOA": 0.9659,
-        "recall:DADO_SENSIVEL": 0.0,
-        "recall:QUASI_IDENTIFICADOR": 0.3333,
-        "precisao_tarjas": 0.7821,
-        "preservacao_publicos": 0.8691
+        "recall_entidades": 0.9162,
+        "recall:DADO_SAUDE": 0.8848,
+        "recall:NOME_PESSOA": 0.9943,
+        "recall:DADO_SENSIVEL": 0.4444,
+        "recall:QUASI_IDENTIFICADOR": 0.4444,
+        "precisao_tarjas": 0.9044,
+        "preservacao_publicos": 0.9461
       },
-      "aprovada": false
+      "aprovada": true
     },
     {
-      "configuracao": "final_sem_nome_pessoa",
-      "epoca": 4,
+      "configuracao": "sem_nome",
+      "epoca": null,
       "limiares": {
         "DADO_SAUDE": 0.8,
         "DADO_SENSIVEL": 0.8
@@ -1138,73 +363,126 @@
         "recall_entidades": 0.9595,
         "recall:DADO_SAUDE": 0.675,
         "recall:NOME_PESSOA": 0.9928,
-        "tarja_fora_do_gabarito": 0.0813
+        "tarja_fora_do_gabarito": 0.0766
       },
       "oficial_selecao": {
-        "recall_entidades": 0.5385,
-        "recall:DADO_SAUDE": 0.2798,
-        "recall:NOME_PESSOA": 0.8523,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.3333,
-        "precisao_tarjas": 0.7811,
-        "preservacao_publicos": 0.8702
+        "recall_entidades": 0.9107,
+        "recall:DADO_SAUDE": 0.8848,
+        "recall:NOME_PESSOA": 0.9716,
+        "recall:DADO_SENSIVEL": 0.4444,
+        "recall:QUASI_IDENTIFICADOR": 0.4444,
+        "precisao_tarjas": 0.9081,
+        "preservacao_publicos": 0.9494
       },
-      "aprovada": false
+      "aprovada": true
     },
     {
-      "configuracao": "final_mais_quasi_identificador0.8",
-      "epoca": 4,
+      "configuracao": "saude_0.6",
+      "epoca": null,
       "limiares": {
-        "DADO_SAUDE": 0.8,
+        "DADO_SAUDE": 0.6,
         "DADO_SENSIVEL": 0.8,
-        "NOME_PESSOA": 0.98,
-        "QUASI_IDENTIFICADOR": 0.8
+        "NOME_PESSOA": 0.98
       },
       "limiares_contextuais": {},
       "decodificacao": "uniao",
       "esic_selecao": {
-        "recall_entidades": 0.9611,
-        "recall:DADO_SAUDE": 0.675,
+        "recall_entidades": 0.9606,
+        "recall:DADO_SAUDE": 0.6813,
         "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0812
+        "tarja_fora_do_gabarito": 0.0804
       },
       "oficial_selecao": {
-        "recall_entidades": 0.5687,
-        "recall:DADO_SAUDE": 0.2798,
-        "recall:NOME_PESSOA": 0.9659,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.5556,
-        "precisao_tarjas": 0.7813,
-        "preservacao_publicos": 0.8691
+        "recall_entidades": 0.9231,
+        "recall:DADO_SAUDE": 0.9053,
+        "recall:NOME_PESSOA": 0.9943,
+        "recall:DADO_SENSIVEL": 0.4444,
+        "recall:QUASI_IDENTIFICADOR": 0.4444,
+        "precisao_tarjas": 0.887,
+        "preservacao_publicos": 0.9439
       },
-      "aprovada": false
+      "aprovada": true
     },
     {
-      "configuracao": "final_ctx_saude0.97",
-      "epoca": 4,
+      "configuracao": "saude_0.9",
+      "epoca": null,
+      "limiares": {
+        "DADO_SAUDE": 0.9,
+        "DADO_SENSIVEL": 0.8,
+        "NOME_PESSOA": 0.98
+      },
+      "limiares_contextuais": {},
+      "decodificacao": "uniao",
+      "esic_selecao": {
+        "recall_entidades": 0.96,
+        "recall:DADO_SAUDE": 0.675,
+        "recall:NOME_PESSOA": 0.9952,
+        "tarja_fora_do_gabarito": 0.0758
+      },
+      "oficial_selecao": {
+        "recall_entidades": 0.908,
+        "recall:DADO_SAUDE": 0.8601,
+        "recall:NOME_PESSOA": 0.9943,
+        "recall:DADO_SENSIVEL": 0.4444,
+        "recall:QUASI_IDENTIFICADOR": 0.4444,
+        "precisao_tarjas": 0.9083,
+        "preservacao_publicos": 0.9472
+      },
+      "aprovada": true
+    },
+    {
+      "configuracao": "nome_0.95",
+      "epoca": null,
+      "limiares": {
+        "DADO_SAUDE": 0.8,
+        "DADO_SENSIVEL": 0.8,
+        "NOME_PESSOA": 0.95
+      },
+      "limiares_contextuais": {},
+      "decodificacao": "uniao",
+      "esic_selecao": {
+        "recall_entidades": 0.96,
+        "recall:DADO_SAUDE": 0.675,
+        "recall:NOME_PESSOA": 0.9952,
+        "tarja_fora_do_gabarito": 0.0765
+      },
+      "oficial_selecao": {
+        "recall_entidades": 0.9162,
+        "recall:DADO_SAUDE": 0.8848,
+        "recall:NOME_PESSOA": 0.9943,
+        "recall:DADO_SENSIVEL": 0.4444,
+        "recall:QUASI_IDENTIFICADOR": 0.4444,
+        "precisao_tarjas": 0.9031,
+        "preservacao_publicos": 0.945
+      },
+      "aprovada": true
+    },
+    {
+      "configuracao": "saude_contextual_0.95",
+      "epoca": null,
       "limiares": {
         "DADO_SAUDE": 0.8,
         "DADO_SENSIVEL": 0.8,
         "NOME_PESSOA": 0.98
       },
       "limiares_contextuais": {
-        "DADO_SAUDE": 0.97
+        "DADO_SAUDE": 0.95
       },
       "decodificacao": "uniao",
       "esic_selecao": {
-        "recall_entidades": 0.9708,
-        "recall:DADO_SAUDE": 0.8,
+        "recall_entidades": 0.9725,
+        "recall:DADO_SAUDE": 0.8187,
         "recall:NOME_PESSOA": 0.9952,
-        "tarja_fora_do_gabarito": 0.0918
+        "tarja_fora_do_gabarito": 0.0892
       },
       "oficial_selecao": {
-        "recall_entidades": 0.6525,
-        "recall:DADO_SAUDE": 0.5391,
-        "recall:NOME_PESSOA": 0.9659,
-        "recall:DADO_SENSIVEL": 0.2222,
-        "recall:QUASI_IDENTIFICADOR": 0.3333,
-        "precisao_tarjas": 0.7933,
-        "preservacao_publicos": 0.8669
+        "recall_entidades": 0.9162,
+        "recall:DADO_SAUDE": 0.8848,
+        "recall:NOME_PESSOA": 0.9943,
+        "recall:DADO_SENSIVEL": 0.4444,
+        "recall:QUASI_IDENTIFICADOR": 0.4444,
+        "precisao_tarjas": 0.8991,
+        "preservacao_publicos": 0.945
       },
       "aprovada": false
     }

@@ -80,9 +80,24 @@ def test_precisao_e_preservacao_no_conjunto_de_referencia():
     assert avaliar_documento(d, [ent("Maria Souza", "alertar")])["vazou"]
 
 
+def test_portao_de_selecao_por_tolerancia():
+    from treino.portao import vereditos
+
+    def comp(**dif):
+        return {"metricas": {k.replace("__", ":"): {"diferenca": v} for k, v in dif.items()}}
+
+    assert vereditos("esic_selecao", comp(recall__NOME_PESSOA=-0.004, tarja_fora_do_gabarito=0.005)) == []
+    falhas = vereditos("esic_selecao", comp(recall__NOME_PESSOA=-0.006, tarja_fora_do_gabarito=0.006))
+    assert len(falhas) == 2
+    assert vereditos("oficial_selecao", comp(recall__DADO_SAUDE=-0.009, precisao_tarjas=-0.004,
+                                             preservacao_publicos=0.02)) == []
+    assert len(vereditos("oficial_selecao", comp(recall__DADO_SAUDE=-0.011, precisao_tarjas=-0.006,
+                                                 preservacao_publicos=-0.006))) == 3
+
+
 def test_erros_por_documento_e_recusa_fora_do_ajuste(tmp_path):
     import pytest
-    from avaliar_ouro import PASTA, _somente_ajuste, erros_documento
+    from avaliar_ouro import ADVERSARIAL, PASTA, _somente_ajuste, erros_documento
 
     texto = "A Secretaria de Saúde atendeu Maria Souza no Hospital Regional."
     d = {"id": "R-1", "texto": texto, "entidades": [{"tipo": "NOME_PESSOA", "valor": "Maria Souza"}],
@@ -91,7 +106,8 @@ def test_erros_por_documento_e_recusa_fora_do_ajuste(tmp_path):
     r = erros_documento(d, [SimpleNamespace(inicio=inicio, fim=inicio + 17, acao="tarjar", tipo="NOME")])
     assert r["vazou"] and r["nao_protegidas"][0]["situacao"] == "nao_detectada"
     assert r["tarjas_fora"][0]["trecho"] == "Hospital Regional" and len(r["publicos_tarjados"]) == 1
-    _somente_ajuste([tmp_path / "ajuste.jsonl"])
-    for proibido in (PASTA / "ouro_a.jsonl", tmp_path / "selecao.jsonl", PASTA / "ajuste.jsonl"):
+    _somente_ajuste([tmp_path / "ajuste.jsonl", ADVERSARIAL / "lotes" / "lote_R1.jsonl"])
+    for proibido in (PASTA / "ouro_a.jsonl", tmp_path / "selecao.jsonl", PASTA / "ajuste.jsonl",
+                     PASTA / "processo" / "ajuste_x.jsonl"):
         with pytest.raises(SystemExit):
             _somente_ajuste([proibido])

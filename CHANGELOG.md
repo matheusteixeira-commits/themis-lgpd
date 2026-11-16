@@ -66,6 +66,10 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
   município são descartados.
 - `benchmark/treino/ablacao_spancat.py` avalia uma grade de épocas e limiares no sistema completo, nas
   duas seleções, verifica os portões e grava a configuração escolhida no artefato.
+- Ablação no sistema integrado do ciclo 2 (`benchmark/treino/ciclo2/ablacao_integrada.json`): sem o
+  classificador, os documentos oficiais com vazamento passariam de 65,8% para 76,3% na seleção. Um
+  rótulo de proteção só é desativado quando causa dano medido; `DADO_SENSIVEL`, sem efeito mensurável
+  nas seleções e sem dano, continua ativo.
 
 ### Adicionado — cobertura nacional
 
