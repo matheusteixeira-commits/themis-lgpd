@@ -1,0 +1,44 @@
+{
+  "lotes": [
+    "lote_C.jsonl",
+    "lote_D.jsonl",
+    "lote_E.jsonl",
+    "lote_F.jsonl"
+  ],
+  "ajuste": {
+    "documentos": 153,
+    "sha256": "7ad117436ae2d8fcd705f49a3729f191ae4e3c00a63a96104d5aaa3e66bd140c",
+    "entidades": {
+      "CONTATO": 50,
+      "DADO_FINANCEIRO": 138,
+      "DADO_SAUDE": 673,
+      "DADO_SENSIVEL": 34,
+      "DATA_NASC": 133,
+      "DOC_PESSOAL": 145,
+      "DOC_PROFISSIONAL": 205,
+      "ENDERECO": 68,
+      "ID_PROCESSUAL": 176,
+      "ID_VEICULO": 24,
+      "NOME_PESSOA": 586,
+      "QUASI_IDENTIFICADOR": 30
+    }
+  },
+  "selecao": {
+    "documentos": 47,
+    "sha256": "fad1bd1b2bb14b419cd697e7ead62b65b56c70986025bf0752600bcd67864b13",
+    "entidades": {
+      "CONTATO": 18,
+      "DADO_FINANCEIRO": 41,
+      "DADO_SAUDE": 243,
+      "DADO_SENSIVEL": 9,
+      "DATA_NASC": 42,
+      "DOC_PESSOAL": 50,
+      "DOC_PROFISSIONAL": 54,
+      "ENDERECO": 18,
+      "ID_PROCESSUAL": 60,
+      "ID_VEICULO": 8,
+      "NOME_PESSOA": 176,
+      "QUASI_IDENTIFICADOR": 9
+    }
+  }
+}
