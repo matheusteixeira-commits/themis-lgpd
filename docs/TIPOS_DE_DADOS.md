@@ -204,11 +204,13 @@ trecho em maiúsculas do classificador treinado sem termo do léxico. Também vi
 contagem ou estatística de um grupo ("41 casos de violência sexual", "nove deles com gravidez", "63% em
 situação de violência", "38 estudantes com deficiência visual"); a expressão de diagnóstico em indicador
 fora de documento sobre pessoa ("o intervalo entre o diagnóstico de câncer e o início da quimioterapia foi
-de 38 dias em média"); a denominação religiosa e o termo em iniciais maiúsculas que continuam nome próprio
-("Bernardino Batista", "Diretora de Atenção a Populações em Situação de Violência"); "internação" em
+de 38 dias em média"); a denominação religiosa que continua nome próprio ("Bernardino Batista") e o termo em
+iniciais maiúsculas que continua nome de unidade, programa ou cargo ("Diretora de Atenção a Populações em
+Situação de Violência"); "internação" em
 documento de medida socioeducativa, sem serviço de saúde na frase; o exame pericial só requisitado
 ("requisitado exame de corpo de delito"); e o trecho do classificador sem termo do léxico que começa por
-palavra funcional ("Em entrevista") ou descreve medida ou material de obra ("fck 35 MPa", "pedra tosca").
+conjunção ou verbo ("e que perdeu", "Faz três semanas") ou descreve medida ou material de obra ("fck 35 MPa",
+"pedra tosca").
 
 O classificador de trechos treinado (ver [Configuração](CONFIGURACAO.md#classificador-de-dados-sensíveis))
 complementa essas regras com condições descritas em linguagem clínica ou com palavras próprias, achados de
@@ -315,9 +317,9 @@ requerente", "o paciente", "minha filha", "o declarante", "a custodiada", "a fam
 identificador pessoal já detectado (nome, documento, contato, processo). Em enunciado normativo ou de
 protocolo — verbo deôntico ("deve receber", "deverá apresentar", "tem assegurada", "aplicam-se") e oração
 que começa por sujeito genérico ("O paciente com sinais de alarme…", "Toda gestante…", "Nos casos de…") —,
-fora de documento centrado em pessoa, o papel com artigo designa qualquer pessoa na situação descrita: o
-termo vira alerta, salvo com marcador de primeira pessoa, pronome pessoal ou identificador direto na
-frase. Assim, "a política de saúde
+fora de documento centrado em pessoa e de texto em primeira pessoa, o papel com artigo designa qualquer
+pessoa na situação descrita: o termo vira alerta, salvo com pronome pessoal, autodeclaração ou
+identificador direto na frase. Assim, "a política de saúde
 mental prevê atendimento para depressão" permanece legível, enquanto "minha filha tem autismo" é
 tarjado. A regra evita tarjar conteúdo de interesse público, em atenção ao princípio da máxima
 divulgação da LAI. Ver [ADR 0004](adr/0004-perfis-lgpd-e-lai.md).

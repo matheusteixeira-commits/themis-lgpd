@@ -442,9 +442,10 @@ SAUDE_CONTEXTUAL = [
            r"acometid[oa]\s+(?:de|por)|sofre\s+de|sofro\s+de|tem\s+(?:um\s+)?(?:quadro|hist[óo]rico)\s+de|"
            r"em\s+tratamento\s+(?:de|para|contra)|faz\s+tratamento\s+(?:de|para)|tratando\s+(?:de|um)|"
            r"laudo\s+(?:que\s+)?(?:atesta|indica|comprova)|afastad[oa]\s+por|licen[çc]a\s+(?:m[ée]dica\s+)?(?:por|para\s+tratamento\s+de))"
-           # A expressão não atravessa conjunção nem oração relativa ("faz tratamento para HIV na Unidade X e que
-           # perdeu duas consultas"), que já não descrevem a condição.
-           r"\s+(?:(?!\s(?:e|que|onde|quando|mas|porque|pois|enquanto|desde|h[áa])\s)[^\n.;,()]){3,60}", 0.9, camada=CONTEXTUAL,
+           # A expressão não atravessa oração relativa ou adverbial ("faz tratamento para HIV na Unidade X e que
+           # perdeu duas consultas"), que já não descreve a condição; a coordenação de condições ("diabetes e
+           # hipertensão") continua na expressão.
+           r"\s+(?:(?!\s(?:e\s+que|onde|quando|mas|porque|pois|enquanto)\s)[^\n.;,()]){3,60}", 0.9, camada=CONTEXTUAL,
            nome="saude:frase"),
     # Código da CID sem o rótulo ("F41.1"): exige vocabulário médico próximo, pois o formato se
     # confunde com outros códigos. Os códigos iniciados por U, de uso especial, não são considerados.
@@ -1002,9 +1003,9 @@ _NUMERAL = (rf"(?:(?<![\w.,/])\d{{1,3}}(?:\.\d{{3}})+(?:,\d+)?|(?<![\w.,/])\d+(?
 _NUMERAL_GRUPO = (r"(?:(?<![\w.,/])(?:\d{1,3}(?:\.\d{3})+|[1-9]\d+)(?:,\d+)?|\b(?:dez|onze|doze|treze|quatorze|catorze|quinze|"
                   r"dezesseis|dezessete|dezoito|dezenove|vinte|trinta|quarenta|cinquenta|cem|cento|mil|duzent[oa]s|trezent[oa]s|"
                   r"quinhent[oa]s))")
-#: Evento contado ("3 casos de", "52 notificações de"), em qualquer quantidade.
-_EVENTOS = (r"(?:casos|notifica[çc][õo]es|registros|ocorr[êe]ncias|den[úu]ncias|pedidos|encaminhamentos|atendimentos|[óo]bitos|"
-            r"boletins)")
+#: Evento contado ("52 notificações de", "41 casos de"); como no grupo de pessoas, a contagem menor que dez
+#: pode ser o histórico de uma pessoa ou família ("tivemos 2 casos de covid em casa").
+_EVENTOS = r"(?:casos|notifica[çc][õo]es|registros|ocorr[êe]ncias|den[úu]ncias|pedidos|encaminhamentos|[óo]bitos|boletins)"
 #: Grupo de pessoas contado ("418 mulheres", "38 estudantes").
 _POPULACAO = (r"(?:pessoas|mulheres|homens|crian[çc]as|adolescentes|jovens|idos[oa]s|estudantes|alun[oa]s|pacientes|"
               r"usu[áa]ri[oa]s|gestantes|lactantes|pu[ée]rperas|fam[íi]lias|v[íi]timas|servidor(?:es|as)|benefici[áa]ri[oa]s|"
@@ -1014,7 +1015,7 @@ _POPULACAO = (r"(?:pessoas|mulheres|homens|crian[çc]as|adolescentes|jovens|idos
 #: "236 com" (lista de contagens). As palavras são separadas por espaço ou tabulação, sem atravessar a frase.
 _AGREGADO_ANTES = re.compile(
     _NUMERAL + r"[ \t]*(?:%|por[ \t]+cento)[ \t]+(?:d[oa]s[ \t]+[\wà-ú-]+[ \t]+)?(?:em|com|de|eram|tinham|apresentavam|sofreram)[ \t]+$"
-    r"|(?:" + _NUMERAL + r"[ \t]+" + _EVENTOS + r"|" + _NUMERAL_GRUPO + r"[ \t]+" + _POPULACAO + r")"
+    r"|" + _NUMERAL_GRUPO + r"[ \t]+(?:" + _EVENTOS + r"|" + _POPULACAO + r")"
     r"(?:[ \t]+[\wà-ú-]+){0,2}?[ \t]+(?:com|de|por|em|sem|contra|a)[ \t]+"
     r"(?:situa[çc][ãa]o[ \t]+de[ \t]+)?(?:[\wà-ú-]+(?:[ \t]+[\wà-ú-]+){0,2}[ \t]+(?:e|ou)[ \t]+)?$"
     r"|" + _NUMERAL + r"[ \t]+(?:deles|delas|dos[ \t]+quais|das[ \t]+quais|destes|destas|desses|dessas)[ \t]+"
@@ -1060,10 +1061,9 @@ def agregado(texto: str, ini: int, fim: int) -> bool:
     return m is not None and (m.group("com") is not None or _PLURAL.match(texto, ini, fim) is not None)
 
 
-#: Palavra funcional ou verbo no início de trecho do classificador: borda mal posta ("Em entrevista", "e
-#: que perdeu", "Faz três semanas", "al médico").
-_FUNCIONAL_INICIAL = re.compile(r"(?:em|e|que|de|da|do|das|dos|a|o|as|os|ao|à|al|el|la|lo|y|para|pra|com|por|faz|fazia|h[áa])\b",
-                                re.IGNORECASE)
+#: Conjunção ou artigo estrangeiro no início de trecho do classificador: borda mal posta ("e que perdeu",
+#: "al médico").
+_FUNCIONAL_INICIAL = re.compile(r"(?:e\s+que|que|al|el|la|lo|y)\b", re.IGNORECASE)
 #: Medida técnica e material de obra que o classificador confunde com achado clínico ("fck 35 MPa", "pedra
 #: tosca rejuntada").
 _MEDIDA_DE_OBRA = re.compile(r"\b(?:\d+(?:[.,]\d+)?\s*)?(?-i:MPa|GPa|kPa|kN|kgf|tf)\b|\bfck\b|\b(?:pedras?|concreto|asfalto|brita|"
@@ -1083,8 +1083,8 @@ _MEDICAMENTO_OU_DISPOSITIVO = re.compile(r"(?:insulinas?|bombinhas?|nebuliza\w+|
                                          r"cadeiras?\s+de\s+rodas|fraldas?|sondas?|medica[çc](?:[ãa]o|[õo]es)|rem[ée]dios?|"
                                          r"aparelhos?\s+auditivos?|glicos[íi]metros?|muletas?|andador)\b", re.IGNORECASE)
 #: Vocabulário de estatística e de indicador.
-_ESTATISTICA = re.compile(r"\b(?:m[ée]dia|mediana|taxa|percentual|propor[çc][ãa]o|incid[êe]ncia|preval[êe]ncia|casos|"
-                          r"notifica[çc][õo]es|[óo]bitos|interna[çc][õo]es|indicador(?:es)?|meta)\b", re.IGNORECASE)
+_ESTATISTICA = re.compile(r"\b(?:em\s+m[ée]dia|m[ée]dia\s+de|mediana|taxa\s+de|percentua(?:l|is)|propor[çc][ãa]o|"
+                          r"incid[êe]ncia|preval[êe]ncia|indicador(?:es)?)\b", re.IGNORECASE)
 
 
 def _limites_da_frase(texto: str, ini: int, fim: int) -> tuple[int, int]:
@@ -1114,8 +1114,12 @@ _NOME_ANTES = re.compile(r"(?-i:\b(?:[A-ZÀ-Ú][\w-]*|[A-Z]{2,}))[ \t]+$")
 #: seguida ou não de conectivo, logo antes dele.
 _TITULO_PROPRIO = re.compile(r"(?-i:[A-ZÀ-Ú][a-zà-ú][\wà-ú-]*(?:[ \t]+(?:(?:d[aoe]s?|em|a|à|e|para|com|contra)[ \t]+)?"
                              r"[A-ZÀ-Ú][a-zà-ú][\wà-ú-]*)+)")
-_CONTINUA_NOME = re.compile(r"(?-i:\b[A-ZÀ-Ú][a-zà-ú][\wà-ú-]*)[ \t]+(?:(?:d[aoe]s?|em|a|à|e|para|com|contra)[ \t]+)?$",
+_CONTINUA_NOME = re.compile(r"(?:(?-i:\b[A-ZÀ-Ú][a-zà-ú][\wà-ú-]*)[ \t]+(?:(?:d[aoe]s?|em|a|à|e|para|com|contra)[ \t]+)?){2,}$",
                             re.REVERSE)
+#: Núcleo de nome de unidade, programa ou cargo na sequência que o termo continua: sem ele, a sequência de
+#: iniciais maiúsculas pode ser só a grafia do pedido ("Sofro De Fibromialgia").
+_CABECA_DE_NOME = re.compile(r"(?-i:\b(?:" + _CABECA_INSTITUICAO + r"|Diretora?|Coordenadora?|Gerente|Chefe|Secret[áa]ri[oa]|"
+                             r"Superintendente|Aten[çc][ãa]o|Vigil[âa]ncia|Prote[çc][ãa]o|Apoio|Enfrentamento|Preven[çc][ãa]o)\b)")
 #: Sinal, sintoma ou histórico que antecede a condição e integra o trecho ("sinais de depressão pós-parto").
 _PREFIXO_ACHADO = re.compile(r"\b(?:(?:sinais|sintomas|hist[óo]rico|epis[óo]dios?|queixas?)\s+de|"
                              # Ato ou estado do cuidado que governa o termo ("avaliação de prótese", "fila do
@@ -1248,12 +1252,15 @@ class ContextoDocumental:
         """Indica se o trecho está contido em algum dos intervalos."""
         return any(a <= ini and fim <= b for a, b in intervalos)
 
-    def isencao(self, texto: str, ini: int, fim: int, camada: str, origem: str = "", tipo: str = "") -> str:
+    def isencao(self, texto: str, ini: int, fim: int, camada: str, origem: str = "", tipo: str = "",
+                pessoal: bool = False) -> str:
         """Motivo para não vincular o termo sensível a uma pessoa, ou ``""``.
 
         Nome de instituição, programa ou norma e negação valem para qualquer camada; título, linha de
         assinatura e rótulo de campo, só para termos isolados (camada semântica). O nome de exame
         seguido de dois-pontos ("Campo visual (OD): sem alterações") não é rótulo: abre o resultado.
+        ``pessoal`` indica marcador de primeira pessoa ou de autodeclaração na frase ("sou um dos 50
+        pacientes com esclerose múltipla"): a contagem e a estatística não isentam o termo.
         """
         if self.em(self.protegidos, ini, fim):
             return ISENCAO_NOME
@@ -1261,7 +1268,8 @@ class ContextoDocumental:
         # Infantojuvenil de Teresina", "no CAPS III Leste"): o nome da unidade é público, e o achado sem ele
         # não descreve condição. O serviço citado pelo tipo ("no CAPS AD", "no ambulatório de saúde mental")
         # continua tarjado com a expressão.
-        if (tipo == "SAUDE" and (s := _SERVICO_SAUDE_MENTAL_RE.search(texto, ini, fim)) is not None
+        if (tipo == "SAUDE" and not origem.startswith(_ORIGEM_APRENDIDA)
+                and (s := _SERVICO_SAUDE_MENTAL_RE.search(texto, ini, fim)) is not None
                 and _servico_nomeado(texto, *s.span()) and not _TERMO_SAUDE.search(texto, ini, s.start())):
             return ISENCAO_NOME
         # Denominação religiosa com inicial maiúscula após outra palavra com inicial maiúscula integra nome
@@ -1270,9 +1278,10 @@ class ContextoDocumental:
             return ISENCAO_NOME
         # Termo com todas as palavras em inicial maiúscula que continua nome próprio de unidade, cargo ou
         # programa ("Diretora de Atenção a Populações em Situação de Violência").
-        if _TITULO_PROPRIO.fullmatch(texto, ini, fim) and _CONTINUA_NOME.search(texto, max(0, ini - 60), ini):
+        if (_TITULO_PROPRIO.fullmatch(texto, ini, fim) and (c := _CONTINUA_NOME.search(texto, max(0, ini - 80), ini))
+                and _CABECA_DE_NOME.search(c.group())):
             return ISENCAO_NOME
-        if agregado(texto, ini, fim):
+        if not pessoal and agregado(texto, ini, fim):
             return ISENCAO_AGREGADO
         inicio_linha = texto.rfind("\n", 0, ini) + 1
         if tipo in ("VIOLENCIA", "ORIGEM_RACIAL", "DADO_DE_MENOR") and _CAMPO_CLASSIFICACAO.match(texto, inicio_linha):
@@ -1293,7 +1302,7 @@ class ContextoDocumental:
             return ISENCAO_FRAGMENTO
         # Expressão de diagnóstico em estatística ou indicador ("o intervalo entre o diagnóstico de câncer e o
         # início da quimioterapia foi de 38 dias em média"), fora de documento sobre pessoa.
-        if (origem in ("saude:frase", "saude:cid", "saude:cid-sem-ponto") and not self.centrado
+        if (origem in ("saude:frase", "saude:cid", "saude:cid-sem-ponto") and not self.centrado and not pessoal
                 and _ESTATISTICA.search(texto, *_limites_da_frase(texto, ini, fim))):
             return ISENCAO_AGREGADO
         if (tipo == "SAUDE" and _INTERNACAO_SIMPLES.fullmatch(trecho) and self.socioeducativo

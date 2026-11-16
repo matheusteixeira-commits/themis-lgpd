@@ -43,14 +43,11 @@ _VINCULO_FORTE = (
     # "tenho interesse", "tenho as seguintes dúvidas": fórmulas do pedido, não situação pessoal.
     r"tenho(?!\s+(?:(?:as|algumas|alguns|umas?|seguintes|outras?|muitas?)\s+)*(?:interesse|d[úu]vidas?|perguntas|"
     r"quest[õo]es|curiosidade|conhecimento|ci[êe]ncia)\b)|"
-    # "uso" de primeira pessoa, e não o substantivo ("o uso do nome social", "uso de equipamento").
-    r"trato|tratei|tomo|tomei|"
-    r"(?<!\b(?:o|do|no|ao|pelo|em|de|para|sem|com|seu|sua|meu|nosso|nossa|esse|este|cujo)\s)uso(?!\s+d[oa]s?\b)|"
-    r"sinto|senti|convivo|enfrento|enfrentei|descobri|fa[çc]o|fiz|fiquei|passei|"
+    r"trato|tratei|tomo|tomei|sinto|senti|convivo|enfrento|enfrentei|descobri|fa[çc]o|fiz|fiquei|passei|"
     r"nasci|moro|recebi|realizei|internei|operei|preciso\s+de\s+(?:tratamento|rem[ée]dio|medica[çc][ãa]o|cirurgia)|"
     r"possuo|utilizo|dependo|realizo|perdi|desenvolvi|contra[íi]|pude|dei\s+entrada|"
     r"t[ôo]|tava|(?!solicitei|requisitei|pedi)\w{3,}ei|perten[çc]o|participo|frequento|"
-    r"dele|dela|deles|delas|ele|ela|"
+    r"dele|dela|ele|ela|"
     r"(?:um|uma)\s+(?:familiar|parente)|"
     r"(?:auto)?declarou-se|(?:auto)?declara-se|se\s+(?:auto)?declara(?:va|ram|m)?|se\s+reconhece(?:m|u)?|reconhece-se|"
     r"se\s+identifica(?:va)?|identifica-se|"
@@ -60,9 +57,10 @@ _VINCULO_FORTE = (
 )
 #: Papéis com artigo ("o requerente", "a paciente", "a família") e possessivos de terceira pessoa: designam
 #: a pessoa de que o texto trata, mas também qualquer pessoa num enunciado normativo ("O paciente com
-#: sinais de alarme deve receber hidratação").
+#: sinais de alarme deve receber hidratação"). "Uso" é também o substantivo ("o uso de máscara"), e "deles"
+#: retoma também um grupo ("nove deles com gravidez").
 _VINCULO_PAPEL = (
-    r"seu|sua|seus|suas|"
+    r"seu|sua|seus|suas|deles|delas|uso|"
     r"(?:o|a|do|da|ao|à|pel[oa])\s+(?:servidor|servidora|requerente|paciente|cidad[ãa]o|cidad[ãa]|interessad[oa]|"
     r"denunciante|v[íi]tima|solicitante|alun[oa]|estudante|funcion[áa]ri[oa]|empregad[oa]|segurad[oa]|"
     r"benefici[áa]ri[oa]|filh[oa]|espos[oa]|marido|mulher|companheir[oa]|m[ãa]e|pai|irm[ãa]o?|vizinh[oa]|colega|"
@@ -97,6 +95,10 @@ _INICIO_GENERICO = re.compile(
     r"fam[íi]lias?|respons[áa]ve(?:l|is)|conselheir[oa]s?)\b|(?:todo|toda|todos|todas|cada|qualquer|nenhum|nenhuma)\b|"
     r"(?:nos|nas|em)\s+(?:casos?|registros|situa[çc][õo]es|hip[óo]teses?)\b|(?:quando|caso|se|com|sem)\b)", re.IGNORECASE)
 _MOTIVO_NORMATIVO = "Termo sensível em enunciado normativo ou de protocolo, sem pessoa determinada — revisar"
+#: Primeira pessoa em qualquer ponto do texto: num pedido ou relato pessoal, a frase com verbo deôntico ("o
+#: paciente com câncer deve iniciar o tratamento em 60 dias?") costuma tratar do caso de quem escreve.
+_PRIMEIRA_PESSOA = re.compile(r"\b(?:eu|meu|minha|meus|minhas|comigo|sou|estou|tenho|tive|fui|sofro|sofri|preciso)\b",
+                              re.IGNORECASE)
 #: Achados contextuais que, em norma ou protocolo, descrevem a situação em abstrato ("A vítima de violência
 #: sexual deve ser acolhida", "o portador de doença grave terá direito à isenção").
 _CONTEXTUAIS_EM_NORMA = frozenset({"intimidade:violencia", "saude:cid", "saude:cid-sem-ponto", "saude:frase", "saude:possui"})
@@ -474,6 +476,11 @@ class Anonimizador:
             return True
         return any(a <= x < b or a < y <= b for x, y in ancoras)
 
+    def _pessoal(self, texto: str, ini: int, fim: int) -> bool:
+        """Indica se a frase do trecho tem marcador de :data:`_VINCULO_FORTE` (primeira pessoa, pronome pessoal,
+        autodeclaração ou fala relatada)."""
+        return bool(_VINCULO_FORTE_RE.search(texto, *self._frase(texto, ini, fim)))
+
     def _normativa(self, texto: str, ini: int, fim: int, identificadores: list[tuple[int, int]]) -> bool:
         """Indica se a frase do trecho é enunciado normativo sem pessoa determinada (ver :data:`_NORMATIVO`).
 
@@ -550,6 +557,7 @@ class Anonimizador:
                    and d.score >= 0.6]
         identificadores = [(d.inicio, d.fim) for d in dets
                            if info_tipo(d.tipo).categoria in {"PESSOA", "DOCUMENTO", "CONTATO"} and d.score >= 0.6]
+        primeira_pessoa = bool(_PRIMEIRA_PESSOA.search(texto))
         # Vínculo no nível do documento (ver themis_lgpd.reconhecedores.sensiveis.contexto_documental): num
         # documento centrado numa pessoa identificada, o dado sensível se refere a ela; num registro clínico,
         # o trecho tarjado vai até a fronteira da frase.
@@ -580,10 +588,11 @@ class Anonimizador:
                     acao, motivo = P.ALERTAR, "Confiança baixa — revisar"
             elif regra == P.VINCULADO:
                 isencao = ("" if d.tipo in perfil.tarjar_sensivel_sempre
-                           else ctx.isencao(texto, d.inicio, d.fim, d.camada, d.origem, d.tipo))
+                           else ctx.isencao(texto, d.inicio, d.fim, d.camada, d.origem, d.tipo,
+                                            pessoal=self._pessoal(texto, d.inicio, d.fim)))
                 if isencao:
                     acao, motivo = P.ALERTAR, isencao
-                elif (not ctx.centrado and d.tipo not in perfil.tarjar_sensivel_sempre
+                elif (not ctx.centrado and not primeira_pessoa and d.tipo not in perfil.tarjar_sensivel_sempre
                       and (d.camada == B.SEMANTICA or d.origem in _CONTEXTUAIS_EM_NORMA)
                       and self._normativa(texto, d.inicio, d.fim, identificadores)):
                     acao, motivo = P.ALERTAR, _MOTIVO_NORMATIVO
@@ -658,8 +667,7 @@ class Anonimizador:
 
         tarjadas = {chave(e) for e in entidades if e.tipo == "SAUDE" and e.acao == P.TARJAR}
         for e in entidades:
-            if (e.tipo != "SAUDE" or e.acao != P.ALERTAR or e.motivo in S.MOTIVOS_ISENCAO
-                    or e.motivo == _MOTIVO_NORMATIVO):
+            if e.tipo != "SAUDE" or e.acao != P.ALERTAR or e.motivo in S.MOTIVOS_ISENCAO:
                 continue
             k = chave(e)
             if k in tarjadas or (len(k) >= 4 and not S.termo_generico(k)

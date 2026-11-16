@@ -191,9 +191,9 @@ def test_toponimo_e_nome_de_unidade_ficam_legiveis(anon):
 
 
 def test_trecho_do_classificador_sem_termo_de_saude():
-    texto = "A laje foi concretada com fck 35 MPa. Em entrevista, o morador confirmou a obra."
+    texto = "A laje foi concretada com fck 35 MPa. O morador disse que a obra atrasou e que perdeu o prazo."
     ctx = S.contexto_documental(texto)
     ini = texto.index("fck")
     assert ctx.isencao(texto, ini, ini + len("fck 35 MPa"), "semantica", "aprendido:dado_saude", "SAUDE") == S.ISENCAO_FRAGMENTO
-    ini = texto.index("Em entrevista")
-    assert ctx.isencao(texto, ini, ini + 13, "semantica", "aprendido:dado_saude", "SAUDE") == S.ISENCAO_FRAGMENTO
+    ini = texto.index("e que perdeu")
+    assert ctx.isencao(texto, ini, ini + 12, "semantica", "aprendido:dado_saude", "SAUDE") == S.ISENCAO_FRAGMENTO
