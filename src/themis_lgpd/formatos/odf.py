@@ -35,7 +35,7 @@ from . import xml_office as X
 from .imagem import analisar_incorporadas, aviso_imagens
 from .midia import formato_imagem, limpar_imagens, metadados_restantes
 from .pacote import gravar_xml, ler_xml
-from .verificacao import valores_protegidos, valores_tarjados, verificar_ausencia
+from .verificacao import texto_visivel, valores_protegidos, valores_tarjados, verificar_ausencia
 
 TIPOS = {
     "application/vnd.oasis.opendocument.text": "odt",
@@ -379,6 +379,6 @@ def _verificar(saida: bytes, resultados, anon: Anonimizador) -> None:
             elif M.tipo_metarquivo(dados):
                 textos.append(M.ler(dados).texto)
     sobras = verificar_ausencia("\n".join(textos), valores_tarjados(resultados),
-                                valores_protegidos(resultados, anon.permitir))
+                                valores_protegidos(resultados, anon.permitir), texto_visivel(resultados))
     if sobras:
         raise VazamentoDetectado(f"{len(sobras)} trecho(s) tarjado(s) ainda legível(is) no documento gerado.")

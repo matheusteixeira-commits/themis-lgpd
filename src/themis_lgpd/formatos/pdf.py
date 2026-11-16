@@ -38,7 +38,13 @@ from dataclasses import dataclass, field
 
 from ..motor import Anonimizador, Resultado
 from . import ArquivoInvalido, FalhaOCR, ResultadoArquivo, VazamentoDetectado
-from .verificacao import valores_protegidos, valores_tarjados, verificar_ausencia
+from .verificacao import (
+    sem_ocorrencia_visivel,
+    texto_visivel,
+    valores_protegidos,
+    valores_tarjados,
+    verificar_ausencia,
+)
 
 #: Resolução de renderização das páginas rasterizadas (pontos por polegada).
 DPI = 200
@@ -1116,8 +1122,14 @@ def anonimizar_pdf(dados: bytes, anon: Anonimizador, nome: str, *, limite_pagina
             camada.close()
     pdf_final = buf.getvalue()
     if verificar:
-        sobras = verificar_ausencia(_texto_extraido(pdf_final) + "\n" + _texto_estrutural(pdf_final),
-                                    valores_tarjados(resultados), valores_protegidos(resultados, anon.permitir))
+        tarjados, visivel = valores_tarjados(resultados), texto_visivel(resultados)
+        protegidos = valores_protegidos(resultados, anon.permitir)
+        # No fluxo bruto das páginas, cada palavra da camada de texto é um operador à parte e o contexto
+        # de uma ocorrência legítima não se reconhece; ali, os valores que não se propagam e continuam
+        # legíveis em outro trecho do documento ficam para a verificação do texto extraído.
+        sobras = (verificar_ausencia(_texto_extraido(pdf_final), tarjados, protegidos, visivel)
+                  + verificar_ausencia(_texto_estrutural(pdf_final), sem_ocorrencia_visivel(tarjados, visivel),
+                                       protegidos))
         if sobras:
             raise VazamentoDetectado(f"{len(sobras)} trecho(s) tarjado(s) ainda legível(is) no PDF gerado.")
         if _imagens_com_metadados(pdf_final):
@@ -1171,7 +1183,8 @@ def _reler_pixels(pdf_bytes: bytes, paginas: list[Pagina], resultados: list[Resu
                 textos += [c.conteudo for c in codigos if c.conteudo]
     finally:
         doc.close()
-    if verificar_ausencia("\n".join(textos), valores_tarjados(resultados), valores_protegidos(resultados, permitir)):
+    if verificar_ausencia("\n".join(textos), valores_tarjados(resultados), valores_protegidos(resultados, permitir),
+                          texto_visivel(resultados)):
         raise VazamentoDetectado("Trecho tarjado ainda legível na imagem de uma página do PDF gerado.")
 
 

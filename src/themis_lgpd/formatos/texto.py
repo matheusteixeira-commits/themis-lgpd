@@ -29,7 +29,8 @@ def anonimizar_txt(dados: bytes, anon: Anonimizador, nome: str, *, verificar: bo
     """
     texto, codificacao = decodificar(dados)
     r = anon.anonimizar(texto)
-    if verificar and verificar_ausencia(r.texto, valores_tarjados([r]), valores_protegidos([r], anon.permitir)):
+    if verificar and verificar_ausencia(r.texto, valores_tarjados([r]), valores_protegidos([r], anon.permitir),
+                                        r.texto):
         raise VazamentoDetectado("Trecho tarjado ainda presente no texto gerado.")
     avisos = list(r.avisos)
     if codificacao == "cp1252":

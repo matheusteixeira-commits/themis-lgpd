@@ -27,7 +27,7 @@ from email.utils import getaddresses
 
 from ..motor import Anonimizador, Resultado
 from . import ArquivoInvalido, FalhaOCR, ResultadoArquivo, VazamentoDetectado
-from .verificacao import valores_protegidos, valores_tarjados, verificar_ausencia
+from .verificacao import texto_visivel, valores_protegidos, valores_tarjados, verificar_ausencia
 
 ENDERECO_RESERVADO = "tarjado@anonimizado.invalid"
 _ENDERECOS = ("From", "To", "Cc", "Reply-To")
@@ -166,6 +166,6 @@ def texto_eml(dados: bytes) -> str:
 
 def _verificar(saida: bytes, resultados, anon: Anonimizador) -> None:
     sobras = verificar_ausencia(texto_eml(saida), valores_tarjados(resultados),
-                                valores_protegidos(resultados, anon.permitir))
+                                valores_protegidos(resultados, anon.permitir), texto_visivel(resultados))
     if sobras:
         raise VazamentoDetectado(f"{len(sobras)} trecho(s) tarjado(s) ainda legível(is) na mensagem gerada.")

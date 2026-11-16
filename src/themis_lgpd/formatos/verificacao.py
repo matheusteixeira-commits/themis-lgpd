@@ -17,7 +17,13 @@ Regras de comparação:
 * trechos mantidos intencionalmente (lista de permissão, entidades com regra ``manter`` e nomes de
   lugares e organizações não tarjados) são desconsiderados, para que "Paulo" tarjado não seja
   acusado dentro de "São Paulo". São os mesmos trechos que a propagação preserva
-  (ver :meth:`themis_lgpd.motor.Anonimizador._propagar`).
+  (ver :meth:`themis_lgpd.motor.Anonimizador._propagar`);
+* valores de categorias que não se propagam (saúde, dados sensíveis, valores de pessoa natural,
+  quase-identificadores) podem continuar legíveis em outro trecho do documento, onde não se referem
+  à pessoa ("diabetes" tarjado no pedido do requerente e legível na nota técnica sobre o programa).
+  Cada ocorrência deixada visível pela análise (ver :func:`texto_visivel`) é reconhecida pelo
+  contexto — até duas palavras de cada lado, na mesma linha — e desconsiderada; uma ocorrência em
+  outro contexto, como a de uma tarja que não chegou ao arquivo, continua sendo acusada.
 """
 
 from __future__ import annotations
@@ -28,8 +34,10 @@ import re
 import zipfile
 from collections.abc import Iterable, Mapping
 
+from ..catalogo import tipo as info_tipo
 from ..motor import Resultado
 from ..perfis import ALERTAR, MANTER, NOMES_NAO_PESSOAIS, TARJAR
+from ..propagacao import CATEGORIAS_PROPAGAVEIS
 from ..reconhecedores.nomes import contexto_nao_pessoal
 from ..texto import dobrar
 
@@ -83,8 +91,21 @@ def valores_protegidos(resultados: Iterable[Resultado], permitir: Iterable[str] 
     return protegidos
 
 
+def texto_visivel(resultados: Iterable[Resultado]) -> str:
+    """Texto que a análise deixou visível de propósito: a saída em texto de cada parte do documento."""
+    return "\n".join(r.texto for r in resultados)
+
+
+def _propagavel(tipo: str) -> bool:
+    """Indica se os valores do tipo são tarjados em todas as ocorrências do documento."""
+    try:
+        return info_tipo(tipo).categoria in CATEGORIAS_PROPAGAVEIS
+    except KeyError:
+        return True
+
+
 def verificar_ausencia(texto_saida: str, valores: Mapping[str, str] | Iterable[str],
-                       protegidos: Iterable[str] = ()) -> list[str]:
+                       protegidos: Iterable[str] = (), visivel: str | None = None) -> list[str]:
     """Devolve os valores que ainda aparecem em ``texto_saida``.
 
     Args:
@@ -97,6 +118,9 @@ def verificar_ausencia(texto_saida: str, valores: Mapping[str, str] | Iterable[s
         protegidos: Trechos mantidos intencionalmente (ver :func:`valores_protegidos`). Uma ocorrência
             só é desconsiderada quando está inteiramente contida em um deles; permitir "Maria" não
             esconde "Maria Souza".
+        visivel: Texto deixado visível pela análise (ver :func:`texto_visivel`). Quando informado, as
+            ocorrências de valores de categorias que não se propagam que aparecem nele são
+            desconsideradas pelo contexto (ver as regras do módulo).
 
     Returns:
         Lista vazia quando nada vazou.
@@ -104,6 +128,9 @@ def verificar_ausencia(texto_saida: str, valores: Mapping[str, str] | Iterable[s
     tipos = dict(valores) if isinstance(valores, Mapping) else dict.fromkeys(valores, "")
     if not tipos:
         return []
+    protegidos = list(protegidos)
+    if visivel is not None:
+        protegidos += _contextos_visiveis(visivel, [v for v, t in tipos.items() if t and not _propagavel(t)])
     # ``dobrar`` preserva o comprimento: as posições em ``texto`` valem em ``colapsado``, que mantém
     # as maiúsculas usadas pela regra de nomes de lugares ("São" × "são").
     colapsado = _ESPACOS.sub(" ", texto_saida)
@@ -133,6 +160,48 @@ def verificar_ausencia(texto_saida: str, valores: Mapping[str, str] | Iterable[s
         if legivel or (len(digitos) >= MINIMO_DIGITOS and digitos.isdigit() and digitos in so_alnum):
             achados.append(valor)
     return achados
+
+
+def sem_ocorrencia_visivel(valores: Mapping[str, str], visivel: str) -> dict[str, str]:
+    """Valores tarjados, exceto os de categorias que não se propagam que aparecem em ``visivel``.
+
+    Serve aos conteúdos em que o contexto de uma ocorrência não pode ser reconhecido, como o fluxo
+    bruto de uma página de PDF, em que cada palavra é um operador à parte.
+    """
+    texto = dobrar(_ESPACOS.sub(" ", visivel))
+    saida = {}
+    for valor, tipo in valores.items():
+        padrao = _padrao(valor)
+        if not tipo or _propagavel(tipo) or padrao is None or not padrao.search(texto):
+            saida[valor] = tipo
+    return saida
+
+
+def _contextos_visiveis(visivel: str, valores: Iterable[str]) -> list[str]:
+    """Ocorrências dos valores em ``visivel``, cada uma com até duas palavras de cada lado na mesma linha.
+
+    As palavras de um rótulo de tarja ("[DADO DE SAÚDE]") não entram no contexto.
+    """
+    padroes = [p for p in map(_padrao, valores) if p is not None]
+    contextos = []
+    for linha in visivel.splitlines():
+        dobrada = dobrar(linha)
+        for padrao in padroes:
+            for m in padrao.finditer(dobrada):
+                antes = _vizinhas(reversed(linha[:m.start()].split()))[::-1]
+                depois = _vizinhas(linha[m.end():].split())
+                contextos.append(" ".join([*antes, linha[m.start():m.end()], *depois]))
+    return contextos
+
+
+def _vizinhas(palavras: Iterable[str], limite: int = 2) -> list[str]:
+    """Até ``limite`` palavras, parando no primeiro rótulo de tarja."""
+    saida = []
+    for palavra in palavras:
+        if len(saida) == limite or "[" in palavra or "]" in palavra:
+            break
+        saida.append(palavra)
+    return saida
 
 
 def imagens_com_metadados(dados: bytes) -> list[str]:

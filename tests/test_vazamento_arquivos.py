@@ -285,6 +285,44 @@ def test_verificacao_respeita_limite_de_palavra_e_trechos_protegidos():
     assert verificar_ausencia("CPF 52998224725", ["529.982.247-25"]) == ["529.982.247-25"]
 
 
+def test_verificacao_aceita_termo_de_saude_legivel_onde_nao_se_refere_a_pessoa():
+    """Saúde não se propaga: o termo tarjado no pedido pode continuar legível na nota técnica."""
+    valores = {"hipertensão arterial": "SAUDE"}
+    visivel = "O requerente tem [SAÚDE].\nO programa de controle da hipertensão arterial atende a rede."
+    saida = "O requerente tem ████.\nO programa de controle da hipertensão arterial atende a rede."
+    assert verificar_ausencia(saida, valores, visivel=visivel) == []
+    # A tarja que não chegou ao arquivo deixa uma ocorrência a mais que o texto visível.
+    vazou = "O requerente tem hipertensão arterial.\nO programa de controle da hipertensão arterial atende a rede."
+    assert verificar_ausencia(vazou, valores, visivel=visivel) == ["hipertensão arterial"]
+    # Sem o texto visível, a comparação continua estrita.
+    assert verificar_ausencia(saida, valores) == ["hipertensão arterial"]
+    # Nomes se propagam: nenhuma ocorrência pode restar.
+    assert verificar_ausencia("Assinado: Lúcia Andrade", {"Lúcia Andrade": "NOME"},
+                              visivel="Assinado: Lúcia Andrade") == ["Lúcia Andrade"]
+
+
+def test_pdf_com_termo_de_saude_tarjado_numa_pagina_e_citado_em_outra(anon):
+    """O termo de saúde do requerente e a mesma expressão numa nota técnica não impedem a entrega."""
+    import pypdfium2 as pdfium
+    from reportlab.pdfgen import canvas
+
+    buf = io.BytesIO()
+    c = canvas.Canvas(buf, pagesize=(595, 842))
+    for linhas in (["Requerente: Joana Ribeiro Matos, CPF 529.982.247-25.",
+                    "A requerente tem diabetes tipo 2 e solicita a dispensacao de insulina."],
+                   ["Nota tecnica sobre o programa municipal.",
+                    "O programa de controle da diabetes tipo 2 atende a rede basica do municipio."]):
+        for i, linha in enumerate(linhas):
+            c.drawString(72, 780 - 18 * i, linha)
+        c.showPage()
+    c.save()
+    r = anonimizar_arquivo(buf.getvalue(), "processo.pdf", anon, ocr=False)
+    doc = pdfium.PdfDocument(r.dados)
+    paginas = [doc[i].get_textpage().get_text_range() for i in range(len(doc))]
+    assert "diabetes" not in paginas[0] and "529.982" not in paginas[0]
+    assert "diabetes tipo 2" in paginas[1]
+
+
 def test_propagacao_nao_tarja_parte_de_nome_de_lugar(anon):
     textos = ["O servidor Paulo Henrique Duarte atendeu o pedido.", "A unidade de São Paulo foi consultada."]
     resultados = anon.anonimizar_lote(textos, mesmo_documento=True)

@@ -21,7 +21,7 @@ from . import ArquivoInvalido, FalhaOCR, ResultadoArquivo, VazamentoDetectado
 from . import qr as mod_qr
 from . import xml_office as X
 from .pdf import Pagina, _desenhar, _montar_segmento, _uniao_por_linha
-from .verificacao import valores_protegidos, valores_tarjados, verificar_ausencia
+from .verificacao import texto_visivel, valores_protegidos, valores_tarjados, verificar_ausencia
 
 #: Limite de pixels aceito; protege contra imagens construídas para esgotar a memória ao descompactar.
 MAX_PIXELS = 60_000_000
@@ -149,7 +149,8 @@ class ImagemAnalisada:
         if any(c.pix for c in codigos):
             raise VazamentoDetectado("QR code PIX ainda legível na imagem gerada.")
         relido += "\n" + "\n".join(c.conteudo for c in codigos if c.conteudo)
-        if verificar_ausencia(relido, valores_tarjados(resultados), valores_protegidos(resultados, permitir)):
+        if verificar_ausencia(relido, valores_tarjados(resultados), valores_protegidos(resultados, permitir),
+                              texto_visivel(resultados)):
             raise VazamentoDetectado("Trecho tarjado ainda legível na imagem gerada.")
 
     def codificar(self, formato: str) -> bytes:

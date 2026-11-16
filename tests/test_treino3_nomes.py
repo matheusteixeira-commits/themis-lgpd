@@ -196,3 +196,20 @@ def test_siglas_de_unidade_com_pontos_nao_sao_iniciais():
 def test_cabecalho_de_papel_e_grafia_alternativa():
     nomes = _nomes("VÍTIMA\nQIAN Mei-hua, chinesa, 42 anos\nTambém grafado QIAN Meihua.")
     assert "QIAN Mei-hua" in nomes and "QIAN Meihua" in nomes
+
+
+@pytest.mark.parametrize("texto,nome", [
+    ("Eu, Teodoro Casa Nova, residente em Sobral, solicito cópia do processo.", "Teodoro Casa Nova"),
+    ("Eu, Iolanda da Ponte Siqueira, solicito informações sobre o pedido.", "Iolanda da Ponte Siqueira"),
+])
+def test_sobrenome_com_palavra_de_instituicao(anon, texto, nome):
+    saida = anon.anonimizar(texto).texto
+    assert not [p for p in nome.split() if len(p) > 3 and p in saida], saida
+
+
+@pytest.mark.parametrize("texto,nome", [
+    ("Encaminhe-se à Casa de Cultura Benedito Arruda para providências.", "Benedito"),
+    ("A Escola Estadual Lindalva Prates recebeu a visita.", "Lindalva"),
+])
+def test_instituicao_com_nome_de_pessoa_continua_legivel(anon, texto, nome):
+    assert nome in anon.anonimizar(texto).texto

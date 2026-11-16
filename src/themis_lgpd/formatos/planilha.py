@@ -36,6 +36,7 @@ from .texto import decodificar
 from .verificacao import (
     imagens_com_metadados,
     texto_de_pacote,
+    texto_visivel,
     valores_protegidos,
     valores_tarjados,
     verificar_ausencia,
@@ -194,7 +195,8 @@ def _aviso_colunas(colunas: list[tuple[str, str]]) -> list[str]:
 
 
 def _verificar(texto: str, resultados: list[Resultado], anon: Anonimizador, formato: str) -> None:
-    sobras = verificar_ausencia(texto, valores_tarjados(resultados), valores_protegidos(resultados, anon.permitir))
+    sobras = verificar_ausencia(texto, valores_tarjados(resultados), valores_protegidos(resultados, anon.permitir),
+                                texto_visivel(resultados))
     if sobras:
         raise VazamentoDetectado(f"{len(sobras)} trecho(s) tarjado(s) ainda presente(s) no {formato} gerado.")
 

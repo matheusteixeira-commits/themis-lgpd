@@ -31,7 +31,7 @@ from collections import Counter
 from .. import __version__
 from ..motor import Anonimizador, Resultado
 from . import ArquivoInvalido, FalhaOCR, ResultadoArquivo, VazamentoDetectado, detectar_formato, verificar_zip
-from .verificacao import valores_protegidos, valores_tarjados, verificar_ausencia
+from .verificacao import texto_visivel, valores_protegidos, valores_tarjados, verificar_ausencia
 
 #: Profundidade máxima de ZIPs dentro de ZIPs.
 PROFUNDIDADE_MAXIMA = 3
@@ -219,7 +219,7 @@ def anonimizar_zip(dados: bytes, anon: Anonimizador, nome: str, *, ocr: bool = T
 
     if verificar:
         sobras = verificar_ausencia("\n".join(caminhos.nomes) + "\n" + manifesto, valores_tarjados(resultados),
-                                    valores_protegidos(resultados, anon.permitir))
+                                    valores_protegidos(resultados, anon.permitir), texto_visivel(resultados))
         if sobras:
             raise VazamentoDetectado(f"{len(sobras)} trecho(s) tarjado(s) ainda legível(is) em nomes de arquivo "
                                      "ou no manifesto do ZIP gerado.")

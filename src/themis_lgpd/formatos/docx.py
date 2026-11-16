@@ -47,6 +47,7 @@ from .pacote import NS_R, TIPOS_CONTEUDO, Pacote, externo, gravar_xml, ler_xml, 
 from .verificacao import (
     imagens_com_metadados,
     texto_de_pacote,
+    texto_visivel,
     valores_protegidos,
     valores_tarjados,
     verificar_ausencia,
@@ -392,7 +393,7 @@ def anonimizar_ooxml(dados: bytes, anon: Anonimizador, nome: str, *, formato: st
 
     if verificar:
         sobras = verificar_ausencia(texto_de_pacote(saida), valores_tarjados(resultados),
-                                    valores_protegidos(resultados, anon.permitir))
+                                    valores_protegidos(resultados, anon.permitir), texto_visivel(resultados))
         if sobras:
             raise VazamentoDetectado(f"{len(sobras)} trecho(s) tarjado(s) ainda presente(s) no {formato.upper()} "
                                      "gerado.")

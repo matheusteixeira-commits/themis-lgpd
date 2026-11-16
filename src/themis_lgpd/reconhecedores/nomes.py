@@ -2058,8 +2058,12 @@ def _nome_do_segmento(texto: str, tokens: list, pessoa: bool, score: float) -> D
     if any(dobrar(t.text) in PALAVRAS_COMUNS for t in tokens):
         return None
     # Núcleo de instituição no trecho ("EE Professor Fulano", "Centro de Referência Fulana") ou sigla ao
-    # lado de palavras com inicial maiúscula ("UBS Fulano", "Soldado PM"): não é nome de pessoa.
-    if any(dobrar(t.text).replace(".", "") in _NUCLEOS_INSTITUICAO - {"vila", "jardim"} for t in tokens):
+    # lado de palavras com inicial maiúscula ("UBS Fulano", "Soldado PM"): não é nome de pessoa. Depois de um
+    # prenome conhecido, a palavra só indica instituição seguida de preposição ("Maria Casa de Cultura"); sem
+    # ela, é parte de um sobrenome ("Augusto Casa Grande", "Lourenço da Ponte").
+    nucleos = [k for k, t in enumerate(tokens) if dobrar(t.text).replace(".", "") in _NUCLEOS_INSTITUICAO - {"vila", "jardim"}]
+    if nucleos and not (dobrar(tokens[0].text) in pn and all(
+            k > 0 and (k + 1 == len(tokens) or dobrar(tokens[k + 1].text) not in CONECTORES) for k in nucleos)):
         return None
     if any(len(t.text.rstrip(".")) > 1 and t.text.isupper() for t in tokens) and any(
             t.text[:1].isupper() and not t.text.isupper() for t in tokens):

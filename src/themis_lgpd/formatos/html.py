@@ -24,7 +24,7 @@ from . import ArquivoInvalido, ResultadoArquivo, VazamentoDetectado
 from . import xml_office as X
 from .imagem import analisar_incorporadas, aviso_imagens
 from .midia import limpar_imagens
-from .verificacao import valores_protegidos, valores_tarjados, verificar_ausencia
+from .verificacao import texto_visivel, valores_protegidos, valores_tarjados, verificar_ausencia
 
 #: Elementos que iniciam um novo bloco de texto (separador de linha no fluxo).
 _BLOCOS = frozenset({
@@ -213,6 +213,6 @@ def texto_html(dados: bytes) -> str:
 
 def _verificar(saida: bytes, resultados, anon: Anonimizador) -> None:
     sobras = verificar_ausencia(texto_html(saida), valores_tarjados(resultados),
-                                valores_protegidos(resultados, anon.permitir))
+                                valores_protegidos(resultados, anon.permitir), texto_visivel(resultados))
     if sobras:
         raise VazamentoDetectado(f"{len(sobras)} trecho(s) tarjado(s) ainda legível(is) na página gerada.")
