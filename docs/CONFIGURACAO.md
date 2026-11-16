@@ -96,6 +96,22 @@ fora dele. O limite por IP da demonstração pública é aplicado pelo proxy ([D
 
 Não grave a chave HMAC nem a senha do cofre em arquivos versionados ou em histórico do shell.
 
+## Classificador de dados sensíveis
+
+Além das regras, a detecção de dados de saúde e de quase-identificadores usa um classificador de trechos
+treinado (componente `spancat` do spaCy, em `src/themis_lgpd/dados/modelos/sensivel`), acrescentado ao
+pipeline do `pt_core_news_lg` com o mesmo vocabulário e os mesmos vetores. Os dados de saúde que ele
+encontra seguem a regra de vínculo do perfil: no perfil LAI, só são tarjados em frase que se refere a uma
+pessoa; os demais são sinalizados para revisão.
+
+| Variável | Padrão | Efeito |
+|---|---|---|
+| `THEMIS_MODELO_SENSIVEL` | definido no artefato (ligado) | `0` desliga e `1` liga o classificador na CLI, na API, na interface e na biblioteca. Lida quando o modelo de linguagem é carregado |
+
+Sem o modelo de linguagem (`THEMIS_USAR_NER=false`) o classificador não é usado. O treino é reproduzido
+por `benchmark/treino/treinar_spancat.py`; a comparação com e sem o classificador, por
+`benchmark/treino/ablacao_spancat.py`.
+
 ## Configuração da interface (Streamlit)
 
 O comando `themis interface` inicia o Streamlit com as opções abaixo, que não dependem de arquivo de

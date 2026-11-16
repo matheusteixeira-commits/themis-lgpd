@@ -1,0 +1,128 @@
+{
+  "versao": 1,
+  "descricao": "Classificador de trechos (spaCy spancat) para dados de saúde e quase-identificadores",
+  "rotulos": [
+    "DADO_SAUDE",
+    "QUASI_IDENTIFICADOR"
+  ],
+  "fabrica": "spancat_singlelabel",
+  "limiares": {
+    "DADO_SAUDE": 0.75,
+    "QUASI_IDENTIFICADOR": 0.8
+  },
+  "decodificacao": "maximo",
+  "ativo_por_padrao": true,
+  "vetores": {
+    "modelo": "pt_core_news_lg",
+    "versao_modelo": "3.8.0",
+    "nome": "pt_vectors",
+    "forma": [
+      500000,
+      300
+    ]
+  },
+  "treino": {
+    "dados": "EliMC/esic-ner (CC BY 4.0), partição ajuste; seleção da época e dos limiares na partição selecao",
+    "sha256_train": "e1e2e68579b8a743de087a8cad6775e2654cbfa0ec8394d2c22d328fa33948bf",
+    "sha256_particoes": "d42b01fc07554f9c67df5c7d471042fe955e0e3ab94e33aefa163684ba870462",
+    "sha256_documentos_ajuste": "6c8a0b55464b7c717aefdd6f32111b960904ce5cdc08dccfc445979b58a40605",
+    "documentos": {
+      "ajuste": 3557,
+      "selecao": 916
+    },
+    "semente": 20261116,
+    "lote": 16,
+    "abandono": 0.1,
+    "epocas_maximas": 10,
+    "epocas_executadas": 8,
+    "melhor_epoca": 5,
+    "minutos": 43.4,
+    "otimizador": {
+      "nome": "Adam",
+      "learn_rate": 0.001,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "eps": 1e-08,
+      "L2": 0.01,
+      "L2_is_weight_decay": true,
+      "grad_clip": 1.0
+    },
+    "config": {
+      "spans_key": "themis_sensivel",
+      "negative_weight": 0.03,
+      "allow_overlap": true,
+      "suggester": {
+        "@misc": "spacy.ngram_range_suggester.v1",
+        "min_size": 1,
+        "max_size": 20
+      },
+      "model": {
+        "@architectures": "spacy.SpanCategorizer.v1",
+        "reducer": {
+          "@layers": "spacy.mean_max_reducer.v1",
+          "hidden_size": 128
+        },
+        "scorer": {
+          "@layers": "Softmax.v2"
+        },
+        "tok2vec": {
+          "@architectures": "spacy.Tok2Vec.v2",
+          "embed": {
+            "@architectures": "spacy.MultiHashEmbed.v2",
+            "width": 96,
+            "attrs": [
+              "NORM",
+              "PREFIX",
+              "SUFFIX",
+              "SHAPE"
+            ],
+            "rows": [
+              5000,
+              1000,
+              2500,
+              2500
+            ],
+            "include_static_vectors": true
+          },
+          "encode": {
+            "@architectures": "spacy.MaxoutWindowEncoder.v2",
+            "width": 96,
+            "depth": 4,
+            "window_size": 1,
+            "maxout_pieces": 3
+          }
+        }
+      }
+    },
+    "versoes": {
+      "spacy": "3.8.18",
+      "thinc": "8.3.14",
+      "numpy": "2.3.5",
+      "python": "3.11.9"
+    }
+  },
+  "selecao": {
+    "f1_medio": 0.7748,
+    "por_rotulo": {
+      "DADO_SAUDE": {
+        "limiar": 0.75,
+        "recall": 0.7375,
+        "precisao_caracteres": 0.7721,
+        "f1": 0.7544
+      },
+      "QUASI_IDENTIFICADOR": {
+        "limiar": 0.8,
+        "recall": 0.8254,
+        "precisao_caracteres": 0.767,
+        "f1": 0.7951
+      }
+    }
+  },
+  "poda_de_candidatos": {
+    "candidatos_mantidos": 0.2132,
+    "entidades_do_ajuste_descartadas": 0
+  },
+  "sha256_model": "cc7401a040e4137f632f74fec50b4091697e357bc69458048cd3bf5253b02078",
+  "escolha_dos_limiares": "Grade avaliada no sistema completo, na partição selecao (benchmark/treino/ablacao_spancat.json): de 0,5 a 0,9 as métricas do sistema para DADO_SAUDE não mudam. Vale, para cada rótulo, o limiar de maior F1 do classificador isolado na seleção (DADO_SAUDE 0,75; QUASI_IDENTIFICADOR 0,8). Limiares menores para DADO_SAUDE só acrescentam alertas na seleção e produziram falsos positivos em texto fora do domínio (modelos de apresentação em inglês).",
+  "ativacao": "Supera a linha de base na partição selecao com o sistema completo (comparação pareada em benchmark/treino/ablacao_spancat.json) sem perda de recall em nenhum rótulo."
+}

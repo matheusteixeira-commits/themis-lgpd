@@ -7,6 +7,9 @@ Componentes do Presidio utilizados:
 * ``RecognizerRegistry`` em português com os reconhecedores brasileiros do Themis (documentos com
   dígito verificador, contatos, endereços, dados financeiros, processos, nomes e dados sensíveis),
   adaptados ao contrato ``EntityRecognizer`` por :class:`ReconhecedorThemis`.
+* Classificador de trechos treinado (componente ``spancat`` do spaCy) para dados de saúde e
+  quase-identificadores, acrescentado ao pipeline quando o artefato está instalado e ativado (ver
+  :mod:`themis_lgpd.reconhecedores.aprendido`).
 * Reconhecedores predefinidos do Presidio, configurados para os tipos do Themis: telefone
   (biblioteca ``phonenumbers``, região BR), IP, cartão de crédito (Luhn), IBAN e carteiras de
   criptomoeda.
@@ -53,8 +56,8 @@ from presidio_analyzer.predefined_recognizers import (
 )
 
 from .catalogo import tipo as info_tipo
+from .reconhecedores import aprendido, contatos, documentos, financeiro, localizacao, nomes, sensiveis
 from .reconhecedores import base as B
-from .reconhecedores import contatos, documentos, financeiro, localizacao, nomes, sensiveis
 
 #: Código de idioma usado em todo o registro do Presidio.
 IDIOMA = "pt"
@@ -221,16 +224,24 @@ class MotorSpacyThemis(SpacyNlpEngine):
         self.modelo = modelo
 
     def load(self) -> None:
-        """Carrega o pipeline (ver :func:`themis_lgpd.reconhecedores.nomes.carregar_spacy`)."""
-        self.nlp = {IDIOMA: nomes.carregar_spacy(self.modelo)}
+        """Carrega o pipeline (ver :func:`themis_lgpd.reconhecedores.nomes.carregar_spacy`).
+
+        Com modelo de linguagem, acrescenta o classificador de dados sensíveis, se ativado (ver
+        :func:`themis_lgpd.reconhecedores.aprendido.acoplar`).
+        """
+        nlp = nomes.carregar_spacy(self.modelo)
+        if self.modelo is not None:
+            aprendido.acoplar(nlp)
+        self.nlp = {IDIOMA: nlp}
 
 
 def reconhecedores_brasileiros(com_modelo: bool = True) -> list[EntityRecognizer]:
     """Reconhecedores usados pelo Themis, prontos para registro em um ``AnalyzerEngine``.
 
     Args:
-        com_modelo: Inclui o reconhecedor de nomes baseado no modelo de linguagem; exige um
-            ``SpacyNlpEngine`` com reconhecimento de entidades.
+        com_modelo: Inclui os reconhecedores baseados no modelo de linguagem (nomes e, quando
+            ativado, o classificador de dados sensíveis); exige um ``SpacyNlpEngine`` com
+            reconhecimento de entidades.
 
     Returns:
         Os reconhecedores brasileiros do Themis e os reconhecedores predefinidos do Presidio
@@ -270,6 +281,7 @@ def reconhecedores_brasileiros(com_modelo: bool = True) -> list[EntityRecognizer
         recs.append(ReconhecedorThemis(grupo, _tipos(grupo.padroes), f"BR_{grupo.nome.title()}"))
     if com_modelo:
         recs.append(ReconhecedorNomesModelo())
+        recs.append(aprendido.ReconhecedorAprendido(IDIOMA))
     return recs
 
 

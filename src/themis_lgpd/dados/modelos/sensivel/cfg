@@ -1,0 +1,11 @@
+{
+  "labels": [
+    "DADO_SAUDE",
+    "QUASI_IDENTIFICADOR"
+  ],
+  "spans_key": "themis_sensivel",
+  "threshold": null,
+  "max_positive": 1,
+  "negative_weight": 0.03,
+  "allow_overlap": true
+}

@@ -1,0 +1,47 @@
+{
+  "spans_key": "themis_sensivel",
+  "negative_weight": 0.03,
+  "allow_overlap": true,
+  "suggester": {
+    "@misc": "themis.sugestor_sintagmas.v1",
+    "min_size": 1,
+    "max_size": 20
+  },
+  "model": {
+    "@architectures": "spacy.SpanCategorizer.v1",
+    "reducer": {
+      "@layers": "spacy.mean_max_reducer.v1",
+      "hidden_size": 128
+    },
+    "scorer": {
+      "@layers": "Softmax.v2"
+    },
+    "tok2vec": {
+      "@architectures": "spacy.Tok2Vec.v2",
+      "embed": {
+        "@architectures": "spacy.MultiHashEmbed.v2",
+        "width": 96,
+        "attrs": [
+          "NORM",
+          "PREFIX",
+          "SUFFIX",
+          "SHAPE"
+        ],
+        "rows": [
+          5000,
+          1000,
+          2500,
+          2500
+        ],
+        "include_static_vectors": true
+      },
+      "encode": {
+        "@architectures": "spacy.MaxoutWindowEncoder.v2",
+        "width": 96,
+        "depth": 4,
+        "window_size": 1,
+        "maxout_pieces": 3
+      }
+    }
+  }
+}
