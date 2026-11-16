@@ -1,0 +1,58 @@
+{
+ "configuracao": "artefato",
+ "descricao": "Classificador mantido sem alteração no sistema integrado do ciclo 3 (épocas, limiares e rótulos do ciclo 2).",
+ "limiares": {
+  "DADO_SAUDE": 0.8,
+  "DADO_SENSIVEL": 0.8,
+  "NOME_PESSOA": 0.98
+ },
+ "comparacao_sem_classificador": {
+  "oficial_selecao": {
+   "documentos_com_vazamento": [
+    0.7105,
+    0.5789
+   ],
+   "recall_entidades": [
+    0.8846,
+    0.9272
+   ],
+   "recall:DADO_SAUDE": [
+    0.7819,
+    0.8971
+   ],
+   "precisao_tarjas": [
+    0.9246,
+    0.9182
+   ],
+   "mcnemar_vazamento": {
+    "deixaram_de_vazar": 5,
+    "passaram_a_vazar": 0,
+    "p": 0.0625
+   }
+  },
+  "esic_selecao": {
+   "documentos_com_vazamento": [
+    0.1099,
+    0.097
+   ],
+   "recall:DADO_SAUDE": [
+    0.6438,
+    0.6813
+   ],
+   "tarja_fora_do_gabarito": [
+    0.0733,
+    0.0763
+   ],
+   "mcnemar_vazamento": {
+    "deixaram_de_vazar": 6,
+    "passaram_a_vazar": 0,
+    "p": 0.03125
+   }
+  }
+ },
+ "por_rotulo": {
+  "DADO_SAUDE": "mantido: sem ele, os documentos oficiais com vazamento passam de 57,9% para 65,8% e os pedidos do esic-ner de 9,7% para 10,8%",
+  "NOME_PESSOA": "mantido: sem ele, os documentos oficiais com vazamento passam de 57,9% para 63,2% e o recall de nomes cai de 0,994 para 0,977",
+  "DADO_SENSIVEL": "mantido: nenhuma métrica das seleções muda; pelo critério do ciclo 2, um rótulo de proteção só é desativado quando causa dano medido"
+ }
+}

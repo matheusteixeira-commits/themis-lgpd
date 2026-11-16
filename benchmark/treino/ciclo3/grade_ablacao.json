@@ -1,0 +1,7 @@
+[
+  {"nome": "sem_classificador", "limiares": {}},
+  {"nome": "artefato", "limiares": {"DADO_SAUDE": 0.8, "DADO_SENSIVEL": 0.8, "NOME_PESSOA": 0.98}},
+  {"nome": "sem_saude", "limiares": {"DADO_SENSIVEL": 0.8, "NOME_PESSOA": 0.98}},
+  {"nome": "sem_sensivel", "limiares": {"DADO_SAUDE": 0.8, "NOME_PESSOA": 0.98}},
+  {"nome": "sem_nome", "limiares": {"DADO_SAUDE": 0.8, "DADO_SENSIVEL": 0.8}}
+]
