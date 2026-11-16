@@ -459,10 +459,18 @@ class Anonimizador:
         antes_re, depois_re = self._cargos
         return bool(antes_re.search(antes) or depois_re.match(texto[fim:fim + 60]))
 
-    def _coletiva(self, texto: str, ini: int, fim: int) -> bool:
-        """Indica se a frase do trecho trata de grupo ou estatística (ver :data:`_COLETIVO`)."""
+    def _coletiva(self, texto: str, ini: int, fim: int, nomes: Sequence[tuple[int, int]] = ()) -> bool:
+        """Indica se a frase do trecho trata de grupo ou estatística (ver :data:`_COLETIVO`).
+
+        A frase vai só até a quebra de linha, para que o título ("RELATÓRIO …") e os campos de
+        identificação não contem, e as palavras dentro de nome próprio ("Sindicato dos Servidores …")
+        são desconsideradas.
+        """
         a, b = self._frase(texto, ini, fim)
-        return bool(_COLETIVO.search(texto, a, b))
+        a = max(a, texto.rfind("\n", 0, ini) + 1)
+        quebra = texto.find("\n", fim, b)
+        b = b if quebra < 0 else quebra
+        return any(not any(x <= m.start() and m.end() <= y for x, y in nomes) for m in _COLETIVO.finditer(texto, a, b))
 
     def _decidir(self, norm: TextoNormalizado, dets: list[B.Deteccao],
                  documento: S.ContextoDocumental | None = None) -> list[Entidade]:
@@ -515,7 +523,8 @@ class Anonimizador:
                     acao = P.TARJAR
                 elif self._vinculado(texto, d.inicio, d.fim, ancoras):
                     acao, motivo = P.TARJAR, "Termo sensível em frase que se refere a pessoa"
-                elif cat == "SENSIVEL" and ctx.centrado and (ctx.clinico or not self._coletiva(texto, d.inicio, d.fim)):
+                elif cat == "SENSIVEL" and ctx.centrado and (
+                        ctx.clinico or not self._coletiva(texto, d.inicio, d.fim, [*ctx.protegidos, *ctx.nomes_proprios])):
                     acao, motivo = P.TARJAR, _MOTIVO_DOCUMENTO
                 elif cat == "SENSIVEL" and ctx.em(ctx.linhas_pessoais, d.inicio, d.fim):
                     acao, motivo = P.TARJAR, "Dado sensível em linha de tabela que identifica a pessoa"

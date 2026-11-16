@@ -258,7 +258,7 @@ DOENCAS = (
     r"por\s+motivo\s+de\s+(?:doen[çc]a|sa[úu]de)(?:\s+(?:em|de)\s+pessoa\s+da\s+fam[íi]lia|\s+pr[óo]pria)?|"
     r"por\s+acidente\s+(?:em\s+servi[çc]o|de\s+trabalho)|por\s+doen[çc]a\s+profissional)"
     r"(?:\s+para\s+(?:recupera[çc][ãa]o|tratamento)\s+d[eoa]\s+[^.;,\n()]{3,60})?",
-    r"(?-i:LTS|LTSP)", r"motivos?\s+de\s+sa[úu]de(?:\s+pr[óo]pria)?", r"afastamento\s+m[ée]dico(?:\s+por\s+\w+)?",
+    r"(?-i:LTS|LTSP)", r"motivos?\s+de\s+sa[úu]de\s+pr[óo]pria", r"afastamento\s+m[ée]dico(?:\s+por\s+\w+)?",
     # Sinais, sintomas e lesões descritos com a parte do corpo ("corte no supercílio direito",
     # "hematomas em membros inferiores", "dor no punho esquerdo")
     r"(?:muita\s+|forte\s+)?dor(?:es)?(?:\s+(?:intensa|forte|difusas?|aguda|cr[ôo]nica|persistente))?(?=\s+(?:[àa]\s+\w+\s+)?"
@@ -413,7 +413,7 @@ SAUDE_SEMANTICA = [
     # Medicamento citado sem verbo de uso: "a falta de insulina glargina na rede" é de interesse
     # público; "minha filha precisa de insulina glargina" é dado de saúde (ver camada semântica).
     Padrao("SAUDE", r"\b" + _MEDICAMENTO + r"\b", 0.8, camada=SEMANTICA, nome="saude:medicamento"),
-    Padrao("SAUDE", r"\btratamentos?\s+" + _TRATAMENTO_NAO_SAUDE + r"(?:\w+\s+)?(?:de|para|contra|da|do)\s+"
+    Padrao("SAUDE", r"\btratamentos?[ \t]+" + _TRATAMENTO_NAO_SAUDE + r"(?:\w+[ \t]+)?(?:de|para|contra|da|do)[ \t]+"
            + _OBJETO_NAO_SAUDE + r"[^\n.;,()]{3,50}", 0.75, camada=SEMANTICA, nome="saude:tratamento-de"),
 ]
 # Termo de saúde precedido de verbo ou expressão que o atribui a alguém ("possui diabetes", "convive com
@@ -586,13 +586,18 @@ SAUDE_CLINICA = [
 SAUDE_CLINICA.append(
     Padrao("SAUDE", r"^[ \t]*(?:\d{1,2}[.)]\s*)?(?:natureza(?:\s+da\s+les[ãa]o)?|partes?\s+do\s+corpo(?:\s+atingidas?)?|"
                     r"tipos?\s+de\s+viol[êe]ncia|meios?\s+de\s+agress[ãa]o|forma(?:\s+cl[íi]nica)?|agravos?\s+associados?|"
-                    r"tipo\s+de\s+entrada|regime\s+de\s+tratamento|procedimentos?(?:\s+realizados?)?|evolu[çc][ãa]o|"
+                    r"tipo\s+de\s+entrada|procedimentos?(?:\s+realizados?)?|evolu[çc][ãa]o|"
                     r"motivo(?:\s+d[ao]\s+(?:interna[çc][ãa]o|atendimento|encaminhamento|acolhimento|consulta))?|"
                     r"queixa(?:\s+principal)?|quadro\s+cl[íi]nico|hip[óo]tese\s+diagn[óo]stica|conduta|tratamento(?:\s+atual)?|"
                     r"medica[çc][ãa]o(?:\s+(?:atual|em\s+uso))?|medicamentos\s+em\s+uso|esquema|antecedentes|comorbidades|"
                     r"les[ãa]o|les[õo]es|classifica[çc][ãa]o\s+final|causas?(?:\s+d[oa]\s+[óo]bito|\s+b[áa]sicas?)?|"
                     r"situa[çc][ãa]o\s+(?:na\s+alta|vacinal|atual)|cuidados|reabilita[çc][ãa]o|linguagem(?:\s+\w+)?|"
-                    r"sa[úu]de|condi[çc][õo]es\s+de\s+sa[úu]de(?:\s+\w+){0,3})\s*(?:\([^()\n]{1,30}\))?\s*:[ \t]*(\S[^\n]{1,200})$",
+                    r"sa[úu]de|condi[çc][õo]es\s+de\s+sa[úu]de(?:\s+\w+){0,3}|"
+                    # Exame físico por aparelho ou região ("Marcha: claudicante", "Joelhos: crepitação")
+                    r"marcha|deambula[çc][ãa]o|pele(?:\s+e\s+mucosas)?|mucosas|aparelho\s+\w+|ausculta(?:\s+\w+)?|"
+                    r"extremidades|estado\s+geral|neurol[óo]gico|ps[íi]quico|" + _PARTE_DO_CORPO + r")"
+                    r"\s*(?:\([^()\n]{1,30}\))?\s*:[ \t]*"
+                    r"(?!(?:nenhum[a]?|n[ãa]o(?:\s+se\s+aplica)?|nega|ausente|sem\s+altera[çc][õo]es)\W*$)(\S[^\n]{1,200})$",
            0.65, camada=SEMANTICA, grupo=1, nome=ORIGEM_REGISTRO + "campo"))
 # Exame identificado pelo nome ("Biomicroscopia do OE:", "eletroencefalograma de 20/01/2025",
 # "Cultura de escarro"): a classe dos exames de imagem e de função pelo radical e pelo sufixo, mais os
@@ -683,7 +688,8 @@ _SECAO_CLINICA = re.compile(
 _MOTIVO_DE_LICENCA = re.compile(r"\b(?:licen[çc]a|afastamento|tratamento\s+d[ae]\s+(?:pr[óo]pria\s+)?sa[úu]de|"
                                 r"motivo\s+de\s+(?:doen[çc]a|sa[úu]de))", re.IGNORECASE)
 #: Linha de título: sem minúsculas, com ao menos duas palavras e sem ponto final no meio.
-_TITULO = re.compile(r"^[ \t]*(?=[^\n]*[A-ZÀ-Ú]{3}[^\n]*\s[^\n]*[A-ZÀ-Ú]{3})[^a-zà-ÿ\n.:]{6,90}$", re.MULTILINE)
+_TITULO = re.compile(r"^[ \t]*(?:\d{1,2}[.)]\s*|[IVX]{1,4}\s*[–-]\s*)?(?=[^\n]*[A-ZÀ-Ú]{5}|[^\n]*[A-ZÀ-Ú]{3}[^\n]*\s[^\n]*"
+                     r"[A-ZÀ-Ú]{3})[^a-zà-ÿ\n.:?]{5,90}$", re.MULTILINE)
 
 #: Instituição, programa ou norma citados pelo nome próprio ("Hospital Universitário", "Programa de
 #: Atenção …", "Política Nacional de Saúde Bucal", "Consultório na Rua"): o termo de saúde que integra o
@@ -713,6 +719,12 @@ _NOME_PROGRAMA = re.compile(r"\b(?:estrat[ée]gia|programa|projeto|campanha|plan
 #: atravessa. Não isenta o termo, que pode ser o próprio nome da doença ("Síndrome de Down").
 _NOME_PROPRIO = re.compile(r"(?<=[a-zà-ú,;)]\s|\b(?:d[aoe]s?|n[oa]s?|ao|aos|à|às|pel[oa]s?|para|em)\s)(?-i:[A-ZÀ-Ú][\w-]+|[A-Z]{2,})"
                            r"(?:[ \t]+(?:" + _CONECTIVO_NOME + r"[ \t]+)?(?-i:[A-ZÀ-Ú][\w-]+|[A-Z]{2,}))+")
+#: Serviço designado pela especialidade ("ambulatório de pé diabético", "enfermaria de clínica cirúrgica",
+#: "leitos de UTI"): nomeia o serviço, não a condição da pessoa.
+_SERVICO_COMUM = re.compile(r"\b(?:ambulat[óo]rios?|enfermarias?|setor|leitos?|unidades?\s+de\s+(?:terapia|interna[çc][ãa]o|"
+                            r"cuidados)|servi[çc]os?\s+de\s+(?:refer[êe]ncia|aten[çc][ãa]o))\s+(?:de|da|do)\s+[\wà-ú-]+"
+                            r"(?:\s+(?:de|da|do|e)\s+[\wà-ú-]+)?(?:\s+(?:intensiva|adulto|pedi[áa]trica|neonatal))?",
+                            re.IGNORECASE)
 #: Siglas de serviços de saúde e assistência ("CAPS AD", "UBS", "CER II").
 _SIGLA_SERVICO = re.compile(r"(?-i:\b(?:CAPS(?:\s*(?:AD|i|ij|IJ|II|III|AD\s+III))?|CAPSi|UBSF?|UPA|USF|ESF|CER(?:\s+[IV]+)?|CREAS|CRAS|"
                             r"SAMU|SAME|SIASS|LACEN(?:/\w+)?|CIEVS(?:-\w+)?|SINAN|INSS|NASF|CEO|SAE|CTA|IML|CTA)\b)")
@@ -726,8 +738,10 @@ _NORMA = re.compile(r"\b(?:arts?\.\s*\d+[º°]?(?:[-–]?[A-Z])?(?:\s*,\s*(?:§|
 _CONECTIVO_NORMATIVO = re.compile(r"\b(?:conforme|nos\s+termos\s+d[aoe]s?|de\s+acordo\s+com|segundo\s+(?:[oa]s?\s+)?(?=[A-Z])|"
                                   r"previst[oa]s?\s+n[oa]s?|especificad[oa]s?\s+n[oa]s?|definid[oa]s?\s+n[oa]s?|"
                                   r"com\s+fundamento\s+n[oa]s?|para\s+fins\s+d[eo])\b")
-#: Negação do achado: "nega alergias", "sem sintomas psicóticos", "Não foram observados sinais de…".
-_NEGACAO_ANTES = re.compile(r"\b(?:nega(?:m|va|ndo)?|negou|sem|aus[êe]ncia\s+de|n[ãa]o\s+(?:apresenta(?:va)?|h[áa]|houve|possui|"
+#: Negação ou hipótese: "nega alergias", "sem sintomas psicóticos", "Não foram observados sinais de…",
+#: "procurar emergência em caso de febre".
+_NEGACAO_ANTES = re.compile(r"\b(?:nega(?:m|va|ndo)?|negou|sem|aus[êe]ncia\s+de|em\s+caso\s+de|na\s+presen[çc]a\s+de|"
+                            r"se\s+houver|n[ãa]o\s+(?:apresenta(?:va)?|h[áa]|houve|possui|"
                             r"tem|refere|foram\s+(?:observad|identificad|constatad|encontrad)[oa]s|foi\s+(?:observad|identificad|"
                             r"constatad|encontrad)[oa]|se\s+observ\w+)(?:\s+(?:sinais|ind[íi]cios|evid[êe]ncias|hist[óo]rico|"
                             r"qualquer|nenhum[a]?|outr[oa]s?)(?:\s+de)?)?)\s+(?:\w+\s+){0,2}$", re.IGNORECASE)
@@ -765,14 +779,15 @@ _BORDA_FRACA_FIM = re.compile(r"(?:[\s,.:;–—\-(\"“”']|\b(?:e|ou|o|a|os|a
 #: Motivos de :meth:`ContextoDocumental.isencao`; o termo isento não é tarjado por coerência com outra
 #: ocorrência tarjada (ver :meth:`themis_lgpd.motor.Anonimizador._saude_consistente`).
 ISENCAO_NOME = "Termo em nome de instituição, programa ou norma"
-ISENCAO_NEGACAO = "Termo negado ou campo respondido com \"não\""
+ISENCAO_NEGACAO = "Termo negado, hipotético ou campo respondido com \"não\""
 ISENCAO_TITULO = "Termo em título do documento"
 ISENCAO_ROTULO = "Rótulo de campo"
 ISENCAO_ASSINATURA = "Especialidade na linha de assinatura do profissional"
 ISENCAO_CLASSIFICACAO = "Classificação do caso no cabeçalho (classe, assunto, natureza)"
-ISENCAO_SIGLA = "Sigla sem termo de saúde reconhecido"
+ISENCAO_SIGLA = "Trecho em maiúsculas sem termo de saúde reconhecido"
+ISENCAO_PERGUNTA = "Termo em pergunta ou quesito de formulário"
 MOTIVOS_ISENCAO = frozenset({ISENCAO_NOME, ISENCAO_NEGACAO, ISENCAO_TITULO, ISENCAO_ROTULO, ISENCAO_ASSINATURA,
-                             ISENCAO_CLASSIFICACAO, ISENCAO_SIGLA})
+                             ISENCAO_CLASSIFICACAO, ISENCAO_SIGLA, ISENCAO_PERGUNTA})
 #: Campo de cabeçalho com a classificação processual ou policial do caso ("Classe – Assunto: Medidas
 #: Protetivas de Urgência – Violência Doméstica", "Título: Injúria racial (art. …)"): tipifica o caso, não
 #: descreve a pessoa.
@@ -782,9 +797,14 @@ _CAMPO_CLASSIFICACAO = re.compile(r"[ \t]*(?:classe(?:\s*[–-]\s*assunto)?|assu
 _NOME_ANTES = re.compile(r"(?-i:\b(?:[A-ZÀ-Ú][\w-]*|[A-Z]{2,}))[ \t]+$")
 #: Sinal, sintoma ou histórico que antecede a condição e integra o trecho ("sinais de depressão pós-parto").
 _PREFIXO_ACHADO = re.compile(r"\b(?:sinais|sintomas|hist[óo]rico|epis[óo]dios?|queixas?)\s+de\s+$", re.IGNORECASE)
-#: Achado do classificador treinado formado só por sigla em maiúsculas ("DGDP"). O número isolado continua
-#: tarjado: pode ser identificador que nenhuma outra regra reconheceu.
-_SIGLA_ISOLADA = re.compile(r"(?-i:[A-ZÀ-Ú]{2,})")
+#: Restante da pergunta até o ponto de interrogação, na mesma linha, e resposta afirmativa.
+_PERGUNTA = re.compile(r"[^\n?.;]{0,120}\?")
+_RESPOSTA_SIM = re.compile(r"[ \t]*(?:\d\s*[–-]\s*)?sim\b", re.IGNORECASE)
+#: Termo de cor ou etnia que qualifica serviço, política ou território ("saúde indígena", "educação escolar
+#: indígena", "agente indígena de saúde", "comunidades quilombolas").
+_RACA_EM_SERVICO = re.compile(r"\b(?:sa[úu]de|educa[çc][ãa]o(?:\s+escolar)?|agente|terra|territ[óo]rio|distrito\s+sanit[áa]rio\s+"
+                              r"especial|pol[íi]tica|movimento|povos?|comunidades?|popula[çc][ãa]o|escolas?|aldeias?)\s+$",
+                              re.IGNORECASE)
 #: Prefixo da origem dos achados do classificador treinado (ver :mod:`themis_lgpd.reconhecedores.aprendido`).
 _ORIGEM_APRENDIDA = "aprendido:"
 #: Registro em conselho profissional, que marca a linha de assinatura ("Médica oftalmologista – CRM-PB …").
@@ -857,7 +877,8 @@ class ContextoDocumental:
 
     @cached_property
     def protegidos(self) -> list[tuple[int, int]]:
-        return [m.span() for r in (_NOME_INSTITUICAO, _NOME_PROGRAMA, _SIGLA_SERVICO, _NORMA) for m in r.finditer(self.texto)]
+        return [m.span() for r in (_NOME_INSTITUICAO, _NOME_PROGRAMA, _SIGLA_SERVICO, _NORMA, _SERVICO_COMUM)
+                for m in r.finditer(self.texto)]
 
     @cached_property
     def nomes_proprios(self) -> list[tuple[int, int]]:
@@ -906,30 +927,38 @@ class ContextoDocumental:
             return ISENCAO_CLASSIFICACAO
         # Termo de cor ou etnia com inicial maiúscula após palavra com inicial maiúscula ou sigla integra nome
         # próprio ("Terra Indígena …", "Ribeirão Preto", "SISVAN Indígena").
-        if tipo == "ORIGEM_RACIAL" and texto[ini:ini + 1].isupper() and _NOME_ANTES.search(texto, max(0, ini - 40), ini):
+        if tipo == "ORIGEM_RACIAL" and (texto[ini:ini + 1].isupper() and _NOME_ANTES.search(texto, max(0, ini - 40), ini)
+                                         or _RACA_EM_SERVICO.search(texto, max(0, ini - 40), ini)):
             return ISENCAO_NOME
-        if (origem.startswith(_ORIGEM_APRENDIDA) and _SIGLA_ISOLADA.fullmatch(texto, ini, fim)
-                and not _TERMO_SAUDE.fullmatch(texto, ini, fim)):
+        # Trecho em maiúsculas do classificador treinado sem termo do léxico ("DGDP", "DECLARACAO DE"): sigla
+        # ou título. O trecho com dígitos continua tarjado, pois pode ser identificador sem outra regra.
+        trecho = texto[ini:fim]
+        if (origem.startswith(_ORIGEM_APRENDIDA) and trecho.isupper() and not any(c.isdigit() for c in trecho)
+                and not _TERMO_SAUDE.search(texto, ini, fim)):
             return ISENCAO_SIGLA
         # Negação de registro ("nega alergias", "sem sintomas psicóticos", "Possui deficiência? não"); num
         # pedido, "negou o tratamento" é recusa de terceiro, e não ausência da condição.
         if self.centrado and (_NEGACAO_ANTES.search(texto[max(inicio_linha, ini - 60):ini])
                               or _NEGACAO_DEPOIS.match(texto, fim)):
             return ISENCAO_NEGACAO
-        if camada != SEMANTICA:
-            return ""
-        # Título genérico ("LAUDO MÉDICO PARA COMPROVAÇÃO DE DEFICIÊNCIA"). O título que enuncia o motivo
-        # de saúde de uma licença ou afastamento ("LICENÇA PARA TRATAMENTO DE SAÚDE") e o trecho que traz o
-        # número do registro nomeiam o registro de uma pessoa e não são isentos.
+        # Título ou seção ("LAUDO MÉDICO PARA COMPROVAÇÃO DE DEFICIÊNCIA", "MOTIVO DA INTERNAÇÃO"). O título
+        # que enuncia o motivo de saúde de uma licença ou afastamento ("LICENÇA PARA TRATAMENTO DE SAÚDE") e
+        # o trecho que traz o número do registro nomeiam o registro de uma pessoa e não são isentos.
         if (self.em(self.titulos, ini, fim) and not _MOTIVO_DE_LICENCA.search(texto, ini, fim)
                 and not any(c.isdigit() for c in texto[ini:fim])):
             return ISENCAO_TITULO
+        if camada != SEMANTICA:
+            return ""
+        # Quesito ou pergunta de formulário não respondida com "sim" ("A doença o incapacita para o
+        # trabalho? …"): o texto da pergunta é padrão.
+        if self.centrado and (q := _PERGUNTA.match(texto, fim)) is not None and not _RESPOSTA_SIM.match(texto, q.end()):
+            return ISENCAO_PERGUNTA
         fim_linha = texto.find("\n", fim)
         fim_linha = len(texto) if fim_linha < 0 else fim_linha
         linha = texto[inicio_linha:fim_linha].rstrip()
         if len(linha) <= 100 and not linha.endswith((".", ";", ":")) and _REGISTRO_PROFISSIONAL.search(linha):
             return ISENCAO_ASSINATURA
-        if (_ROTULO_DEPOIS.match(texto, fim) and texto[inicio_linha:ini].strip(" \t-–•0123456789.)") == ""
+        if (_ROTULO_DEPOIS.match(texto, fim) and texto[inicio_linha:ini].strip(" \t-–•0123456789.)[]()xX") == ""
                 and not origem.startswith(ORIGEM_CLINICA)):
             return ISENCAO_ROTULO
         return ""
@@ -1106,7 +1135,7 @@ SENSIVEIS_SEMANTICA = [
     Padrao("FILIACAO_SINDICAL", _termos(
         r"sindicalizad[oa]", r"sindicalista",
         r"(?:des)?filiad[oa]\s+(?:ao|à|do|da)\s+sindicato(?:\s+(?:d[aoe]s?\s+|e\s+|em\s+|n[oa]\s+)?(?-i:[A-ZÀ-Ú][\w-]*))*"
-        r"(?:\s*\((?-i:[A-Z]{2,}[\w/-]*)\))?",
+        r"(?:\s*\((?-i:[A-Z]{2,}[\w/-]*)(?=\)))?",
         r"mensalidades?\s+sindica(?:l|is)(?:\s*[–-]\s*(?-i:[A-Z]{2,}[\w/-]*))?",
         r"membro\s+do\s+sindicato(?:\s+\w+)?", r"associad[oa]\s+(?:ao|à)\s+sindicato(?:\s+\w+)?",
         r"dirigente\s+sindical", r"representante\s+sindical", r"delegad[oa]\s+sindical", r"ma[çc]om",
@@ -1135,7 +1164,7 @@ SENSIVEIS_SEMANTICA = [
         r"etnia\s+\w+", r"ra[çc]a\s+\w+", r"cotista\s+racial", r"racismo", r"inj[úu]ria\s+racial",
         r"comunidade\s+(?:quilombola|ind[íi]gena|cigana)"), 0.75, camada=SEMANTICA),
     # Campo de cor ou raça de ficha ou cadastro ("Raça/cor: parda", "Raça/cor: Indígena (etnia …)").
-    Padrao("ORIGEM_RACIAL", r"\b(?:ra[çc]a\s*/\s*cor|cor\s*/\s*ra[çc]a|cor\s+da\s+pele|ra[çc]a|cor)\s*:\s*"
+    Padrao("ORIGEM_RACIAL", r"\b(?:ra[çc]a\s*/\s*cor|cor\s*/\s*ra[çc]a|cor\s+(?:da\s+pele|ou\s+ra[çc]a)|ra[çc]a(?:\s+ou\s+cor)?|etnia)\s*:\s*"
                             r"(branc[oa]|pret[oa]|pard[oa]|amarel[oa]|ind[íi]gena(?:\s*\([^()\n]{1,30}\))?)(?!\w)",
            0.9, camada=CONTEXTUAL, grupo=1, nome="sensivel:raca-cor"),
 ]
@@ -1172,7 +1201,7 @@ INTIMIDADE_SEMANTICA = [
     Padrao("VIOLENCIA", _termos(r"agress[ãa]o", r"agress[õo]es", r"viol[êe]ncia", r"medo\s+de\s+retalia[çc][ãa]o",
                                 r"agredid[oa]", r"amea[çc]ad[oa]", r"espancad[oa]", r"abusad[oa]",
                                 r"violentad[oa]", r"suic[íi]dio", r"trai[çc][ãa]o", r"div[óo]rcio", r"separa[çc][ãa]o\s+"
-                                r"(?:conjugal|judicial)", r"pens[ãa]o\s+aliment[íi]cia", r"guarda\s+(?:dos?\s+filhos?|"
+                                r"(?:conjugal|judicial)", r"guarda\s+(?:dos?\s+filhos?|"
                                 r"compartilhada|unilateral)", r"usu[áa]ri[oa]\s+de\s+drogas", r"presidi[áa]ri[oa]",
                                 r"egress[oa]\s+do\s+sistema\s+prisional", r"antecedentes\s+criminais", r"condenad[oa]"),
             0.75, camada=SEMANTICA, nome="intimidade:termo"),
