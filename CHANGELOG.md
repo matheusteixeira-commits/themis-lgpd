@@ -51,6 +51,22 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
   integrado (`benchmark/treino/ciclo1/ablacao_integrada.json`) ele não acrescentou acertos às regras
   e sinalizava frases de expediente.
 
+### Alterado — classificador retreinado com documentos oficiais
+
+- O classificador de trechos passa a ser treinado também com a partição de ajuste do corpus de
+  documentos oficiais fictícios (`benchmark/oficial`) e com textos-modelo em inglês sem nada anotado,
+  e ganha os rótulos `DADO_SENSIVEL` (tipo inferido do vocabulário do trecho) e `NOME_PESSOA`; o de
+  quase-identificadores continua desativado. Na seleção do corpus oficial, com as regras do ciclo
+  anterior, o recall de dados de saúde passa de 0,128 para 0,280, o de nomes de 0,852 para 0,966 e o
+  de dados sensíveis de 0 para 0,222, com a precisão das tarjas e a preservação de trechos públicos
+  estáveis; no esic-ner, nenhum rótulo perde recall.
+- Trechos que o classificador marcaria como saúde mas são só idade ou duração ("≥ 18 anos", "30 dias")
+  são descartados.
+- Nomes propostos pelo classificador que integram o nome de instituição, logradouro, norma, honraria ou
+  município são descartados.
+- `benchmark/treino/ablacao_spancat.py` avalia uma grade de épocas e limiares no sistema completo, nas
+  duas seleções, verifica os portões e grava a configuração escolhida no artefato.
+
 ### Adicionado — cobertura nacional
 
 - Endereços de todo o país: abreviações (Av., Trav., Pça., Lgo., Rod., Estr.), número com milhar,

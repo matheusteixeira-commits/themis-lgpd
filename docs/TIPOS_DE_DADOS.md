@@ -124,6 +124,11 @@ alguém ("estou com suspeita de…", "sofri uma fratura…"), registros clínico
 "prontuário referente à…") e campos de formulário ("Condição clínica: …") são contextuais.
 As demais categorias sensíveis usam vocabulário próprio.
 
+O classificador de trechos treinado (ver [Configuração](CONFIGURACAO.md#classificador-de-dados-sensíveis))
+complementa essas regras com condições descritas em linguagem clínica ou com palavras próprias, achados de
+exame, medicamentos com posologia e descrições de origem étnica, religião, filiação ou orientação sexual;
+o tipo do dado sensível é inferido do vocabulário do trecho. Os achados seguem a mesma regra de vínculo.
+
 ### Nomes de pessoas
 
 Três reconhecedores se complementam:
@@ -136,6 +141,12 @@ Três reconhecedores se complementam:
 
 Nomes que integram nomes de lugares, instituições ou normas ("São Paulo", "Escola Paulo Freire",
 "Lei Maria da Penha") não são tratados como pessoa.
+
+O classificador de trechos treinado também propõe nomes (`BR_Sensivel_Aprendido`, origem
+`aprendido:nome_pessoa`), em especial em caixa alta, em tabelas, em assinaturas e por iniciais. Aplica
+o mesmo critério de lugares, instituições e normas, descarta o nome que encerra o nome próprio de uma
+unidade ou honraria ("Unidade Básica de Saúde Dr. …", "Prêmio … Fulano de Tal") e o que é, por inteiro,
+nome de município, e retira pronomes de tratamento do início.
 
 ## Perfis
 
