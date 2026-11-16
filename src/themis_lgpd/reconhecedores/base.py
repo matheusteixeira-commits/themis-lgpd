@@ -87,6 +87,8 @@ class Padrao:
         janela: Distância máxima, em caracteres, entre o contexto e o início do achado.
         ignorar_caixa: Compila a expressão sem distinção de maiúsculas e minúsculas.
         nome: Identificador usado como origem dos achados; padrão ``regex:<tipo>``.
+        sobrepostos: Aceita casamentos sobrepostos. Necessário quando um termo pode conter o início
+            de outro ("cirurgia de câncer de próstata": "cirurgia de câncer" e "câncer de próstata").
 
     Example:
         >>> from themis_lgpd.validadores import cpf_valido
@@ -108,6 +110,7 @@ class Padrao:
     janela: int = 40
     ignorar_caixa: bool = True
     nome: str = ""
+    sobrepostos: bool = False
 
     def __post_init__(self) -> None:
         flags = re.MULTILINE
@@ -145,7 +148,7 @@ class Padrao:
             Um achado por casamento aceito, delimitado pelo grupo ``grupo``.
         """
         achados: list[Deteccao] = []
-        for m in self._re.finditer(texto):
+        for m in self._re.finditer(texto, overlapped=self.sobrepostos):
             ini, fim = m.span(self.grupo)
             if ini < 0 or fim <= ini:
                 continue

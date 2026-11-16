@@ -53,8 +53,8 @@ def _medicamentos() -> str:
 DOENCAS = (
     r"asm[áa]tic[oa]s?", r"asma(?:\s+cr[ôo]nica)?", r"diabetes(?:\s+(?:tipo\s+[12]|mellitus))?", r"diab[ée]tic[oa]s?",
     r"hipertens[ãa]o(?:\s+arterial)?", r"hipertens[oa]s?", r"c[âa]ncer(?:\s+de\s+\w+)?", r"neoplasia(?:\s+maligna)?",
-    r"tumor(?:es)?(?:\s+maligno)?", r"leucemia", r"linfoma", r"met[áa]stase", r"carcinoma", r"melanoma",
-    r"hiv", r"aids", r"soropositiv[oa]", r"sida", r"hepatite(?:\s+[a-e])?", r"tuberculose", r"hansen[íi]ase",
+    r"tumor(?:es)?(?:\s+maligno)?", r"leucemia", r"linfoma", r"met[áa]stase", r"(?:adeno)?carcinomas?", r"melanoma",
+    r"hiv", r"aids", r"soropositiv[oa]", r"sida", r"hepatites?(?:\s+[a-e])?", r"tuberculose", r"hansen[íi]ase",
     r"s[íi]filis", r"hpv", r"gonorreia", r"herpes", r"covid(?:-?19)?", r"dengue", r"zika", r"chikungunya",
     r"mal[áa]ria(?:\s+(?:vivax|falciparum))?", r"esclerose\s+(?:m[úu]ltipla|lateral\s+amiotr[óo]fica)", r"parkinson", r"alzheimer",
     r"dem[êe]ncia", r"epilepsia", r"epil[ée]ptic[oa]s?", r"convuls[õo]es", r"avc", r"acidente\s+vascular\s+cerebral",
@@ -69,22 +69,28 @@ DOENCAS = (
     r"anorexia", r"bulimia", r"obesidade(?:\s+m[óo]rbida)?", r"depend[êe]ncia\s+qu[íi]mica", r"alcoolismo",
     r"alco[óo]latra", r"dependente\s+qu[íi]mic[oa]", r"tabagismo", r"paraplegi[ao]", r"tetraplegi[ao]",
     r"cadeirantes?", r"deficiente\s+(?:visual|auditiv[oa]|f[íi]sic[oa]|intelectual)",
-    r"defici[êe]ncia\s+(?:visual|auditiva|f[íi]sica|intelectual|mental|m[úu]ltipla)", r"surdez", r"cegueira",
+    # Enumeração dos tipos ("deficiência física, visual ou auditiva") tarjada inteira.
+    r"defici[êe]ncias?\s+(?:visua(?:l|is)|auditivas?|f[íi]sicas?|intelectua(?:l|is)|mental|mentais|m[úu]ltiplas?|motoras?)"
+    r"(?:\s*(?:,|\be\b|\bou\b)\s*(?:visual|auditiva|f[íi]sica|intelectual|mental|m[úu]ltipla|motora|sensorial))*",
+    r"surdez", r"cegueira",
     r"surd[oa]", r"ceg[oa]", r"pcd", r"amputa[çc][ãa]o", r"amputad[oa]", r"gravidez\s+de\s+risco",
     r"aborto", r"gestante", r"gr[áa]vida", r"infertilidade", r"endometriose", r"menopausa", r"osteoporose",
-    r"glaucoma", r"catarata", r"retinopatia", r"queimaduras?\s+de\s+\w+\s+grau", r"intoxica[çc][ãa]o(?:\s+(?:alimentar|por\s+\w+))?",
+    r"glaucoma", r"catarata", r"retinopatia", r"queimaduras?\s+de\s+\w+\s+grau", r"intoxica[çc][ãa]o(?:\s+agud[oa])?(?:\s+(?:alimentar|por\s+[\w-]+(?:\s+de\s+[\w-]+)?))?",
     r"hemodi[áa]lise", r"di[áa]lise", r"quimioterapia", r"radioterapia", r"transplante",
     r"mastectomia", r"histerectomia", r"bari[áa]trica", r"tratamento\s+(?:psiqui[áa]trico|psicol[óo]gico|oncol[óo]gico|"
     r"antirretroviral|hormonal)", r"f[áa]rmacos?\s+(?:hormonais|controlados|psiqui[áa]tricos)",
     r"antidepressivos?", r"ansiol[íi]ticos?", r"antipsic[óo]ticos?", r"insulinas?(?:\s+(?:glargina|nph|regular|asparte|lispro|detemir|degludeca|humana|an[áa]loga))?", r"internad[oa]",
-    r"interna[çc](?:[ãa]o|[õo]es)(?:\s+(?:psiqui[áa]tricas?|hospitalar(?:es)?))?", r"uti", r"coma", r"sequelas?", r"crise\s+(?:de\s+)?(?:ansiedade|"
-    r"p[âa]nico|convulsiva|epil[ée]ptica)", r"traumatismo(?:\s+craniano)?", r"fratura\s+(?:de|no|na|exposta)\s*\w*",
+    r"interna[çc](?:[ãa]o|[õo]es)(?:\s+(?:psiqui[áa]tricas?|hospitalar(?:es)?))?", r"internamentos?", r"uti", r"coma", r"sequelas?", r"crise\s+(?:de\s+)?(?:ansiedade|"
+    r"p[âa]nico|convulsiva|epil[ée]ptica)", r"traumatismo(?:\s+craniano)?", r"fraturas?(?:\s+expostas?)?(?:\s+(?:de|d[oa]|n[oa])\s+\w+)?",
     r"condi[çc][ãa]o\s+(?:de\s+sa[úu]de|cl[íi]nica|m[ée]dica)(?:\s+pr[ée]-?existente)?", r"grupo\s+de\s+risco",
     r"comorbidades?", r"doen[çc]as?\s+(?:pr[ée]-?existentes?|cr[ôo]nicas?|raras?|graves?)",
     r"enfermidade(?:\s+(?:respirat[óo]ria|cr[ôo]nica|grave|rara))*", r"(?:pessoa|crian[çc]a|aluno|aluna|filh[oa])\s+com\s+"
     r"defici[êe]ncia", r"doen[çc]a\s+de\s+crohn", r"crohn", r"covid", r"surto\s+(?:psic[óo]tico|de\s+\w+)",
     r"transtorno\s+de\s+p[âa]nico", r"pr[óo]teses?", r"[óo]rteses?", r"fisioterapia", r"medicamentos?\s+controlados?",
-    r"bi[óo]psia", r"cirurgias?(?:\s+(?:d[eoa]|n[oa])\s+\w+|\s+\w+)?", r"per[íi]cia\s+m[ée]dica", r"hospitalizad[oa]", r"exame\s+de\s+sangue",
+    # "cirurgia de vesícula"; o tipo ("cirurgia ortopédica") vem dos qualificadores de _TIPO_CLINICO, e
+    # não qualquer palavra seguinte ("cirurgia que", "cirurgias mensais").
+    r"bi[óo]psia", r"cirurgias?(?:\s+(?:d[eoa]|n[oa])\s+(?!(?:minha|meu|sua|seu|um|uma|ele|ela)\b)\w+)?",
+    r"per[íi]cia\s+m[ée]dica", r"hospitalizad[oa]", r"exame\s+de\s+sangue",
     r"tratamento\s+(?:hospitalar|m[ée]dico|quimioter[áa]pico|radioter[áa]pico|cl[íi]nico|odontol[óo]gico)",
     # Doenças e condições
     r"fibrose\s+c[íi]stica", r"paralisia\s+(?:cerebral|infantil|facial)", r"hiperplasia\s+prost[áa]tica(?:\s+benigna)?",
@@ -93,24 +99,138 @@ DOENCAS = (
     r"hipopituitarismo", r"hipotireoidismo", r"hipertireoidismo", r"enfisema(?:\s+pulmonar)?", r"dpoc", r"pneumonia",
     r"bronquite", r"crise\s+hipertensiva", r"anemia(?:\s+falciforme)?", r"doen[çc]a\s+falciforme", r"hemofilia",
     r"talassemia", r"atrofia\s+muscular\s+espinhal", r"distrofia\s+muscular", r"microcefalia", r"hidrocefalia",
-    r"psor[íi]ase", r"vitiligo", r"dermatite\s+at[óo]pica", r"doen[çc]a\s+cel[íi]aca", r"pancreatite", r"apendicite",
+    r"psor[íi]ase", r"vitiligo", r"dermatite\s+at[óo]pica", r"dermatites?", r"doen[çc]a\s+cel[íi]aca", r"pancreatite", r"apendicite",
     r"labirintite", r"enxaqueca", r"apneia\s+(?:obstrutiva\s+)?do\s+sono", r"sepse",
-    r"infec[çc][ãa]o\s+(?:intestinal|urin[áa]ria|hospitalar|generalizada)",
+    r"infec[çc](?:[ãa]o|[õo]es)\s+(?:intestina(?:l|is)|urin[áa]rias?|hospitalar(?:es)?|generalizadas?|virais|viral|bacterianas?|"
+    r"f[úu]ngicas?|respirat[óo]rias?|pulmonar(?:es)?|renal|renais|de\s+urina|(?:por|pel[oa])\s+[\w-]+)",
     r"n[óo]dulos?\s+(?:na|no)\s+\w+(?:\s+(?:direit[oa]|esquerd[oa]))?",
     r"ruptura\s+(?:total\s+|parcial\s+)?d[oe]\s+(?:ligamento|tend[ãa]o|menisco)(?:\s+\w+){0,2}",
     r"les[õo]es\s+por\s+esfor[çc]o\s+repetitivo", r"ler\s*/\s*dort", r"doen[çc]as?\s+autoimunes?",
     r"condi[çc][õo]es\s+autoimunes", r"passou\s+mal",
     # Saúde reprodutiva
     r"laqueaduras?(?:\s+tub[áa]ria)?", r"vasectomias?", r"esteriliza[çc][ãa]o\s+(?:volunt[áa]ria|cir[úu]rgica)",
-    r"dispositivo\s+intrauterino", r"diu", r"implantes?\s+(?:subd[ée]rmicos?|contraceptivos?|hormonais?)",
+    r"dispositivo\s+intrauterino", r"diu(?:\s+(?:de\s+cobre|hormonal))?", r"implantes?\s+(?:subd[ée]rmicos?|contraceptivos?|hormonais?)",
     r"pr[ée]-?natal", r"fertiliza[çc][ãa]o\s+in\s+vitro", r"reprodu[çc][ãa]o\s+assistida",
     # Procedimentos e exames
-    r"colecistectomias?(?:\s+videolaparosc[óo]pica)?", r"apendicectomia", r"prostatectomia", r"tireoidectomia",
-    r"artroplastias?(?:\s+d[eo]\s+\w+)?", r"angioplastia", r"cateterismo", r"marca-?passo", r"ponte\s+de\s+safena",
+    r"colecistectomias?(?:\s+videolaparosc[óo]pica|\s+por\s+videolaparoscopia)?", r"apendicectomia", r"prostatectomia",
+    r"tireoidectomia", r"artroplastias?(?:\s+(?:total|parcial))?(?:\s+d[eo]\s+\w+)?", r"angioplastia", r"cateterismo", r"marca-?passo", r"ponte\s+de\s+safena",
     r"(?:procedimento|cirurgia)\s+videolaparosc[óo]pic[oa]", r"videolaparoscopia", r"densitometria\s+[óo]ssea",
     r"mamografia", r"colonoscopia", r"endoscopia", r"resson[âa]ncia\s+magn[ée]tica",
     r"tomografia(?:\s+(?:computadorizada|de\s+coer[êe]ncia\s+[óo]ptica))?", r"ecocardiograma", r"eletrocardiograma",
     r"mapeamento\s+de\s+retina", r"exame\s+de\s+toque(?:\s+retal)?",
+    r"exames?\s+de\s+(?:urina|fezes|imagem|vista|pr[óo]stata|mama)", r"tonometria", r"facoemulsifica[çc][ãa]o",
+    r"ultrassonografias?", r"hemogramas?", r"papanicolau", r"audiometria", r"espirometria", r"eletroencefalograma",
+    r"cintilografia", r"teste\s+ergom[ée]trico", r"mamografias", r"colonoscopias", r"endoscopias",
+    r"endodontia", r"tratamento\s+de\s+canal", r"extra[çc][ãa]o\s+dent[áa]ria", r"implantes?\s+(?:dent[áa]rios?|coclear(?:es)?)",
+    r"retirada\s+d[aeo]\s+(?:ves[íi]cula|tireoide|[úu]tero|mama|ap[êe]ndice|ba[çc]o|rim|pr[óo]stata|tumor|n[óo]dulo)",
+    r"inser[çc][ãa]o\s+de\s+diu", r"transfus[ãa]o\s+de\s+sangue", r"psicoterapia", r"terapia\s+ocupacional",
+    r"acompanhamento\s+(?:psicol[óo]gico|psiqui[áa]trico|psicoterap[êe]utico|nutricional|fonoaudiol[óo]gico|"
+    r"multiprofissional)", r"(?:consultas?|acompanhamento|atendimento|tratamento)\s+(?:de|em|para)\s+sa[úu]de\s+mental",
+    r"tratamento\s+(?:imunossupressor|dial[íi]tico|paliativo|fisioter[áa]pico|ortod[ôo]ntico)",
+    # Aparelho digestivo
+    r"gastrites?", r"colelit[íi]ase", r"colecistite", r"c[áa]lculos?\s+(?:biliar(?:es)?|renais|renal)",
+    r"pedras?\s+n[ao]s?\s+(?:ves[íi]cula|rins?)", r"diverticulite", r"gastroenterite", r"retocolite", r"colite",
+    r"refluxo\s+gastroesof[áa]gico", r"[úu]lceras?(?:\s+(?:g[áa]stricas?|duodena(?:l|is)|p[ée]pticas?|venosas?|varicosas?|"
+    r"de\s+press[ãa]o))?", r"hemorroidas", r"h[ée]rnias?\s+(?:inguina(?:l|is)|umbilica(?:l|is)|abdomina(?:l|is)|de\s+hiato)",
+    r"diarreias?", r"v[ôo]mitos?", r"parasitoses?", r"verminoses?", r"ameb[íi]ase", r"giard[íi]ase", r"salmonelose",
+    r"esteatose(?:\s+hep[áa]tica)?",
+    # Aparelho respiratório e doenças do trabalho
+    r"rinite", r"sinusite", r"bronquites", r"bronquiolite", r"silicose", r"pneumoconiose", r"asbestose", r"coqueluche",
+    r"falta\s+de\s+ar", r"crises?\s+(?:asm[áa]ticas?|respirat[óo]rias?|al[ée]rgicas?|renais|de\s+(?:asma|enxaqueca|tosse))",
+    r"les(?:[ãa]o|[õo]es)\s+por\s+esfor[çc]os?\s+repetitivos?", r"dort", r"tendinites?", r"bursite", r"tenossinovite",
+    r"epicondilite", r"s[íi]ndrome\s+do\s+t[úu]nel\s+do\s+carpo", r"lombalgia", r"cervicalgia", r"dorsalgia", r"ciatalgia",
+    r"lombociatalgia", r"escoliose", r"osteoartrite", r"entorse", r"luxa[çc][ãa]o", r"espondilite(?:\s+anquilosante)?",
+    # Condições descritas de forma genérica ("problemas respiratórios", "problema de saúde")
+    r"problemas?\s+(?:graves?\s+|s[ée]rios?\s+)?(?:respirat[óo]rios?|card[íi]acos?|renais|neurol[óo]gicos?|psicol[óo]gicos?|"
+    r"psiqui[áa]tricos?|emociona(?:l|is)|de\s+ordem\s+(?:emocional|psicol[óo]gica|psiqui[áa]trica)|"
+    r"de\s+(?:vis[ãa]o|audi[çc][ãa]o|cora[çc][ãa]o|coluna|press[ãa]o|tireoide|sa[úu]de(?!\s+p[úu]blica)(?:\s+mental)?))"
+    r"(?:\s+recorrentes?|\s+cr[ôo]nicos?)?",
+    r"doen[çc]as?\s+(?:respirat[óo]rias?|ocupaciona(?:l|is)|cardiovasculares?|card[íi]acas?|renais|renal|"
+    r"neurodegenerativas?|infecciosas?|sexualmente\s+transmiss[íi]ve(?:l|is))", r"mol[ée]stias?\s+graves?",
+    r"pacientes?\s+cr[ôo]nicos?", r"mal\s+s[úu]bito", r"desmaios?", r"convuls[ãa]o", r"tonturas?", r"vertigens?",
+    r"dores?\s+(?:fortes?|cr[ôo]nicas?|intensas?|constantes?|agudas?|lombar(?:es)?|abdomina(?:l|is)|tor[áa]cicas?|"
+    r"no\s+peito|de\s+cabe[çc]a|nas?\s+costas|nas?\s+articula[çc][õo]es)", r"sangramentos?", r"hemorragias?",
+    r"febre\s+(?:alta|persistente)", r"ferimentos?(?:\s+(?:leves?|graves?))?",
+    # "complicações" só com o qualificador clínico que a segue ("complicações respiratórias")
+    r"complica[çc](?:[ãa]o|[õo]es)(?=\s+(?:respirat|card[íi]ac|rena|neurol[óo]gic|p[óo]s-operat))",
+    # Sistema nervoso, circulação e sangue
+    r"neuropatias?", r"polineuropatia", r"neuralgia", r"cefaleia", r"miastenia(?:\s+gravis)?", r"distonia", r"espasticidade",
+    r"press[ãa]o\s+(?:arterial\s+)?(?:alta|elevada)", r"colesterol\s+alto", r"hipercolesterolemia", r"dislipidemia",
+    r"pr[ée]-?diabetes", r"miocardiopatias?", r"cardiomiopatias?", r"angina", r"varizes",
+    r"fator(?:es)?\s+(?:viii|ix|vii|xiii)", r"imunoglobulinas?", r"tipo\s+sangu[íi]neo",
+    r"(?<=\bsangue\s|\bsangu[íi]neo\s)(?-i:AB|A|B|O)\s+(?:positivo|negativo)",
+    # Visão e audição
+    r"perda\s+(?:da\s+|de\s+)?(?:vis[ãa]o|audi[çc][ãa]o|auditiva|visual)", r"baixa\s+(?:vis[ãa]o|acuidade\s+visual)",
+    r"perdendo\s+a\s+(?:vis[ãa]o|audi[çc][ãa]o)", r"vis[ãa]o\s+(?:piorou|turva|monocular|subnormal)", r"ceratocone",
+    r"estrabismo", r"degenera[çc][ãa]o\s+macular", r"descolamento\s+de\s+retina", r"aparelhos?\s+auditivos?",
+    # Alergias, intolerâncias e reações
+    r"alergias?(?:\s+(?:a|à|ao|aos|às|de)\s+[\w-]+(?:\s+d[eoa]s?\s+[\w-]+){0,3})?", r"al[ée]rgic[oa]s?", r"aplv",
+    r"intoler[âa]ncias?(?:\s+(?:severa|grave|leve))?\s+(?:a|à|ao)\s+(?:lactose|gl[úu]ten|frutose|prote[íi]na\s+do\s+leite"
+    r"(?:\s+de\s+vaca)?)(?:\s+e\s+(?:à\s+|ao\s+|a\s+)?(?:lactose|gl[úu]ten|frutose))?",
+    r"rea[çc](?:[ãa]o|[õo]es)\s+(?:al[ée]rgicas?|adversas?|anafil[áa]ticas?)", r"choque\s+anafil[áa]tico", r"anafilaxia",
+    # Infecções
+    r"septicemia", r"staphylococcus(?:\s+aureus)?", r"estafiloc[óo]cic[oa]", r"klebsiella(?:\s+pneumoniae)?",
+    r"superbact[ée]rias?", r"bact[ée]rias?\s+multirresistentes?", r"varicela", r"catapora", r"caxumba", r"rub[ée]ola",
+    r"escabiose", r"micoses?", r"candid[íi]ase", r"pediculose", r"t[ée]tano", r"difteria", r"poliomielite", r"gripe",
+    r"h1n1", r"mpox", r"var[íi]ola(?:\s+dos\s+macacos)?",
+    r"monkeypox", r"htlv", r"citomegalov[íi]rus", r"herpes[- ]zoster", r"conjuntivite", r"otites?",
+    r"infec[çc](?:[ãa]o|[õo]es)\s+sexualmente\s+transmiss[íi]ve(?:l|is)", r"(?-i:IST|DST)s?",
+    # Oncologia
+    r"sarcoma", r"mieloma(?:\s+m[úu]ltiplo)?", r"glioblastoma", r"glioma", r"neoplasias", r"cistos?", r"miomas?",
+    # Sistema nervoso e saúde mental (complementos)
+    r"derrame(?:\s+cerebral)?(?!\s+de\b)", r"acidente\s+vascular\s+encef[áa]lico", r"hemiplegia",
+    r"hemiparesia", r"les[ãa]o\s+medular", r"dislexia", r"discalculia", r"ins[ôo]nia", r"fadiga\s+cr[ôo]nica",
+    r"transtornos?\s+(?:afetivo\s+bipolar|opositor\s+desafiador|d[eo]\s+d[ée]ficit\s+de\s+aten[çc][ãa]o(?:\s+(?:e|com)\s+"
+    r"hiperatividade)?|de\s+(?:humor|aprendizagem|conduta|compuls[ãa]o\s+alimentar)|do\s+sono|psic[óo]tico|"
+    r"esquizoafetivo|dissociativo)",
+    r"consultas?\s+(?:com|no|na|d[eo])\s+(?:o\s+|a\s+)?(?:psiquiatra|psic[óo]log[oa]|oncologista|infectologista|neurologista|"
+    r"cardiologista|endocrinologista|nefrologista|reumatologista|hematologista|urologista|mastologista|ortopedista|"
+    r"oftalmologista|gastroenterologista|pneumologista|dermatologista)",
+    # Saúde da mulher, do homem e da criança
+    r"s[íi]ndrome\s+dos\s+ov[áa]rios\s+polic[íi]sticos", r"ov[áa]rios?\s+polic[íi]sticos?", r"disfun[çc][ãa]o\s+er[ée]til",
+    r"parto\s+(?:normal|ces[áa]reo|prematuro|humanizado|natural)", r"fenda\s+palatina", r"l[áa]bio\s+leporino",
+    r"icter[íi]cia(?:\s+neonatal)?",
+    # Olhos, pele, boca e sangue
+    r"pter[íi]gio", r"uve[íi]te", r"miopia", r"astigmatismo", r"hipermetropia", r"queimaduras?", r"c[áa]ries?",
+    r"gengivite", r"aparelho\s+ortod[ôo]ntico", r"trombocitopenia", r"plaquetopenia",
+    # Lesões, dependência de cuidados e terapias
+    r"les(?:[ãa]o|[õo]es)\s+(?:n[oa]s?|d[oa]s?)\s+(?:joelhos?|ombros?|coluna|tornozelos?|punhos?|quadril|m[ãa]os?|p[ée]s?|"
+    r"cotovelos?|menisco|ligamento|tend[ãa]o|cabe[çc]a|c[ée]rebro|medula)",
+    r"acamad[oa]s?", r"oxig[êe]nio\s+domiciliar", r"cuidados\s+paliativos", r"rem[ée]dios?\s+controlados?",
+    r"(?:cannabis|canabis|maconha)\s+medicinal", r"[óo]leo\s+de\s+(?:cannabis|canabidiol)",
+    # Saúde mental e dependência química
+    r"(?<!\bcom\s)ansiedade", r"estresse\s+(?:p[óo]s-traum[áa]tico|cr[ôo]nico|ocupacional)",
+    r"depend[êe]ncia\s+(?:alco[óo]lica|de\s+(?:[áa]lcool|drogas|crack|coca[íi]na|opioides?|subst[âa]ncias\s+psicoativas))",
+    r"drogadi[çc][ãa]o", r"uso\s+abusivo\s+de\s+(?:[áa]lcool|drogas|subst[âa]ncias)",
+    # Nutrição e doenças metabólicas raras
+    r"desnutri[çc][ãa]o", r"subnutri[çc][ãa]o", r"fenilceton[úu]ria", r"erros?\s+inatos?\s+do\s+metabolismo",
+    r"restri[çc](?:[ãa]o|[õo]es)\s+alimentar(?:es)?", r"f[óo]rmulas?\s+(?:nutricionais|metab[óo]licas)(?:\s+especiais)?",
+    r"(?:nutri[çc][ãa]o|dietas?)\s+(?:enterais?|parenterais?|enteral|parenteral)", r"mucopolissacaridose",
+    r"acondroplasia", r"osteog[êe]nese\s+imperfeita", r"nanismo",
+    # Deficiência e mobilidade: "deficiência" isolada só após "com" ou "de" ("criança com deficiência"),
+    # e não seguida de complemento ("deficiência no atendimento" não é dado de saúde).
+    r"(?<=\bcom\s|\bde\s)defici[êe]ncias?(?!\s+(?:n[oa]s?|d[eoa]s?|em)\b)", r"mobilidade\s+reduzida",
+    r"limita[çc](?:[ãa]o|[õo]es)\s+(?:de\s+mobilidade|f[íi]sicas?|motoras?)", r"necessidades\s+especiais",
+    r"cadeiras?\s+de\s+rodas", r"muletas",
+    # Gestação e parto
+    r"gesta[çc][ãa]o(?:\s+(?:de\s+alto\s+)?risco|\s+gemelar)?", r"gravidez", r"gestantes", r"ces[áa]rea", r"cesariana",
+    r"puerp[ée]rio", r"pu[ée]rpera", r"(?:pr[ée]-?)?ecl[âa]mpsia", r"prematuridade",
+    # Dispositivos e cuidados domiciliares
+    r"cpap", r"bipap", r"oxigenoterapia", r"concentrador(?:es)?\s+de\s+oxig[êe]nio", r"colostomia", r"ileostomia",
+    r"traqueostomia", r"gastrostomia", r"ostomias?", r"bolsas?\s+de\s+colostomia",
+    r"sondas?\s+(?:vesica(?:l|is)|nasog[áa]strica|uretra(?:l|is)|de\s+al[íi]vio)",
+    # Imunização: vacina contra doença determinada ou nome de vacina
+    # (vacinas veterinárias, como a da febre aftosa, não são dado de saúde de pessoa)
+    r"vacina(?:s|[çc][ãa]o)?\s+(?:contra\s+(?:a\s+|o\s+)?|de\s+)(?!febre\s+aftosa|raiva\s+animal)[\w-]+",
+    r"imuniza[çc][ãa]o\s+contra\s+(?:a\s+|o\s+)?[\w-]+",
+    r"(?:vacina\s+)?(?:bivalente|pentavalente|hexavalente|tetraviral|tr[íi]plice\s+viral|coronavac)",
+    # Classes de medicamentos
+    r"antibi[óo]ticos?", r"anti-?inflamat[óo]rios?", r"analg[ée]sicos?", r"anticonvulsivantes?", r"anticoagulantes?",
+    r"imunossupressor(?:es)?", r"corticoides?", r"corticoster[óo]ides?", r"broncodilatador(?:es)?",
+    r"anti-?hipertensivos?", r"hipoglicemiantes?", r"antirretrovira(?:l|is)", r"quimioter[áa]picos?", r"col[íi]rios?",
+    r"imunobiol[óo]gicos?",
+    # Classificação Internacional de Doenças citada sem código
+    r"(?:c[óo]digo|classifica[çc][ãa]o)\s+internacional\s+de\s+doen[çc]as", r"(?-i:CID)(?:-?1[01])?",
     # Benefícios e medicamentos que revelam a condição
     r"aux[íi]lio[- ]doen[çc]a", r"aposentadoria\s+por\s+invalidez", r"benef[íi]cio\s+por\s+incapacidade",
     r"medicamentos?\s+(?:biol[óo]gicos?|de\s+alto\s+custo|imunobiol[óo]gicos?)",
@@ -133,7 +253,9 @@ SAUDE_CONTEXTUAL = [
            camada=CONTEXTUAL, nome="saude:cid"),
     # Expressão de diagnóstico, tratamento ou afastamento seguida da condição.
     Padrao("SAUDE",
-           r"\b(?:diagn[óo]stico\s+(?:de|confirmado\s+de)|diagnosticad[oa]s?\s+com|portador(?:a|es)?\s+de|"
+           # "portadores" (plural) designa um grupo ("benefício para portadores de deficiência"): fica
+           # para a regra de termo isolado, que só tarja com vínculo a pessoa determinada.
+           r"\b(?:diagn[óo]stico\s+(?:de|confirmado\s+de)|diagnosticad[oa]s?\s+com|portador(?:a)?\s+de|"
            r"acometid[oa]\s+(?:de|por)|sofre\s+de|sofro\s+de|tem\s+(?:um\s+)?(?:quadro|hist[óo]rico)\s+de|"
            r"em\s+tratamento\s+(?:de|para|contra)|faz\s+tratamento\s+(?:de|para)|tratando\s+(?:de|um)|"
            r"laudo\s+(?:que\s+)?(?:atesta|indica|comprova)|afastad[oa]\s+por|licen[çc]a\s+(?:m[ée]dica\s+)?(?:por|para\s+tratamento\s+de))"
@@ -143,14 +265,45 @@ SAUDE_CONTEXTUAL = [
     Padrao("SAUDE", r"\(?\b[A-TV-Z]\d{2}\.\d\b\)?", 0.6, camada=SEMANTICA, ignorar_caixa=False,
            contexto=("cid", "diagn[óo]stico", "laudo", "atestado", "m[ée]dic[oa]", "doen[çc]a", "afastamento"),
            contexto_obrigatorio=True, janela=80, nome="saude:cid-sem-rotulo"),
+    # Código da CID precedido de "código" ("doença de Huntington, código G10"), sem decimal.
+    Padrao("SAUDE", r"(?<=\bc[óo]digo\s{1,3})(?-i:[A-TV-Z]\d{2}(?:\.\d{1,2})?)\b", 0.6, camada=SEMANTICA,
+           contexto=("cid", "diagn[óo]stico", "laudo", "doen[çc]a", "s[íi]ndrome", "transtorno", "patologia"),
+           contexto_obrigatorio=True, janela=80, nome="saude:cid-codigo"),
 ]
-#: Qualificador opcional de gravidade ou estágio, incluído no trecho tarjado ("asma grave",
-#: "câncer em estágio avançado"), que também revela a condição.
-_GRAVIDADE = (r"(?:\s+(?:severa|severo|grave|leve|moderad[oa]|cr[ôo]nic[oa]|agud[oa]|avan[çc]ad[oa]|inicial|"
+#: Qualificadores incluídos no trecho tarjado, pois também revelam a condição: gravidade ou estágio
+#: ("asma grave", "câncer em estágio avançado"), tipo ou mecanismo ("carcinoma basocelular",
+#: "dermatite de contato", "depressão pós-parto"), especialidade ("cirurgia cardíaca pediátrica") e
+#: localização anatômica ("tuberculose pulmonar", "artrose no quadril", "câncer de próstata"). Até três
+#: em sequência ("hipertensão arterial sistêmica severa").
+_GRAVIDADE = (r"sever[oa]s?|graves?|leves?|moderad[oa]s?|cr[ôo]nic[oa]s?|agud[oa]s?|avan[çc]ad[oa]|inicial|"
+              r"constantes?|intens[oa]s?|frequentes?|"
               r"terminal|maligna|maligno|benign[oa]|descompensad[oa]|persistente|refrat[áa]ri[oa]|"
               r"profund[oa]|bilateral|cong[êe]nit[oa]|heredit[áa]ri[oa]|remitente(?:[- ]recorrente)?|recorrente|"
-              r"(?:em\s+)?est[áa]gio\s+\w+|tipo\s+[12]|de\s+grau\s+\w+))?")
-_DOENCA = r"(?:" + "|".join(DOENCAS) + r")" + _GRAVIDADE
+              r"(?:em\s+)?est[áa]gio\s+\w+|tipo\s+[12]|de\s+grau\s+\w+")
+_TIPO_CLINICO = (r"pulmonar(?:es)?|renal|renais|card[íi]ac[oa]s?|hep[áa]tic[oa]s?|lombar(?:es)?|cervica(?:l|is)|tor[áa]cic[oa]|"
+                 r"intestina(?:l|is)|g[áa]stric[oa]|cerebra(?:l|is)|ocular(?:es)?|[óo]sse[oa]s?|muscular(?:es)?|cut[âa]ne[oa]|"
+                 r"sist[êe]mic[oa]|perif[ée]ric[oa]|arterial|venos[oa]|basocelular|espinocelular|ductal|lobular|"
+                 r"invasiv[oa]|metast[áa]tic[oa]|bacterian[oa]|viral|f[úu]ngic[oa]|al[ée]rgic[oa]|infantil|juvenil|"
+                 r"gestacional|p[óo]s-parto|puerperal|adquirid[oa]|resistente|multirresistente|extrus[oa]|protrus[oa]|"
+                 r"respirat[óo]ri[oa]s?|p[óo]s-operat[óo]ri[oa]s?|neonatal|"
+                 r"eritematos[oa]|ulcerativ[oa]|obstrutiv[oa]|hipertr[óo]fic[oa]|dilatad[oa]|isqu[êe]mic[oa]|"
+                 r"hemorr[áa]gic[oa]|idiop[áa]tic[oa]|degenerativ[oa]|espástic[oa]|diab[ée]tic[oa]|proliferativ[oa]|"
+                 r"linfoide|mieloide|linfoc[íi]tic[oa]|prost[áa]tic[oa]|mam[áa]ri[oa]|uterin[oa]|coronarian[oa]|"
+                 r"dent[áa]ri[oa]s?|auditiv[oa]|pedi[áa]tric[oa]|geri[áa]tric[oa]|oftalmol[óo]gic[oa]|ortop[ée]dic[oa]|"
+                 r"neurol[óo]gic[oa]|bari[áa]tric[oa]|vascular|eletiv[oa]s?|pl[áa]stic[oa]|oncol[óo]gic[oa]|urol[óo]gic[oa]|"
+                 r"ginecol[óo]gic[oa]|reparador[a]|abdomina(?:l|is)|in\s+situ|de\s+contato|com\s+espasticidade|"
+                 r"de\s+[âa]ngulo\s+(?:aberto|fechado)")
+_PARTE_DO_CORPO = (r"pr[óo]stata|mamas?|seios?|pulm[ãa]o|pulm[õo]es|f[íi]gado|rins?|[úu]tero|colo\s+do\s+[úu]tero|ov[áa]rios?|"
+                   r"pele|c[óo]lon|intestino|est[ôo]mago|p[âa]ncreas|tireoide|c[ée]rebro|coluna(?:\s+(?:lombar|cervical|"
+                   r"vertebral))?|quadril|joelhos?|ombros?|f[êe]mur|t[íi]bia|pernas?|bra[çc]os?|p[ée]s?|m[ãa]os?|punhos?|"
+                   r"tornozelos?|olhos?|retina|c[óo]rnea|cora[çc][ãa]o|bexiga|ves[íi]cula(?:\s+biliar)?|boca|garganta|"
+                   r"laringe|es[ôo]fago|reto|ossos?|medula(?:\s+[óo]ssea)?|cabe[çc]a|cotovelos?|mand[íi]bula|ouvidos?|"
+                   r"pesco[çc]o|test[íi]culos?|cr[âa]nio|dedos?")
+_QUALIFICADOR = (r"(?:\s+(?:" + _GRAVIDADE + "|" + _TIPO_CLINICO + r"|(?:d[eoa]s?|n[oa]s?|em)\s+(?:" + _PARTE_DO_CORPO
+                 + r")))")
+#: Sigla entre parênteses logo após o nome ("esclerose lateral amiotrófica (ELA)").
+_SIGLA = r"(?:\s*\((?-i:[A-Z][A-Z0-9]{1,6}(?:[/-][A-Z0-9]{1,6})?)\))?"
+_DOENCA = r"(?:" + "|".join(DOENCAS) + r")" + _QUALIFICADOR + r"{0,3}" + _SIGLA
 #: Sal ou éster antes do nome do fármaco ("cloridrato de metformina", "carbonato de lítio").
 _SAL = (r"(?:(?:cloridrato|dicloridrato|sulfato|maleato|besilato|fumarato|hemifumarato|succinato|tartarato|citrato|"
         r"acetato|fosfato|carbonato|valerato|propionato|dipropionato|mesilato|bromidrato|oxalato|pamoato|decanoato|"
@@ -160,23 +313,53 @@ _SAL = (r"(?:(?:cloridrato|dicloridrato|sulfato|maleato|besilato|fumarato|hemifu
 #: bomba de prótons (-prazol), benzodiazepínicos (-azepam) e antidepressivos (-xetina).
 _SUFIXO_FARMACO = (r"[a-záéíóúâêôãõç]{3,}(?:mabe|cepte|tinibe|gliflozina|gliptina|sartana|statina|prazol|azepam|"
                    r"xetina)")
+#: Sal ou forma após o nome ("losartana potássica", "dipirona sódica").
+_FORMA = r"(?:\s+(?:pot[áa]ssic[oa]|s[óo]dic[oa]|c[áa]lcic[oa]|magn[ée]sic[oa]|monoidratad[oa]|di-?hidratad[oa]))?"
 #: Dose após o nome ("500mg", "40 mg/dia", "10 UI").
 _DOSE = r"(?:\s*\d+(?:[.,]\d+)?\s*(?:mg|mcg|µg|g|ml|ui)(?:\s*/\s*(?:ml|dose|dia|kg))?)?"
-_MEDICAMENTO = _SAL + r"(?:" + _medicamentos() + "|" + _SUFIXO_FARMACO + r")" + _DOSE
-#: Regras de saúde baseadas em termos isolados.
+_MEDICAMENTO = _SAL + r"(?:" + _medicamentos() + "|" + _SUFIXO_FARMACO + r")" + _FORMA + _DOSE
+#: Objetos que fazem de "tratamento de…" um termo administrativo, não de saúde ("tratamento de dados
+#: pessoais", "tratamento de esgoto", "tratamento isonômico").
+_TRATAMENTO_NAO_SAUDE = (r"(?!(?:isonômico|isonomico|igualit[áa]rio|diferenciado|desigual|tribut[áa]rio|fiscal|"
+                         r"preferencial|dispensado)\b)")
+_OBJETO_NAO_SAUDE = (r"(?!(?:os\s+|as\s+|o\s+|a\s+)?(?:dados|informa[çc](?:[ãa]o|[õo]es)|esgotos?|[áa]guas?|res[íi]duos|"
+                     r"efluentes|lixo|documentos|processos|reclama[çc][õo]es|den[úu]ncias|demandas|pedidos|recursos|"
+                     r"mensagens|manifesta[çc][õo]es|ocorr[êe]ncias|quest[õo]es|casos\s+omissos)\b)")
+#: Regras de saúde baseadas em termos isolados. Os casamentos podem se sobrepor: em "cirurgia de câncer
+#: de próstata", "cirurgia de câncer" não impede o reconhecimento de "câncer de próstata".
 SAUDE_SEMANTICA = [
-    Padrao("SAUDE", r"\b" + _DOENCA + r"\b", 0.8, camada=SEMANTICA, nome="saude:termo"),
+    Padrao("SAUDE", r"\b" + _DOENCA + r"(?!\w)", 0.8, camada=SEMANTICA, nome="saude:termo", sobrepostos=True),
     # Medicamento citado sem verbo de uso: "a falta de insulina glargina na rede" é de interesse
     # público; "minha filha precisa de insulina glargina" é dado de saúde (ver camada semântica).
     Padrao("SAUDE", r"\b" + _MEDICAMENTO + r"\b", 0.8, camada=SEMANTICA, nome="saude:medicamento"),
-    Padrao("SAUDE", r"\btratamento\s+(?:\w+\s+)?(?:de|para|contra|da|do)\s+[^\n.;,()]{3,50}", 0.75, camada=SEMANTICA,
-           nome="saude:tratamento-de"),
+    Padrao("SAUDE", r"\btratamentos?\s+" + _TRATAMENTO_NAO_SAUDE + r"(?:\w+\s+)?(?:de|para|contra|da|do)\s+"
+           + _OBJETO_NAO_SAUDE + r"[^\n.;,()]{3,50}", 0.75, camada=SEMANTICA, nome="saude:tratamento-de"),
 ]
-# Termo de saúde precedido de verbo que o atribui a alguém ("possui diabetes", "convive com HIV"):
-# deixa de ser termo isolado e passa à camada contextual. Apenas o termo é tarjado, não o verbo.
+# Termo de saúde precedido de verbo ou expressão que o atribui a alguém ("possui diabetes", "convive com
+# HIV", "minha filha está com suspeita de dengue", "sofri uma fratura"): deixa de ser termo isolado e
+# passa à camada contextual. Apenas o termo é tarjado, não o verbo. Formas do plural ("possuem",
+# "têm") ficam de fora, pois descrevem grupos, assim como "trata", que costuma ter instituição como
+# sujeito ("o hospital trata câncer").
+_ATRIBUICAO = (r"possui|possuo|apresenta|apresento|apresentou|apresentava|teve|tive|tinha|tenho|desenvolveu|desenvolvi|"
+               r"contraiu|contra[íi]|peguei|pegou|sofreu|sofri|trato|tratei|convive\s+com|convivo\s+com|"
+               r"portador(?:a)?\s+de|tem|"
+               r"(?:est(?:ou|á|a|ava|ive|eve)|t[áa]|t[ôo]|fiquei|ficou|internad[oa])\s+com|"
+               r"(?:luto|luta|lutou)\s+contra|venho\s+sofrendo\s+(?:de|com)|faleceu\s+(?:de|por)")
+_COMPLEMENTO = (r"(?:\s+(?:um|uma|o|a))?(?:\s+(?:quadro|diagn[óo]stico|suspeita|hist[óo]rico|caso|crise|crises)"
+                r"(?:\s+(?:cl[íi]nico|grave|severo|preliminar|confirmado))?\s+de)?")
 SAUDE_CONTEXTUAL.append(
-    Padrao("SAUDE", r"(?<=\b(?:possui|apresenta|teve|desenvolveu|contraiu|convive\s+com|portador(?:a)?\s+de|"
-                    r"tem(?:\s+um[a]?)?)\s{1,3})" + _DOENCA + r"\b", 0.9, camada=CONTEXTUAL, nome="saude:possui"))
+    Padrao("SAUDE", r"\b(?:" + _ATRIBUICAO + r")" + _COMPLEMENTO + r"\s{1,3}(" + _DOENCA + r")(?!\w)", 0.9,
+           camada=CONTEXTUAL, grupo=1, nome="saude:possui", sobrepostos=True))
+# Registro clínico de um caso ("prontuário referente à intoxicação…", "laudo de autismo", "quadro de
+# malária grave") e campo de formulário ("Condição clínica: paralisia cerebral"): referem-se a uma
+# pessoa determinada mesmo sem pronome na frase.
+SAUDE_CONTEXTUAL.append(
+    Padrao("SAUDE", r"\b(?:(?:laudos?|atestados?|prontu[áa]rios?)(?:\s+(?:m[ée]dicos?|cl[íi]nicos?))?\s+"
+                    r"(?:de|sobre|referentes?\s+(?:a|à|ao)|que\s+(?:atesta|comprova|indica))(?:\s+(?:o|a|um|uma))?|"
+                    r"quadro\s+(?:cl[íi]nico\s+)?(?:grave\s+)?de|crise\s+de|"
+                    r"(?:condi[çc][ãa]o\s+cl[íi]nica|quadro\s+cl[íi]nico|diagn[óo]stico|hip[óo]tese\s+diagn[óo]stica|"
+                    r"patologia|doen[çc]a|comorbidades?|enfermidade)\s*:)\s{0,3}(" + _DOENCA + r")(?!\w)", 0.9,
+           camada=CONTEXTUAL, grupo=1, nome="saude:registro-clinico", sobrepostos=True))
 # Medicamento precedido de verbo de uso ou prescrição ("tomo fluoxetina", "faz uso de insulina NPH").
 SAUDE_CONTEXTUAL.append(
     Padrao("SAUDE", r"(?<=\b(?:tomo|toma|tomam|tomando|tomava|fa[çz]o\s+uso\s+de|faz\s+uso\s+de|fazendo\s+uso\s+de|"

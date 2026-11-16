@@ -125,7 +125,10 @@ confiança, origem (reconhecedor e palavra de contexto) e camada.
 5. Regra `vinculado` (dados sensíveis): achados estruturais e contextuais são tarjados; termos
    semânticos isolados são tarjados apenas quando a frase se refere a uma pessoa determinada (marcador
    de primeira pessoa, possessivo, papel como "a requerente", ou identificador pessoal na mesma frase);
-   caso contrário, viram alerta. Tipos em `tarjar_sensivel_sempre` (perfil `saude`) são sempre tarjados.
+   caso contrário, viram alerta. Para o tipo `SAUDE`, o vínculo também é procurado nas frases
+   vizinhas, salvo quando a frase do termo trata de grupo ou estatística, e as demais ocorrências de um
+   termo de saúde tarjado também são tarjadas. Tipos em `tarjar_sensivel_sempre` (perfil `saude`) são
+   sempre tarjados.
 6. Com `preservar_agentes_publicos`, nomes precedidos ou seguidos de cargo público recebem `manter`.
 
 As regras de cada perfil estão em [TIPOS_DE_DADOS.md](TIPOS_DE_DADOS.md#perfis).

@@ -281,3 +281,30 @@ anticoncepcional
 contraceptivo oral
 misoprostol
 mifepristona
+# Neurologia e doenças neuromusculares
+riluzol
+edaravona
+baclofeno
+toxina botulínica
+piridostigmina
+tetrabenazina
+# Antimicrobianos e antiparasitários
+ceftriaxona
+cefazolina
+clindamicina
+doxiciclina
+metronidazol
+penicilina benzatina
+benzilpenicilina
+vancomicina
+meropenem
+gentamicina
+ivermectina
+albendazol
+mebendazol
+nistatina
+cetoconazol
+terbinafina
+# Dermatologia
+isotretinoína
+acitretina

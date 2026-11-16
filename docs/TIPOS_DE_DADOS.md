@@ -113,9 +113,15 @@ coluna **Validação** indica o que é conferido além do formato.
 | `DADO_DE_MENOR` | Dado de criança ou adolescente | `[DADO DE MENOR]` | `MENOR` | "meu filho de 9 anos" |
 
 Os dados de saúde são reconhecidos por códigos da CID-10 e da CID-11 (inclusive listas), frases de
-diagnóstico e tratamento, um vocabulário de cerca de 250 condições, procedimentos, exames e
-especialidades e uma seleção de cerca de 270 medicamentos da DCB e da Portaria SVS/MS nº 344/1998
-(`dados/medicamentos.txt`), além das classes identificadas pelo sufixo (-mabe, -tinibe, -prazol…).
+diagnóstico e tratamento, um vocabulário de cerca de 500 expressões — doenças e condições por
+aparelho, deficiências, transtornos, alergias, sintomas, procedimentos, exames, imunização, gestação,
+dependência química, dispositivos e especialidades —, uma seleção de cerca de 290 medicamentos da DCB
+e da Portaria SVS/MS nº 344/1998 (`dados/medicamentos.txt`), além das classes identificadas pelo
+sufixo (-mabe, -tinibe, -prazol…). O trecho tarjado inclui os qualificadores que também revelam a
+condição: gravidade, tipo, localização anatômica e sigla entre parênteses ("carcinoma basocelular",
+"artrose no quadril", "esclerose lateral amiotrófica (ELA)"). Expressões que atribuem a condição a
+alguém ("estou com suspeita de…", "sofri uma fratura…"), registros clínicos ("laudo de…",
+"prontuário referente à…") e campos de formulário ("Condição clínica: …") são contextuais.
 As demais categorias sensíveis usam vocabulário próprio.
 
 ### Nomes de pessoas
@@ -171,6 +177,13 @@ identificador pessoal já detectado (nome, documento, contato, processo). Assim,
 mental prevê atendimento para depressão" permanece legível, enquanto "minha filha tem autismo" é
 tarjado. A regra evita tarjar conteúdo de interesse público, em atenção ao princípio da máxima
 divulgação da LAI. Ver [ADR 0004](adr/0004-perfis-lgpd-e-lai.md).
+
+Para dados de saúde, o vínculo também é procurado na frase anterior e na seguinte, pois os pedidos
+costumam nomear a condição numa frase e dizer de quem é na outra ("Solicito o fornecimento de insulina
+glargina. Minha filha tem diabetes tipo 1."). Essa extensão não se aplica quando a frase do termo trata
+de grupo ou estatística ("o número de casos de dengue", "a campanha de vacinação", "pacientes com
+diabetes"), e fórmulas de contato na frase vizinha ("meu e-mail é…") não contam como vínculo. Um termo
+de saúde já tarjado no texto é tarjado também nas demais ocorrências, que revelariam a mesma condição.
 
 ### Falha fechada para identificadores
 
