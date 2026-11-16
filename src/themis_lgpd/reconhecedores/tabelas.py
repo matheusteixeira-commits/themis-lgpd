@@ -28,21 +28,25 @@ Formulário em bloco
     Rótulos de campo ("Nome:", "CPF:") em sequência e, adiante, os valores na mesma ordem e em igual
     número, como na extração de texto de formulários eletrônicos.
 
-Só são examinadas tabelas de pessoas: com coluna de nome ou de identificador pessoal (CPF, RG,
-matrícula, registro profissional, NIS, CNS, inscrição, data de nascimento). Tabelas de itens, de
-empresas, de unidades e de orçamento não têm essas colunas e ficam como estão; numa tabela de
-pessoas, as linhas de pessoa jurídica (CNPJ, razão social) e as de totais são ignoradas. Colunas de
-valor, de conta bancária, de contato, de endereço e de saúde só são tipificadas em tabela de pessoas.
+Só são examinadas tabelas de pessoas: com coluna de identificador pessoal (CPF, RG, matrícula,
+registro profissional, NIS, CNS, inscrição, data de nascimento) ou com coluna de nome em que ao menos
+uma célula traga um nome completo ("Profissional" e "Beneficiário" também encabeçam categorias e
+contagens). Tabelas de itens, de empresas, de unidades e de orçamento não têm essas colunas e ficam
+como estão; numa tabela de pessoas, as linhas de pessoa jurídica (CNPJ, razão social) e as de totais
+são ignoradas. Colunas de valor, de conta bancária, de contato, de endereço de residência e de saúde
+só são tipificadas em tabela de pessoas.
 """
 
 from __future__ import annotations
 
 from bisect import bisect_right
 from dataclasses import dataclass, field
+from functools import cache
 
 import regex as re
 
 from ..texto import dobrar
+from . import nomes
 from .base import CONTEXTUAL, Deteccao
 
 # =========================================================================== rótulos de coluna
@@ -88,7 +92,8 @@ _ROTULOS: list[tuple[str, bool, str]] = [
     ("REGISTRO_PROFISSIONAL", True,
      r"(?:oab|crm|cro|crp|coren|crea|cau|crf|crn|crefito|crmv|crc|cress|cref|crfa|crq|creci|crbm|cra|crb)"
      r"(?:\s*[-/]\s*[a-z]{2})?(?:\s+" + _NUMERO + r")?|registro\s+(?:profissional|no\s+conselho|de\s+classe)|"
-     r"" + _NUMERO + r"\s+(?:do\s+)?(?:registro|conselho)(?:\s+(?:profissional|de\s+classe))?|conselho\s*/\s*n[º°o]\.?"),
+     r"" + _NUMERO + r"\s+(?:do\s+)?(?:registro|conselho)(?:\s+(?:profissional|de\s+classe))?|"
+     r"conselho\s*/\s*n[º°o]\.?"),
     ("PIS", True, r"pis(?:\s*/\s*pasep)?|pasep|nis|nit|pis\s*/\s*nis|nis\s*/\s*pis|" + _NUMERO + r"\s+(?:do\s+)?nis"),
     ("CNS", True, r"cns|cart[ãa]o\s+(?:do\s+)?sus|cart[ãa]o\s+nacional\s+de\s+sa[úu]de|" + _NUMERO
      + r"\s+(?:do\s+)?(?:cns|cart[ãa]o\s+sus)"),
@@ -103,26 +108,30 @@ _ROTULOS: list[tuple[str, bool, str]] = [
     ("DOCUMENTO", True, r"(?:" + _NUMERO + r"\s+(?:de\s+|da\s+)?)?inscri[çc][ãa]o(?:\s+" + _NUMERO + r")?"),
     ("DATA_NASCIMENTO", True, r"(?:data|dt\.?)\s*(?:de\s+)?nasc(?:imento|\.)?|nascimento|nasc\.?|d\.\s?n\.?|dn"),
     ("PROTOCOLO", False, r"protocolo|processo(?:\s+sei)?|requerimento|ait|auto(?:\s+de\s+infra[çc][ãa]o)?|"
-                         r"" + _NUMERO + r"\s+(?:do\s+|da\s+)?(?:protocolo|processo|requerimento|ait|auto|notifica[çc][ãa]o)|"
-                         # Nota de empenho e ordem bancária do pagamento feito à pessoa da linha.
-                         r"n\.?\s?e\.?|o\.?\s?b\.?|ne\s*/\s*ob|ob\s*/\s*ne|(?:nota\s+de\s+)?empenho|ordem\s+banc[áa]ria"),
+                         r"" + _NUMERO + r"\s+(?:do\s+|da\s+)?(?:protocolo|processo|requerimento|ait|auto|"
+                         r"notifica[çc][ãa]o)"),
     ("IDADE", False, r"idade"),
     ("CONTA_BANCARIA", False, r"ag(?:[êe]ncia|\.)?|ag[êe]ncia\s+banc[áa]ria|conta(?:\s+(?:corrente|banc[áa]ria|"
                               r"poupan[çc]a|sal[áa]rio))?|c/c|c\.c\.|cc|" + _NUMERO + r"\s+da\s+conta|"
                               r"ag(?:[êe]ncia|\.)?\s*/\s*conta"),
     ("VALOR_PESSOAL", False,
      r"(?:valor|vlr\.?)(?:\s+(?!unit|global|estimad|de\s+refer|or[çc]ad|contrat)[\w()/.]+){0,3}" + _EM_REAIS + r"|r\$|"
-     r"(?:sal[áa]rio|remunera[çc][ãa]o|vencimentos?|proventos?|rendimentos?)(?:\s+(?:b[áa]sic[oa]|bruto|l[íi]quido|"
-     r"mensal|total|base))?" + _EM_REAIS + r"|venc\.?(?:\s+base)?|vantag(?:ens|\.)?|bruto|l[íi]quido|"
+     r"(?:sal[áa]rio|remunera[çc][ãa]o|vencimentos?|proventos?|rendimentos?)"
+     r"(?:\s+(?:b[áa]sic[oa]|bruto|l[íi]quido|mensal|total|base))?" + _EM_REAIS + r"|"
+     r"venc\.?(?:\s+base)?|vantag(?:ens|\.)?|bruto|l[íi]quido|"
      r"desc(?:ontos?|\.)|bolsa|di[áa]rias?|multa|benef[íi]cio(?:\s+mensal)?|aux[íi]lio(?:\s+\w+)?|"
      r"renda(?:\s+(?:mensal|familiar|per\s+capita|bruta|l[íi]quida))?|pens[ãa]o|gratifica[çc](?:[ãa]o|[õo]es)|"
      r"adicional|indeniza[çc][ãa]o|ajuda\s+de\s+custo|abono|subs[íi]dio|honor[áa]rios|cach[êe]|"
-     r"total(?:\s+(?:bruto|l[íi]quido|recebido|a\s+receber|pago|devido))?" + _EM_REAIS),
+     # "Total" sozinho também soma pontos ou horas; exige-se a indicação do valor em dinheiro.
+     r"total(?:\s+(?:bruto|l[íi]quido|recebido|a\s+receber|pago|devido))" + _EM_REAIS + r"|"
+     r"total\s*(?:\(\s*r\$\s*\)|em\s+r\$|r\$)"),
     ("TELEFONE", False, r"tel(?:efone|\.)?(?:\s*/\s*cel(?:ular|\.)?)?|fone|celular|cel\.|whats(?:app)?|"
                         r"telefone\s+(?:de\s+)?contato|contato"),
     ("EMAIL", False, r"e-?mail|correio\s+eletr[ôo]nico"),
-    ("ENDERECO", False, r"endere[çc]o(?:\s+(?:residencial|completo))?|end\.?|logradouro(?:\s+e\s+n[úu]mero)?|"
-                        r"resid[êe]ncia|domic[íi]lio"),
+    # Numa tabela, "Endereço" sozinho também é o da unidade de lotação; vale o de residência (ver
+    # _ROTULO_ENDERECO_CAMPO para os formulários).
+    ("ENDERECO", False, r"endere[çc]o\s+(?:residencial|de\s+resid[êe]ncia|d[oa]\s+(?:" + _PAPEIS_FORTES + r")"
+                        + _FLEXAO + r")|resid[êe]ncia|domic[íi]lio"),
     ("CEP", False, r"cep"),
     ("PLACA", False, r"placa"),
     ("RENAVAM", False, r"renavam"),
@@ -131,7 +140,8 @@ _ROTULOS: list[tuple[str, bool, str]] = [
                      r"defici[êe]ncia|tipo\s+de\s+defici[êe]ncia|patologia|enfermidade|morbidade|alergias?|"
                      r"imunobiol[óo]gico(?:\s*/\s*dose)?|vacinas?(?:\s*/\s*dose)?|medicamentos?|medica[çc][ãa]o|"
                      r"motivo\s+d[oa]\s+(?:afastamento|licen[çc]a)|condi[çc][ãa]o\s+de\s+sa[úu]de"),
-    ("ORIGEM_RACIAL", False, r"ra[çc]a(?:\s*/\s*cor)?|cor(?:\s*/\s*ra[çc]a)?|cor\s+ou\s+ra[çc]a|etnia|"
+    # "Cor" sozinho é também a cor do veículo; exige-se a raça no rótulo.
+    ("ORIGEM_RACIAL", False, r"ra[çc]a(?:\s*/\s*cor)?|cor\s*/\s*ra[çc]a|cor\s+ou\s+ra[çc]a|etnia|"
                              r"autodeclara[çc][ãa]o(?:\s+[ée]tnico-racial)?"),
     ("RELIGIAO", False, r"religi[ãa]o|credo|confiss[ãa]o\s+religiosa"),
 ]
@@ -205,6 +215,20 @@ def tipificar(rotulo: str) -> _Coluna:
     return _SEM_TIPO
 
 
+#: Rótulo de endereço sem indicação de residência: no formulário de uma pessoa, é o endereço dela.
+_ROTULO_ENDERECO_CAMPO = re.compile(r"endere[çc]o(?:\s+completo)?|end\.?|logradouro(?:\s+e\s+n[úu]mero)?",
+                                    re.IGNORECASE)
+
+
+def _tipificar_campo(rotulo: str) -> _Coluna:
+    """Tipo de um campo de formulário (ver :func:`tipificar`), inclusive o endereço sem indicação de
+    residência."""
+    col = tipificar(rotulo)
+    if not col.tipo and _ROTULO_ENDERECO_CAMPO.fullmatch(_limpar_rotulo(rotulo)):
+        return _Coluna("ENDERECO")
+    return col
+
+
 def _tipificar_composto(rotulo: str) -> _Coluna:
     """Tipo de um rótulo que pode reunir dois cabeçalhos separados por um espaço ("CLASS. INSCRIÇÃO"):
     vale o rótulo inteiro ou, na falta dele, o rótulo reconhecido no início ou no fim, desde que o
@@ -227,13 +251,14 @@ def _tipificar_composto(rotulo: str) -> _Coluna:
 #: Valor monetário: "R$ 1.234,56", "1.234,56", "1200,00".
 _DINHEIRO = re.compile(r"(?<![\d.,])(?:R\$\s?)?(?:\d{1,3}(?:\.\d{3})+|\d+),\d{2}(?![\d,])")
 #: Data: "12/03/1987", "12.03.87", "12 03 1987" e "12031987".
-_DATA = re.compile(r"(?<![\d/.\-])(?P<d>\d{1,2})(?P<s>[/.\-]| ?)(?P<m>\d{1,2})(?P=s)(?P<a>(?:19|20)\d{2}|\d{2})(?![\d/.\-])")
+_DATA = re.compile(r"(?<![\d/.\-])(?P<d>\d{1,2})(?P<s>[/.\-]| ?)(?P<m>\d{1,2})(?P=s)(?P<a>(?:19|20)\d{2}|\d{2})"
+                   r"(?![\d/.\-])")
 #: Idade numa célula: "45", "45 anos", "7 meses".
 _IDADE = re.compile(r"\d{1,3}(?:\s*(?:anos?|a|m[êe]s|meses|m))?", re.IGNORECASE)
 #: Palavra de identificador: dígitos (ou máscara) com pontuação de documento e, no máximo, sigla ou dígito
 #: verificador em letra ("140.496-ENF", "29.063/D", "52526-X", "***.306.237-**", "L0771838").
-_PALAVRA_ID = re.compile(r"(?:[A-Z]{1,4}[-/]?)?[\d*•#][\d*•#.\-/]*(?:[\dXx*•#]|[-/][A-Z]{1,4})|[A-Z]{1,3}\d[\dA-Z]{3,}|"
-                         r"\d+[A-Z]{1,3}\d+")
+_PALAVRA_ID = re.compile(r"(?:[A-Z]{1,4}[-/]?)?[\d*•#][\d*•#.\-/]*(?:[\dXx*•#]|[-/][A-Z]{1,4})|"
+                         r"[A-Z]{1,3}\d[\dA-Z]{3,}|\d+[A-Z]{1,3}\d+")
 #: Formas que ocupam colunas de identificador sem serem identificadores: datas, horas e valores.
 _NAO_ID = re.compile(r"\d{1,2}/\d{1,2}(?:/\d{2,4})?|\d{1,2}:\d{2}|.*,\d{2}|(?:19|20)\d{2}")
 #: CNPJ, com ou sem pontuação.
@@ -243,6 +268,9 @@ _CEP = re.compile(r"\d{5}-?\d{3}|\d{2}\.\d{3}-\d{3}")
 _EMAIL = re.compile(r"[\w.+\-]+@[\w\-]+(?:\.[\w\-]+)+")
 _PLACA = re.compile(r"[A-Z]{3}-?\d[A-Z0-9]\d{2}", re.IGNORECASE)
 _CHASSI = re.compile(r"[A-HJ-NPR-Z0-9]{17}", re.IGNORECASE)
+#: Cor, raça ou etnia numa célula (classificação do IBGE e autodeclarações usuais).
+_RACA = re.compile(r"\b(?:branc|pret|pard|amarel|ind[íi]gen|negr|quilombol|cafuz|mesti[çc]|mulat|etnia|povo)\w*",
+                   re.IGNORECASE)
 #: Endereço numa célula: começa por tipo de logradouro ou traz número ou "s/n".
 _ENDERECO = re.compile(r"(?:rua|r\.|av(?:enida|\.)?|travessa|tv\.?|alameda|al\.|estrada|est\.|rodovia|rod\.|"
                        r"pra[çc]a|p[çc]\.|quadra|qd\.?|setor|s[íi]tio|fazenda|ch[áa]cara|povoado|linha|vila|beco|"
@@ -269,7 +297,8 @@ _NAO_NOME = frozenset({
 _CONECTORES = frozenset({"de", "da", "do", "das", "dos", "e", "d'", "di", "del", "van", "von"})
 #: Palavra de nome: inicial maiúscula (ou caixa alta), com acento, apóstrofo ou hífen interno, ou abreviada
 #: ("Jr."); conectivo; inicial ("K.", "K.R.").
-_PALAVRA_NOME = re.compile(r"(?:\p{Lu}[\p{L}'’\-]*\.?|d[aeo]s?|e|d['’]\p{Lu}[\p{L}]*)(?:,)?|\p{Lu}\.(?:\p{Lu}\.)*,?")
+_PALAVRA_NOME = re.compile(r"(?:\p{Lu}[\p{L}'’\-]*\.?|d[aeo]s?|e|d['’]\p{Lu}[\p{L}]*)(?:,)?|"
+                           r"\p{Lu}\.(?:\p{Lu}\.)*,?")
 #: Numeração no início da célula ("01", "1º", "3.", "a)").
 _NUMERACAO = re.compile(r"[\s\-–•]*(?:(?:\d{1,3}(?:[ºo°]|\.(?!\d)|\))?|[a-z]\))[\s\-–•]+)?")
 #: Marca de célula sem valor.
@@ -277,9 +306,27 @@ _VAZIO = re.compile(r"[\s\-–—_.*x/]*|n/?[ad]|s/?[id]|n[ãa]o(?:\s+\w+)?|nenh
                     re.IGNORECASE)
 
 
-def _nome(texto: str, a: int, b: int) -> tuple[int, int] | None:
+@cache
+def _nomes_conhecidos() -> frozenset[str]:
+    """Prenomes e sobrenomes das listas do reconhecimento de nomes."""
+    return nomes.prenomes() | nomes.sobrenomes()
+
+
+@cache
+def _nao_nomes() -> frozenset[str]:
+    """Palavras que não compõem nome de pessoa: cargos, papéis e palavras comuns e administrativas das
+    listas do reconhecimento de nomes ("Enfermeiro", "Famílias", "Assinatura") e as deste módulo, sem os
+    prenomes e sobrenomes que coincidem com elas ("Câmara", "Pessoa")."""
+    return (nomes.NAO_INICIAM_NOME | nomes.PALAVRAS_COMUNS | _NAO_NOME) - _nomes_conhecidos()
+
+
+def _nome(texto: str, a: int, b: int, fragmento: bool = False) -> tuple[int, int] | None:
     """Trecho do nome de pessoa numa célula, sem título, posto ou numeração; ``None`` se a célula não
-    tem a forma de um nome ("SÃO JOSÉ LTDA", "—", "Secretaria de Saúde")."""
+    tem a forma de um nome ("SÃO JOSÉ LTDA", "—", "Secretaria de Saúde", "Enfermeiro", "CPF").
+
+    Uma só palavra (fora as iniciais) só é nome se constar das listas de prenomes e sobrenomes ou se
+    for o ``fragmento`` de um nome partido entre duas linhas da célula ("FULANO DE" / "TAL").
+    """
     m = _NUMERACAO.match(texto, a, b)
     if m:
         a = m.end()
@@ -296,19 +343,42 @@ def _nome(texto: str, a: int, b: int) -> tuple[int, int] | None:
     palavras = texto[a:b].split()
     if not 1 <= len(palavras) <= 10:
         return None
-    significativas = 0
+    # Rótulo de formulário ou cabeçalho repetido ("CPF", "NOME", "Servidor"); na continuação de um nome,
+    # o sobrenome pode coincidir com um rótulo ("NASCIMENTO").
+    col = _tipificar_campo(texto[a:b])
+    if not fragmento and (col.tipo or col.unidade or col.empresa):
+        return None
+    significativas = []
+    iniciais = 0
     for p in palavras:
         if not _PALAVRA_NOME.fullmatch(p):
             return None
         base = dobrar(p.strip(",.")).replace("’", "'")
-        if base in _NAO_NOME:
+        if base in _nao_nomes():
             return None
-        if base not in _CONECTORES and len(base) >= 2:
-            significativas += 1
-    # Só iniciais ("A. B."): exige ao menos duas.
-    if significativas == 0 and sum(1 for p in palavras if p[0].isalpha()) < 2:
+        if re.fullmatch(r"\p{Lu}\.(?:\p{Lu}\.)*,?", p):
+            iniciais += 1
+        elif base not in _CONECTORES and len(base) >= 2:
+            significativas.append(base)
+    if not significativas:
+        # Só iniciais ("A. B."): exige ao menos duas.
+        return (a, b) if iniciais >= 2 else None
+    if len(significativas) == 1 and not iniciais and not fragmento and significativas[0] not in _nomes_conhecidos():
         return None
     return a, b
+
+
+def _nome_confirmado(texto: str, a: int, b: int) -> bool:
+    """Nome completo na célula: duas palavras ou mais, ou uma palavra com iniciais ("SOUZA, M. R."), com
+    um prenome ou sobrenome das listas."""
+    trecho = _nome(texto, a, b)
+    if trecho is None:
+        return False
+    partes = [dobrar(p.strip(",.")) for p in texto[trecho[0]:trecho[1]].split()]
+    significativas = [p for p in partes if p not in _CONECTORES and len(p) >= 2]
+    iniciais = len(partes) - len(significativas) - sum(p in _CONECTORES for p in partes)
+    return (len(significativas) >= 2 or (significativas and iniciais > 0)) and \
+        any(p in _nomes_conhecidos() for p in significativas)
 
 
 def _palavras(texto: str, tokens: list[tuple[int, int]]) -> list[tuple[int, int]]:
@@ -340,7 +410,7 @@ def _data_valida(m: re.Match) -> bool:
 
 
 def _valores(tipo: str, texto: str, tokens: list[tuple[int, int]],
-             trecho: tuple[int, int] | None) -> list[tuple[int, int]]:
+             trecho: tuple[int, int] | None, fragmento: bool = False) -> list[tuple[int, int]]:
     """Valores com a forma do tipo numa célula.
 
     Args:
@@ -349,6 +419,7 @@ def _valores(tipo: str, texto: str, tokens: list[tuple[int, int]],
         tokens: Palavras da célula, em posições do texto.
         trecho: Primeiro trecho da célula (palavras separadas por um espaço), usado nos tipos de texto
             livre — nome, endereço, saúde —, que não se estendem a uma coluna vizinha sem rótulo.
+        fragmento: A célula continua, na linha de baixo, o nome da linha anterior (ver :func:`_nome`).
     """
     if not tokens:
         return []
@@ -357,7 +428,7 @@ def _valores(tipo: str, texto: str, tokens: list[tuple[int, int]],
     if tipo == "NOME":
         if trecho is None:
             return []
-        nome = _nome(texto, *trecho)
+        nome = _nome(texto, *trecho, fragmento=fragmento)
         return [nome] if nome else []
     if tipo == "VALOR_PESSOAL":
         return [(a + m.start(), a + m.end()) for m in _DINHEIRO.finditer(celula)]
@@ -386,6 +457,8 @@ def _valores(tipo: str, texto: str, tokens: list[tuple[int, int]],
             return []
         if tipo == "ENDERECO" and not _ENDERECO.fullmatch(valor):
             return []
+        if tipo == "ORIGEM_RACIAL" and not _RACA.search(valor):
+            return []
         return [(x, y)]
     if tipo == "RENAVAM":
         return [(x, y) for x, y in tokens if re.fullmatch(r"\d{9,11}", texto[x:y])]
@@ -395,7 +468,8 @@ def _valores(tipo: str, texto: str, tokens: list[tuple[int, int]],
 #: Linha de totais, que soma valores de várias pessoas.
 _TOTAL = re.compile(r"\b(?:sub)?tota(?:l|is)\b|\bsoma\b", re.IGNORECASE)
 #: Palavras de pessoa jurídica numa linha de tabela de pessoas.
-_PJ = re.compile(r"\b(?:ltda|eireli|s/a|s\.a\.|cia)\b|\s(?-i:ME|EPP)\s*$|\b(?:empresa|com[ée]rcio|comercial|ind[úu]stria|"
+_PJ = re.compile(r"\b(?:ltda|eireli|s/a|s\.a\.|cia)\b|\s(?-i:ME|EPP)\s*$|"
+                 r"\b(?:empresa|com[ée]rcio|comercial|ind[úu]stria|"
                  r"transportadora|construtora|distribuidora|associa[çc][ãa]o|funda[çc][ãa]o|instituto|cooperativa|"
                  r"sindicato|condom[íi]nio|cons[óo]rcio)\b", re.IGNORECASE)
 
@@ -463,6 +537,13 @@ class _Cabecalho:
             return False
         return not any(c.empresa for c in self.colunas) or any(c.tipo == "CPF" for c in self.colunas)
 
+    @property
+    def identificada(self) -> bool:
+        """Tabela com coluna de identificador pessoal (CPF, matrícula, data de nascimento…). Sem ela, o
+        rótulo de nome ("Profissional", "Beneficiário") também encabeça categorias e contagens, e a
+        tabela só é de pessoas se alguma célula trouxer um nome completo (ver :func:`_nome_confirmado`)."""
+        return any(c.forte and c.tipo != "NOME" for c in self.colunas)
+
 
 def _cabecalho_alinhado(texto: str, a: int, b: int) -> _Cabecalho | None:
     """Cabeçalho de tabela alinhada por espaços na linha ``texto[a:b]``, ou ``None``."""
@@ -486,15 +567,18 @@ def _prosa(texto: str, a: int, b: int) -> bool:
 
 @dataclass
 class _Linha:
-    """Linha de dados de uma tabela: palavras de cada coluna e primeiro trecho de cada coluna."""
+    """Linha de dados de uma tabela.
+
+    Attributes:
+        tokens: Palavras de cada coluna.
+        trechos: Primeiro trecho de cada coluna.
+        continuacao: A linha continua as células da linha anterior: não tem conteúdo na primeira coluna
+            ou só tem conteúdo numa coluna, recuado em relação ao início dela.
+    """
 
     tokens: list[list[tuple[int, int]]]
     trechos: list[tuple[int, int] | None]
-
-    @property
-    def continuacao(self) -> bool:
-        """Linha sem conteúdo na primeira coluna: continuação das células da linha anterior."""
-        return not self.tokens[0]
+    continuacao: bool
 
 
 def _primeiros_trechos(texto: str, tokens: list[list[tuple[int, int]]]) -> list[tuple[int, int] | None]:
@@ -566,7 +650,10 @@ class _Alinhada:
             por_coluna = [sum(1 for x, _ in trechos if any(t[0] == x for t in toks)) for toks in tokens]
             if any(c > 1 for c in por_coluna):
                 tokens = [_tokens(self.texto, x, y) for x, y in trechos]
-        return _Linha(tokens, _primeiros_trechos(self.texto, tokens))
+        cheias = [i for i, toks in enumerate(tokens) if toks]
+        continuacao = not tokens[0] or (n > 1 and len(cheias) == 1
+                                        and tokens[cheias[0]][0][0] - a >= fronteiras[cheias[0]] + 2)
+        return _Linha(tokens, _primeiros_trechos(self.texto, tokens), continuacao)
 
     def examinar(self, achados: _Achados) -> None:
         """Registra os valores das colunas tipificadas e as células das colunas de unidade."""
@@ -576,13 +663,20 @@ class _Alinhada:
             grupos[self._cabecalho_da_linha(a, b)].append((a, b))
         if not any(c.de_pessoas for c in self.cabecalhos):
             return
+        tabela: list[tuple[_Cabecalho, list[tuple[int, int, _Linha]]]] = []
         for cab, linhas in zip(self.cabecalhos, grupos):
-            if not linhas or not cab.tipificadas:
-                continue
-            fronteiras = self._fronteiras(cab, linhas)
+            if linhas and cab.tipificadas:
+                fronteiras = self._fronteiras(cab, linhas)
+                tabela.append((cab, [(a, b, self._linha(cab, fronteiras, a, b)) for a, b in linhas]))
+        if not any(c.identificada for c in self.cabecalhos) and not any(
+                _nome_confirmado(texto, *linha.trechos[i])
+                for cab, linhas in tabela for _, _, linha in linhas
+                for i, col in enumerate(cab.colunas) if col.tipo == "NOME" and linha.trechos[i]):
+            return
+        for cab, linhas in tabela:
             visto = ignorar = False
-            for a, b in linhas:
-                linha = self._linha(cab, fronteiras, a, b)
+            nomes_anteriores: set[int] = set()
+            for a, b, linha in linhas:
                 if not linha.continuacao:
                     visto = True
                     ignorar = _linha_de_pj(texto, a, b, cab.colunas, linha.trechos)
@@ -592,8 +686,13 @@ class _Alinhada:
                     if not any(c.isdigit() for c in texto[a:b]):
                         continue
                     ignorar = _linha_de_pj(texto, a, b, cab.colunas, linha.trechos)
-                if not ignorar:
-                    achados.linha(texto, cab.colunas, linha.tokens, linha.trechos, "tabela:alinhada")
+                if ignorar:
+                    continue
+                fragmentos = nomes_anteriores if linha.continuacao else set()
+                nomes_da_linha = achados.linha(texto, cab.colunas, linha.tokens, linha.trechos, "tabela:alinhada",
+                                               fragmentos=fragmentos)
+                if not linha.continuacao:
+                    nomes_anteriores = nomes_da_linha
 
 
 def _linha_de_pj(texto: str, a: int, b: int, colunas: list[_Coluna],
@@ -621,18 +720,35 @@ class _Achados:
     unidades: list[tuple[int, int, str]] = field(default_factory=list)
 
     def valor(self, x: int, y: int, tipo: str, origem: str) -> None:
-        self.deteccoes.append(Deteccao(x, y, tipo, 0.85, f"{origem}:{tipo.lower()}", CONTEXTUAL, None, True))
+        origem = f"{origem}:{tipo.lower()}"
+        if tipo == "ENDERECO":
+            # O endereço passa pela mesma verificação de endereço do órgão que os demais reconhecedores
+            # de endereço (ver themis_lgpd.reconhecedores.institucional).
+            origem = "endereco:" + origem
+        self.deteccoes.append(Deteccao(x, y, tipo, 0.85, origem, CONTEXTUAL, None, True))
 
     def linha(self, texto: str, colunas: list[_Coluna], tokens: list[list[tuple[int, int]]],
-              trechos: list[tuple[int, int] | None], origem: str, valores: bool = True) -> None:
+              trechos: list[tuple[int, int] | None], origem: str, valores: bool = True,
+              fragmentos: set[int] = frozenset()) -> set[int]:
         """Registra uma linha de tabela: os valores das colunas tipificadas (se ``valores``) e as células
-        das colunas de unidade."""
-        for col, toks, trecho in zip(colunas, tokens, trechos):
+        das colunas de unidade.
+
+        Args:
+            fragmentos: Colunas cuja célula continua o nome reconhecido na linha anterior.
+
+        Returns:
+            As colunas em que um nome foi reconhecido.
+        """
+        com_nome: set[int] = set()
+        for i, (col, toks, trecho) in enumerate(zip(colunas, tokens, trechos)):
             if col.unidade and toks:
                 self.unidades.append((toks[0][0], toks[-1][1], col.unidade))
             if col.tipo and valores:
-                for x, y in _valores(col.tipo, texto, toks, trecho):
+                for x, y in _valores(col.tipo, texto, toks, trecho, fragmento=i in fragmentos):
                     self.valor(x, y, col.tipo, origem)
+                    if col.tipo == "NOME":
+                        com_nome.add(i)
+        return com_nome
 
 
 def _tabelas_alinhadas(texto: str, linhas: list[tuple[int, int]], achados: _Achados) -> None:
@@ -703,40 +819,62 @@ def _tabelas_com_separador(texto: str, linhas: list[tuple[int, int]], achados: _
     """Tabelas com colunas separadas por barra vertical, tabulação ou ponto e vírgula."""
     if "|" not in texto and "\t" not in texto and ";" not in texto:
         return
-    colunas: list[_Coluna] = []
+    cab: _Cabecalho | None = None
     sep_tabela = ""
-    ignorar = False
+    corpo: list[tuple[int, int, list[tuple[int, int]]]] = []
     for a, b in linhas:
         linha = texto[a:b]
         sep = _separador(linha)
-        if not sep or sep != sep_tabela:
-            colunas, sep_tabela = [], ""
+        if cab is not None and sep != sep_tabela:
+            _linhas_com_separador(texto, cab, corpo, achados)
+            cab, corpo = None, []
         if not sep:
             continue
         celulas = _celulas(texto, a, b, sep)
         rotulos = [texto[x:y] for x, y in celulas]
         if len(celulas) >= 2 and not _DADO_NO_CABECALHO.search(linha.replace("(R$)", "")) \
                 and all(_rotulo_plausivel(r) or not r for r in rotulos):
-            novas = [tipificar(r) for r in rotulos]
-            cab = _Cabecalho(a, [], novas)
+            novo = _Cabecalho(a, [], [tipificar(r) for r in rotulos])
             # Dentro de uma tabela, uma linha só é novo cabeçalho com dois rótulos tipificados: uma
             # célula de dados pode coincidir com um rótulo ("Servidor", "Titular").
-            if cab.tipificadas >= (2 if colunas else 1):
-                colunas, sep_tabela = (novas, sep) if cab.de_pessoas else ([], "")
+            if novo.tipificadas >= (2 if cab is not None else 1):
+                if cab is not None:
+                    _linhas_com_separador(texto, cab, corpo, achados)
+                cab, sep_tabela, corpo = (novo, sep, []) if novo.de_pessoas else (None, "", [])
                 continue
-        if not colunas or _TOTAL.search(linha):
-            continue
+        if cab is not None and not _TOTAL.search(linha):
+            corpo.append((a, b, celulas))
+    if cab is not None:
+        _linhas_com_separador(texto, cab, corpo, achados)
+
+
+def _linhas_com_separador(texto: str, cab: _Cabecalho, corpo: list[tuple[int, int, list[tuple[int, int]]]],
+                          achados: _Achados) -> None:
+    """Registra as linhas de uma tabela com separador (ver :func:`_tabelas_com_separador`)."""
+    colunas = cab.colunas
+    registros = []
+    for a, b, celulas in corpo:
         # Linhas com colunas vazias no fim ("a;b;;;") são completadas; as de outra largura, ignoradas.
         celulas = celulas + [(b, b)] * (len(colunas) - len(celulas))
         if len(celulas) != len(colunas) and any(x < y for x, y in celulas[len(colunas):]):
             continue
         celulas = celulas[:len(colunas)]
         tokens = [_tokens(texto, x, y) for x, y in celulas]
-        trechos = [(x, y) if x < y else None for x, y in celulas]
+        registros.append((a, b, tokens, [(x, y) if x < y else None for x, y in celulas]))
+    if not cab.identificada and not any(_nome_confirmado(texto, *trechos[i])
+                                        for _, _, _, trechos in registros
+                                        for i, col in enumerate(colunas) if col.tipo == "NOME" and trechos[i]):
+        return
+    ignorar = False
+    nomes_anteriores: set[int] = set()
+    for a, b, tokens, trechos in registros:
         continuacao = not tokens[0] and any(tokens)
         if not continuacao:
             ignorar = _linha_de_pj(texto, a, b, colunas, trechos)
-        achados.linha(texto, colunas, tokens, trechos, "tabela:separador", valores=not ignorar)
+        nomes_da_linha = achados.linha(texto, colunas, tokens, trechos, "tabela:separador", valores=not ignorar,
+                                       fragmentos=nomes_anteriores if continuacao else set())
+        if not continuacao:
+            nomes_anteriores = nomes_da_linha
 
 
 # =========================================================================== formulários
@@ -752,7 +890,7 @@ def _formulario_vertical(texto: str, linhas: list[tuple[int, int]], achados: _Ac
         s = texto[a:b].strip()
         if not s or len(s) > 45 or any(c.isdigit() for c in s) or len(_trechos(texto, a, b)) != 1:
             continue
-        col = tipificar(s)
+        col = _tipificar_campo(s)
         if not col.tipo:
             continue
         x, y = linhas[k + 1]
@@ -765,14 +903,19 @@ def _formulario_vertical(texto: str, linhas: list[tuple[int, int]], achados: _Ac
         if not col.forte and not any(abs(k - f) <= 8 for f in fortes):
             continue
         for p, q in _valores(col.tipo, texto, _tokens(texto, x, y), (x, y)):
+            # Sob o rótulo de nome, o nome completo: uma só palavra pode ser outro rótulo do formulário.
+            if col.tipo == "NOME" and len([w for w in texto[p:q].split() if len(w) > 2]) < 2:
+                continue
             achados.valor(p, q, col.tipo, "tabela:formulario")
 
 
 def _colunas_em_bloco(texto: str, linhas: list[tuple[int, int]], achados: _Achados) -> None:
     """Colunas extraídas uma depois da outra: o rótulo de cada coluna seguido dos seus N valores.
 
-    Num trecho sem linhas em branco, os rótulos tipificados devem estar a intervalos de N + 1 linhas
-    (ou múltiplos, quando há colunas sem rótulo reconhecido entre eles), com N de dois ou mais.
+    Num trecho sem linhas em branco, os rótulos tipificados, todos distintos, devem estar a intervalos
+    de N + 1 linhas (ou múltiplos, quando há colunas sem rótulo reconhecido entre eles), com N de dois
+    ou mais. Pares de rótulo e valor repetidos ("NOME" / nome / "CARGO" / cargo / "NOME" / …) não são
+    colunas: o mesmo rótulo aparece mais de uma vez.
     """
     k = 0
     while k < len(linhas):
@@ -795,6 +938,9 @@ def _bloco_de_colunas(texto: str, linhas: list[tuple[int, int]], achados: _Achad
                 rotulos.append((i, col))
     if len(rotulos) < 2 or not any(col.forte for _, col in rotulos):
         return
+    textos_dos_rotulos = [dobrar(" ".join(texto[slice(*linhas[i])].split())) for i, _ in rotulos]
+    if len(set(textos_dos_rotulos)) < len(textos_dos_rotulos):
+        return
     intervalos = [j - i - 1 for (i, _), (j, _) in zip(rotulos, rotulos[1:])]
     n = min(intervalos)
     if n < 2 or any((g + 1) % (n + 1) for g in intervalos) or rotulos[-1][0] + n >= len(linhas):
@@ -802,13 +948,25 @@ def _bloco_de_colunas(texto: str, linhas: list[tuple[int, int]], achados: _Achad
     valores = [linhas[i + 1:i + 1 + n] for i, _ in rotulos]
     if any(len(texto[a:b].strip()) > 80 for grupo in valores for a, b in grupo):
         return
+    # Coluna de nomes sem nenhum nome completo: a estrutura não é uma relação de pessoas.
+    if any(col.tipo == "NOME" and not any(_nome_confirmado(texto, a, b) for a, b in grupo)
+           for (_, col), grupo in zip(rotulos, valores)):
+        return
+    achados_bloco: list[tuple[int, int, str]] = []
     for (_, col), grupo in zip(rotulos, valores):
+        da_coluna = []
         for a, b in grupo:
             trechos = _trechos(texto, a, b)
             if len(trechos) != 1 or (col.tipo == "NOME" and _PJ.search(texto, a, b)):
                 continue
-            for p, q in _valores(col.tipo, texto, _tokens(texto, a, b), trechos[0]):
-                achados.valor(p, q, col.tipo, "tabela:bloco")
+            da_coluna += [(p, q, col.tipo) for p, q in _valores(col.tipo, texto, _tokens(texto, a, b), trechos[0])]
+        # Em cada coluna, ao menos dois terços dos valores têm a forma do tipo; senão, os "valores" são
+        # outros rótulos e campos de um formulário.
+        if len(da_coluna) * 3 < n * 2:
+            return
+        achados_bloco += da_coluna
+    for p, q, tipo in achados_bloco:
+        achados.valor(p, q, tipo, "tabela:bloco")
 
 
 #: Rótulo de campo sem valor na mesma linha: "Nome:", "CPF/CNPJ:", "Valor da venda (R$):".
@@ -822,7 +980,9 @@ def _formulario_em_bloco(texto: str, linhas: list[tuple[int, int]], achados: _Ac
 
     A extração de texto de formulários eletrônicos põe os rótulos impressos de um lado e o conteúdo
     dos campos de outro. Pelo menos três rótulos, um deles forte; o bloco de valores é o primeiro
-    trecho de linhas não vazias, até 40 linhas adiante, com exatamente o mesmo número de linhas.
+    trecho de linhas não vazias, até 40 linhas adiante, com exatamente o mesmo número de linhas, e ao
+    menos dois terços dos campos tipificados têm, na posição correspondente, um valor com a forma do
+    tipo (um bloco qualquer de mesmo tamanho, como uma assinatura, não serve).
     """
     k = 0
     while k < len(linhas):
@@ -832,7 +992,7 @@ def _formulario_em_bloco(texto: str, linhas: list[tuple[int, int]], achados: _Ac
             a, b = linhas[j]
             m = _ROTULO_CAMPO.fullmatch(texto, a, b)
             if m:
-                rotulos.append(tipificar(m.group("r")))
+                rotulos.append(_tipificar_campo(m.group("r")))
             elif not (rotulos and _TITULO_SECAO.fullmatch(texto, a, b)):
                 break
             j += 1
@@ -840,12 +1000,16 @@ def _formulario_em_bloco(texto: str, linhas: list[tuple[int, int]], achados: _Ac
             k = j + 1 if j > k else k + 1
             continue
         valores = _bloco_de_valores(texto, linhas, j, len(rotulos))
+        encontrados: list[tuple[int, int, str]] = []
         for col, (a, b) in zip(rotulos, valores):
             if not col.tipo or (col.tipo == "NOME" and _PJ.search(texto, a, b)):
                 continue
             trechos = _trechos(texto, a, b)
-            for p, q in _valores(col.tipo, texto, _tokens(texto, a, b), trechos[0] if trechos else None):
-                achados.valor(p, q, col.tipo, "tabela:campos")
+            encontrados += [(p, q, col.tipo) for p, q in
+                            _valores(col.tipo, texto, _tokens(texto, a, b), trechos[0] if trechos else None)]
+        if len({p for p, _, _ in encontrados}) * 3 >= sum(1 for c in rotulos if c.tipo) * 2:
+            for p, q, tipo in encontrados:
+                achados.valor(p, q, tipo, "tabela:campos")
         k = j
 
 

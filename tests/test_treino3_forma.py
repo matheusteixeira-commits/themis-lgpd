@@ -70,6 +70,8 @@ def test_campo_em_quadricula():
 
 @pytest.mark.parametrize("texto", [
     "( X ) AUXÍLIO   (   ) OUTROS", "N  D  N  D  F  F", "alíneas a b c", "PLANTÃO  A  B  C",
+    # Palavras de uma letra no texto corrido e separadores de tabela não são casas de formulário.
+    "o bloco C e é o maior", "classe B | 4 + R | 20h",
 ])
 def test_texto_que_nao_e_quadricula(texto):
     assert normalizar(texto).texto == texto
@@ -171,11 +173,42 @@ def test_registro_profissional_e_iniciais():
         "\n"
         "PROFISSIONAL          24 25 26  CH\n"
         "ARAGONÊS, T. L.       N  N  F   36\n"
+        "DORNELAS, C. O.       D  N  D   36\n"
     )
     achados = _achados(texto)
     assert ("NOME", "TEODORA LIMEIRA ARAGONÊS") in achados and ("NOME", "CASIMIRO O. VEIGA") in achados
     assert ("REGISTRO_PROFISSIONAL", "123.456-ENF") in achados
-    assert ("NOME", "ARAGONÊS, T. L.") in achados
+    assert ("NOME", "ARAGONÊS, T. L.") in achados and ("NOME", "DORNELAS, C. O.") in achados
+
+
+def test_continuacao_do_nome_recuada_na_mesma_coluna():
+    texto = (
+        "PROFISSIONAL                   COREN-XX\n"
+        "TÉC. ENF. TEODORA LIMEIRA DE   123.456-TE\n"
+        "          ARAGONÊS\n"
+        "TÉC. ENF. CASIMIRO VEIGA       654.321-TE\n"
+    )
+    assert ("NOME", "ARAGONÊS") in _achados(texto)
+
+
+@pytest.mark.parametrize("texto", [
+    # Categorias e contagens sob rótulo de pessoa, sem identificador nem nome completo.
+    "PROFISSIONAL           QUANTIDADE   CARGA HORÁRIA\nEnfermeiro             12           40h\nTécnico de Enfermagem  30           40h\n",
+    "Beneficiários | Quantidade | Valor total (R$)\nFamílias | 1.713 | 98.410,00\nIdosos | 377 | 21.090,00\n",
+    # Formulário em branco: rótulos sem valores.
+    "NOME\nCPF\nENDEREÇO\nTELEFONE\n",
+    # Pares de rótulo e valor repetidos não são colunas em bloco.
+    "NOME\nLEOPOLDINO SAMPER QUINTELA\nFUNÇÃO\nMotorista\nNOME\nMARIETA OSTERNE PRAXEDES\nFUNÇÃO\nAnalista\n",
+    # Rótulos de formulário em branco seguidos de um bloco qualquer de mesmo tamanho.
+    "Nome:\nCPF:\nEndereço:\n\nAssinatura do responsável\nDiretor Administrativo\nMatrícula 123\n",
+    # Concurso: pontuação total não é valor em dinheiro.
+    "INSCRIÇÃO   CANDIDATO(A)                 TOTAL\n4100123     LEOPOLDINO SAMPER QUINTELA   87,50\n",
+])
+def test_estruturas_sem_dado_pessoal_tipificado(texto):
+    achados = _achados(texto)
+    assert not any(t in ("VALOR_PESSOAL", "PROTOCOLO", "ENDERECO") for t, _ in achados)
+    assert not any(v in ("Enfermeiro", "Técnico de Enfermagem", "Famílias", "Idosos", "CPF", "Motorista", "Analista",
+                         "FUNÇÃO", "ENDEREÇO", "Assinatura do responsável") for _, v in achados)
 
 
 def test_tabela_de_vacinacao():
@@ -344,7 +377,7 @@ def test_tipo_de_unidade_e_sinalizado():
     ("NOME DO(A) SEGURADO(A)", "NOME"), ("SERVIDOR(A)", "NOME"), ("MÃE/RESPONSÁVEL", "NOME"),
     ("MATR.", "MATRICULA"), ("Nº FUNCIONAL", "MATRICULA"), ("COREN-SP", "REGISTRO_PROFISSIONAL"),
     ("DT. NASC.", "DATA_NASCIMENTO"), ("DN", "DATA_NASCIMENTO"), ("AG.", "CONTA_BANCARIA"),
-    ("VALOR (R$)", "VALOR_PESSOAL"), ("LÍQUIDO", "VALOR_PESSOAL"), ("NE / OB", "PROTOCOLO"),
+    ("VALOR (R$)", "VALOR_PESSOAL"), ("LÍQUIDO", "VALOR_PESSOAL"), ("NE / OB", ""), ("TOTAL", ""),
     ("IMUNOBIOLÓGICO/DOSE", "SAUDE"), ("Nome do programa", ""), ("Unidade escolar", ""), ("Matrícula 2031", ""),
     ("Valor unitário", ""), ("Categoria profissional", ""),
 ])

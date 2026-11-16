@@ -223,15 +223,23 @@ telefone, endereço):
 | Colunas em bloco: o rótulo de cada coluna seguido dos seus valores, um por linha, com o mesmo número de valores em todas | `NOME` / nomes / `NIS` / números / `VALOR` / valores |
 | Formulário em bloco: rótulos de campo (`Nome:`, `CPF:`) em sequência e, adiante, os valores na mesma ordem e em igual número | extração de formulário eletrônico |
 
-Só são examinadas tabelas de pessoas: com coluna de nome ("Nome", "Servidor(a)", "Beneficiário",
-"Bolsista", "Profissional"…) ou de identificador pessoal (CPF, RG, matrícula, registro profissional,
-NIS, CNS, inscrição, data de nascimento). Tabelas de itens, de empresas (coluna de CNPJ ou razão
-social sem CPF), de unidades, de orçamento e de estatística ficam como estão; numa tabela de pessoas,
-as linhas de totais e as de pessoa jurídica (CNPJ, razão social) são ignoradas. As colunas de valor,
-conta, contato, endereço, protocolo, nota de empenho e ordem bancária, saúde (diagnóstico, CID, vacina,
-medicamento), cor ou raça e religião só são tipificadas em tabela de pessoas. Rótulos com ano
-("Matrícula 2025", contagem de alunos), opções de formulário ("( ) SERVIDOR") e linhas com rótulo e
-valor na mesma célula ("Raça/cor: parda") não são cabeçalhos.
+Só são examinadas tabelas de pessoas: com coluna de identificador pessoal (CPF, RG, matrícula,
+registro profissional, NIS, CNS, inscrição, data de nascimento) ou com coluna de nome ("Nome",
+"Servidor(a)", "Beneficiário", "Bolsista", "Profissional"…) em que ao menos uma célula traga um
+nome completo com prenome ou sobrenome conhecido — sob os mesmos rótulos, "Enfermeiro", "Famílias" e
+"Idosos" são categorias de contagem. Tabelas de itens, de empresas (coluna de CNPJ ou razão social sem
+CPF), de unidades, de orçamento e de estatística ficam como estão; numa tabela de pessoas, as linhas de
+totais e as de pessoa jurídica (CNPJ, razão social) são ignoradas. As colunas de valor, conta, contato,
+endereço de residência, protocolo, saúde (diagnóstico, CID, vacina, medicamento), cor ou raça e religião
+só são tipificadas em tabela de pessoas; "Total" só é valor com a indicação da moeda ("Total (R$)"),
+pois também soma pontos e horas. Rótulos com ano ("Matrícula 2025", contagem de alunos), opções de
+formulário ("( ) SERVIDOR") e linhas com rótulo e valor na mesma célula ("Raça/cor: parda") não são
+cabeçalhos. A célula de nome não pode ser outro rótulo ("CPF" sob "NOME" num formulário em branco),
+cargo, papel ou palavra comum; uma só palavra é nome se for prenome ou sobrenome conhecido ou se
+continuar, na linha de baixo, o nome partido da linha anterior. Nas colunas e nos formulários em bloco,
+ao menos dois terços dos valores precisam ter a forma do tipo, e os rótulos das colunas não se repetem.
+O endereço reconhecido num formulário passa pela mesma verificação de endereço do órgão que os demais
+(ver [Contatos, endereços e veículos do órgão](#contatos-endereços-e-veículos-do-órgão)).
 
 O nome de pessoa reconhecido por outro reconhecedor dentro de célula de coluna de unidade ou de lugar
 de uma tabela de pessoas é nome da unidade ou do município e passa a `UNIDADE_INSTITUCIONAL` ou

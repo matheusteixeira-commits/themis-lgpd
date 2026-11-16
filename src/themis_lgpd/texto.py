@@ -216,28 +216,32 @@ def _hifenizacao(saida: list[str], texto: str, c: str, k: int) -> str:
     return ""
 
 
-#: Campo em quadrícula: caracteres isolados separados por um a três espaços ("M A R I A   D E").
-_QUADRICULA = re.compile(r"(?<!\S)\S(?!\S)(?: {1,3}\S(?!\S))+")
+#: Campo em quadrícula: caracteres isolados separados por um a três espaços ("M A R I A   D E"). Os
+#: separadores de tabela e as operações ("|", ";", "+") não ocupam casas de formulário.
+_QUADRICULA = re.compile(r"(?<!\S)[^\s|;+](?!\S)(?: {1,3}[^\s|;+](?!\S))+")
+#: Quatro casas seguidas, separadas por espaço simples, com letras maiúsculas ou algarismos.
+_CASAS = re.compile(r"(?<!\S)[^\W_a-zà-ÿ](?: [^\W_a-zà-ÿ]){3}(?!\S)")
 
 
 def _espacos_de_quadricula(texto: str) -> set[int]:
     """Posições de espaços a descartar nos campos em quadrícula.
 
     Formulários impressos com uma casa por caractere chegam ao texto com cada letra separada por
-    espaço e cada palavra por casas vazias. Num campo com ao menos quatro caracteres seguidos
-    separados por espaço simples, majoritariamente letras e algarismos, o espaço entre caracteres
-    é descartado e o intervalo entre palavras (dois ou três espaços) é reduzido a um espaço.
-    Intervalos maiores separam colunas e são mantidos.
+    espaço e cada palavra por casas vazias. Num campo com ao menos quatro letras maiúsculas ou
+    algarismos seguidos, separados por espaço simples, e sem letras minúsculas (o texto corrido tem
+    palavras de uma letra: "B e é o"), o espaço entre caracteres é descartado e o intervalo entre
+    palavras (dois ou três espaços) é reduzido a um espaço. Intervalos maiores separam colunas e são
+    mantidos.
     """
-    if "  " not in texto and not re.search(r"\S \S \S \S", texto):
+    if not _CASAS.search(texto):
         return set()
     descartar: set[int] = set()
     for m in _QUADRICULA.finditer(texto):
         trecho = m.group()
-        if not re.search(r"\S \S \S \S", trecho):
+        if not _CASAS.search(trecho) or any(ch.islower() for ch in trecho):
             continue
         caracteres = [ch for ch in trecho if not ch.isspace()]
-        if sum(ch.isalnum() for ch in caracteres) * 2 < len(caracteres):
+        if sum(ch.isalnum() for ch in caracteres) * 4 < len(caracteres) * 3:
             continue
         p = m.start()
         while p < m.end():
