@@ -48,30 +48,43 @@ CTX_RESIDENCIA = (
 #: Rótulo de um componente de endereço cujo valor pode ser número ou letra (conjunto, casa, lote,
 #: bloco, apartamento, quadra…).
 _ROTULO_COMPONENTE = (
-    r"\b(?:conjunto|conj\.?|cj\.?|casa|cs\.?|lote|lt\.?|bloco|bl\.?|apartamento|apto\.?|ap\.?|sala|loja|"
+    r"\b(?:conjunto|conj\.?|cj\.?|casa|cs\.?|lote(?:\s+rural)?|lt\.?|bloco|bl\.?|apartamento|apto\.?|ap\.?|sala|loja|"
     r"quadra|qd\.?|rua|alameda|al\.|avenida|av\.|travessa|ch[áa]cara|ch\.?|m[óo]dulo|proje[çc][ãa]o|"
     r"andar|km|torre|unidade|trecho|gleba|setor)"
 )
 #: Rótulo cujo valor só pode ser número: "nº", "número" e rodovia ("BR-020", "GO-060"). Exigir o
 #: número impede que "mas" seja lido como "MA" + "s" ou "nos" como "nº" + "s".
 _ROTULO_NUMERICO = r"(?:\bn[º°o]\.?|\bn[úu]mero|\b(?-i:BR|" + "|".join(UFS) + r")-?)"
+_MESES = r"(?:janeiro|fevereiro|mar[çc]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\b"
+#: O dia de um logradouro com nome de data ("rua 15 de novembro") não é número nem valor de componente.
+_NAO_DATA = rf"(?!\s+de\s+{_MESES})"
 #: Valor de um componente: número ("12", "602-A", "1.234") ou letra isolada ("B"). Nunca uma palavra
 #: — o que impede que "ch" + "ão" de "chão" seja lido como "chácara ão".
-_VALOR_COMP = r"(?:\d{1,3}(?:\.\d{3})+|\d[\dA-Z\-/]{0,5}|[A-Z](?:-?\d{1,4})?)(?![\wÀ-ú])"
+_VALOR_COMP = r"(?:\d{1,3}(?:\.\d{3})+|\d[\dA-Z\-/]{0,5}|[A-Z](?:-?\d{1,4})?)(?![\wÀ-ú])" + _NAO_DATA
 _VALOR_NUMERICO = r"(?:\d{1,3}(?:\.\d{3})+|\d[\dA-Z\-/]{0,5})(?![\wÀ-ú])"
-#: Componente de endereço com o seu valor ("casa 4", "Bloco C", "nº 230", "GO-060").
-_COMPONENTE = rf"(?:{_ROTULO_COMPONENTE}\s*{_VALOR_COMP}|{_ROTULO_NUMERICO}\s*{_VALOR_NUMERICO})"
-#: Componente cujo valor é um nome próprio ("Edifício Toronto", "Residencial Bela Vista").
+#: Componente de endereço com o seu valor ("casa 4", "Bloco C", "nº 230", "GO-060") ou "s/n".
+_COMPONENTE = rf"(?:{_ROTULO_COMPONENTE}\s*{_VALOR_COMP}|{_ROTULO_NUMERICO}\s*{_VALOR_NUMERICO}|(?<![\w/])s/n(?![\w/]))"
+#: Componente cujo valor é um nome próprio ("Edifício Toronto", "Residencial Bela Vista") ou a rodovia
+#: em que fica o quilômetro ("km 12 da Rodovia Transamazônica", "km 8 da Rodovia LMG-800").
 _COMPONENTE_NOMEADO = (r"\b(?:edif[íi]cio|ed\.|residencial|condom[íi]nio|bloco)\s+(?-i:[A-ZÀ-Ú][\wÀ-ú'’]+"
+                       r"(?:\s+(?:d[aeo]s?\s+)?[A-ZÀ-Ú][\wÀ-ú'’]+){0,3})"
+                       r"|\b(?:rodovia|estrada)\s+(?-i:[A-Z]{2,4}-?\d{2,4}(?![\w])|[A-ZÀ-Ú][\wÀ-ú'’]+"
                        r"(?:\s+(?:d[aeo]s?\s+)?[A-ZÀ-Ú][\wÀ-ú'’]+){0,3})")
-#: Sequência de até oito componentes após o início do endereço.
-_COMPONENTES = rf"(?:\s*[,\-–]?\s*(?:{_COMPONENTE}|{_COMPONENTE_NOMEADO})){{0,8}}"
+#: Sequência de até oito componentes após o início do endereço, separados por vírgula, hífen ou
+#: preposição ("Lote 12 da DF-330", "km 15 da Rodovia BR-060", "casa 3 no Bloco B").
+_COMPONENTES = rf"(?:\s*[,\-–]?\s*(?:(?:n[oa]|d[ao])\s+)?(?:{_COMPONENTE}|{_COMPONENTE_NOMEADO})){{0,8}}"
+#: Componente que delimita o lote ou a unidade residencial ("Lote 12", "Chácara 15", "Casa 8").
+_COMPONENTE_LOTE = rf"\b(?:lote|lt\.?|ch[áa]cara|casa|cs\.?|conjunto|conj\.?|quadra|qd\.?)\s*{_VALOR_COMP}"
 #: Nome do logradouro: não atravessa fim de frase; o ponto só é aceito após abreviações de títulos
 #: ("Rua Dr. Fulano", "Av. Gov. Beltrano").
 _NOME_LOGRADOURO = (r"(?:[^\n,;:()!?\d.]|(?<=\b(?:Dr|Dra|Prof|Gov|Pres|Sen|Dep|Mal|Gal|Cel|Cap|Ten|Sto|Sta|Pe|Fr|D|S))\.)"
                     r"{2,60}?")
-#: Número do imóvel: com milhar ("1.234"), simples com letra ("230A") ou "s/n".
-_NUMERO = r"(?:n[º°o]?\.?\s*|n[úu]mero\s*)?(?:\d{1,3}(?:\.\d{3})+|\d{1,6}[A-Za-z]?|s/?n)(?![\w/])"
+#: Nome de logradouro que homenageia uma data ("15 de Novembro", "1º de Maio", "7 de Setembro").
+_NOME_DATA = r"(?:[12]?\d|3[01])[º°]?\s+de\s+" + _MESES
+#: Número do imóvel: com milhar ("1.234"), simples com letra ("230A") ou "s/n"; também como ponto de
+#: referência ("altura do número 450"). O dia de um nome-data ("rua 15 de novembro") não é número.
+_NUMERO = (r"(?:(?:na\s+)?altura\s+do\s+)?(?:n[º°o]?\.?\s*|n[úu]mero\s*)?(?:\d{1,3}(?:\.\d{3})+|\d{1,6}[A-Za-z]?|s/?n)"
+           r"(?![\w/])" + _NAO_DATA)
 #: Cidade seguida de UF ("Joinville - SC", "Goiânia/GO", "Recife (PE)").
 _CIDADE_UF = rf"[A-ZÀ-Ú][^\n,;.\d]{{1,35}}?\s*(?:[-/–,]\s*|\(\s*){_UF}\)?(?![\w])"
 #: Complementos opcionais do endereço: bairro (com ou sem a palavra "bairro", quando seguido de
@@ -92,8 +105,8 @@ _PROPRIEDADE_RURAL = (r"(?:s[íi]tio|fazenda|ch[áa]cara|granja|est[âa]ncia|gle
                       r"col[ôo]nia(?: agr[íi]cola)?|vila rural|lote rural)")
 #: Localidades coletivas (povoados, comunidades, assentamentos, estradas vicinais): também aparecem em
 #: documentos de política pública, por isso só são endereço com expressão de residência por perto.
-_LOCALIDADE_COLETIVA = (r"(?:povoado|assentamento|aldeia|comunidade|quilombo|ramal|loteamento|acampamento|"
-                        r"distrito|ilha)")
+_LOCALIDADE_COLETIVA = (r"(?:povoado|(?:projeto\s+de\s+)?assentamento|aldeia|comunidade|quilombo|ramal|loteamento|"
+                        r"acampamento|distrito|ilha)")
 #: Termos institucionais que, logo após "fazenda", "distrito" ou "comunidade", indicam órgão ou
 #: conceito, não endereço ("Fazenda Pública", "Distrito Federal", "comunidade escolar").
 _NAO_LOCALIDADE = (r"(?!(?:P[úu]blica|Nacional|Estadual|Municipal|Federal|Escolar|Acad[êe]mica|Cient[íi]fica|"
@@ -121,31 +134,57 @@ PADROES: list[Padrao] = [
            nome="cep:contexto"),
     # Tipo de logradouro, nome, número ou componente, complementos e cauda.
     Padrao("ENDERECO",
-           r"\b" + _LOGRADOURO + r"\s+" + _NOME_LOGRADOURO + r"\s*,?\s*(?:" + _NUMERO + r"|" + _COMPONENTE + r")"
-           + _COMPONENTES + _CAUDA,
+           r"\b" + _LOGRADOURO + r"\s+(?:" + _NOME_DATA + r"|" + _NOME_LOGRADOURO + r")\s*,?\s*(?:" + _NUMERO + r"|"
+           + _COMPONENTE + r")" + _COMPONENTES + _CAUDA,
            0.85, contexto=CTX_RESIDENCIA, janela=60, nome="endereco:logradouro"),
     # Logradouro numerado ou com letra ("Rua 15, nº 230", "Rua A, 15", "Avenida T-9, 1220", "Rua 04,
     # Lote 15"), seguido obrigatoriamente de número ou componente.
+    # Em Brasília, a via pode trazer o setor cardeal ("Avenida L2 Norte, quadra 605", "W3 Sul").
     Padrao("ENDERECO",
            r"\b(?:rua|r\.|avenida|av\.?|alameda|travessa|trav\.?|tv\.)\s+(?:\d{1,4}[A-Z]?|[A-Z]{1,2}(?:-?\d{1,4})?|"
-           r"[IVXL]{1,6})(?![\wÀ-ú])\s*,?\s*(?:" + _NUMERO + r"|" + _COMPONENTE + r")"
+           r"[IVXL]{1,6})(?![\wÀ-ú])(?:\s+(?:norte|sul|leste|oeste)\b)?\s*,?\s*(?:" + _NUMERO + r"|" + _COMPONENTE + r")"
            + _COMPONENTES + _CAUDA, 0.85, contexto=CTX_RESIDENCIA, janela=60, nome="endereco:numerado"),
     # Logradouro sem número, quando há expressão de residência ("moro na Rua XV de Novembro, no
     # centro de Curitiba").
     Padrao("ENDERECO",
            r"\b(?:moro|resido|reside|mora|moramos|residente|domiciliad[oa]|morador(?:a)?)\s+(?:em|n[oa]s?|à|a)\s+"
-           r"(?P<v>" + _LOGRADOURO + r"\s+" + _NOME_PROPRIO + _COMPONENTES + _CAUDA + r")", 0.85, camada=CONTEXTUAL,
+           r"(?P<v>" + _LOGRADOURO + r"\s+(?:" + _NOME_DATA + r"|" + _NOME_PROPRIO + r")" + _COMPONENTES + _CAUDA
+           + r")", 0.85, camada=CONTEXTUAL,
            grupo="v", nome="endereco:residencia"),
     # Propriedade rural pelo nome, sem número ("Sítio Boa Esperança, zona rural de Caruaru/PE",
     # "Fazenda Santa Rita, município de Sorriso/MT").
     Padrao("ENDERECO",
            r"\b" + _PROPRIEDADE_RURAL + r"\s+" + _NAO_LOCALIDADE + _NOME_PROPRIO + _COMPONENTES + _CAUDA,
            0.8, contexto=CTX_RESIDENCIA, janela=60, nome="endereco:rural"),
+    # A mesma propriedade escrita em minúsculas, desde que seguida do lote ("chácara santa luzia, lote 14").
+    Padrao("ENDERECO",
+           r"\b" + _PROPRIEDADE_RURAL + r"\s+" + _NAO_LOCALIDADE
+           + r"(?-i:[a-zà-ú][\wà-ú'’]+(?:\s+(?:d[aeo]s?\s+)?[a-zà-ú][\wà-ú'’]+){0,3})\s*,\s*" + _COMPONENTE_LOTE
+           + _COMPONENTES + _CAUDA, 0.8, contexto=CTX_RESIDENCIA, janela=60, nome="endereco:rural-lote"),
     # Localidade coletiva com expressão de residência ("residente no Povoado Bela Vista", "moro no
     # Assentamento Santa Rita, lote 12", "Ramal do Cupuaçu, km 8").
     Padrao("ENDERECO",
            r"\b" + _LOCALIDADE_COLETIVA + r"\s+" + _NAO_LOCALIDADE + _NOME_PROPRIO + _COMPONENTES + _CAUDA,
            0.8, contexto=CTX_RESIDENCIA, contexto_obrigatorio=True, janela=60, nome="endereco:localidade-rural"),
+    # Localidade coletiva com o lote da família ("Assentamento Santa Rita, Lote 45, Gleba B"): o lote
+    # individualiza o imóvel mesmo sem expressão de residência.
+    Padrao("ENDERECO",
+           r"\b" + _LOCALIDADE_COLETIVA + r"\s+" + _NAO_LOCALIDADE + _NOME_PROPRIO + r"\s*,?\s*" + _COMPONENTE_LOTE
+           + _COMPONENTES + _CAUDA, 0.8, contexto=CTX_RESIDENCIA, janela=60, nome="endereco:localidade-lote"),
+    # Gleba ou trecho numerado com lote, chácara ou casa ("Gleba 04, Lote 12", "Trecho 3 Lote 450"). Sem
+    # o lote, "trecho 2" e "gleba 4" designam áreas, comuns em textos de obras e regularização.
+    Padrao("ENDERECO",
+           r"\b(?:gleba|trecho)\s+[A-Z]?\d{1,4}[A-Z]?\s*,?\s*" + _COMPONENTE_LOTE + _COMPONENTES + _CAUDA,
+           0.85, contexto=CTX_RESIDENCIA, janela=60, nome="endereco:gleba"),
+    # Setor nomeado seguido de quadra, lote ou conjunto, comum no DF, em Goiás e no Tocantins ("Setor de
+    # Oficinas, Lote 12, Bloco B", "Setor Sul, Quadra 4"). O nome começa por maiúscula: "setor de RH" não é.
+    Padrao("ENDERECO",
+           r"\bsetor\s+(?-i:(?:d[aeo]s?\s+)?[A-ZÀ-Ú][\wÀ-ú'’]*(?:\s+(?:d[aeo]s?\s+)?[A-ZÀ-Ú][\wÀ-ú'’]*){0,3})\s*,?\s*"
+           + _COMPONENTE_LOTE + _COMPONENTES + _CAUDA, 0.85, contexto=CTX_RESIDENCIA, janela=60, nome="endereco:setor"),
+    # Conjunto identificado por letra, seguido de casa ou lote ("Conjunto B, Casa 15").
+    Padrao("ENDERECO",
+           r"\b(?:conjunto|conj\.|cj\.)\s+(?-i:[A-Z])\s*,?\s*(?:casa|cs\.?|lote|lt\.?)\s*\d{1,4}[A-Z]?(?![\wÀ-ú])"
+           + _COMPONENTES + _CAUDA, 0.85, contexto=CTX_RESIDENCIA, janela=60, nome="endereco:conjunto"),
     # Linha e lote (Rondônia e Norte), travessão e vicinal com número ("Linha 7, Lote 7, Gleba 11").
     Padrao("ENDERECO",
            r"\b(?:linha|travess[ãa]o|vicinal|lote\s+rural)\s+[A-Z]?\d{1,4}[A-Z]?\s*,?\s*" + _COMPONENTE
@@ -174,6 +213,159 @@ _CTX_RESIDENCIA = re.compile(r"\b(?:" + "|".join(CTX_RESIDENCIA) + r")\b", re.IG
 _ORGAO_ANTES = re.compile(r"\b(?:secretaria|minist[ée]rio|procuradoria|delegacia|receita|conselho|tribunal|"
                           r"superintend[êe]ncia|subsecretaria|ag[êe]ncia)\b[^.\n;]{0,40}?\bd[aeo]\s*$", re.IGNORECASE)
 
+# Complementos que completam um endereço já reconhecido. Seguem a ordem de endereçamento dos Correios
+# (logradouro, número, complemento, bairro, município, UF, CEP): o bairro, o lote e o CEP integram o
+# endereço; o município e a UF no fim, sozinhos, não identificam ninguém e ficam visíveis.
+_ESPACO = r"[^\S\n]"  # espaço que não atravessa linha
+#: Divisão do município ou da zona rural que compõe o endereço. Em "Jardim América", "Vila Nova" e
+#: "Parque das Flores", o rótulo é parte do próprio nome do bairro.
+_ROTULO_BAIRRO = (rf"\b(?:bairro|setor(?:{_ESPACO}+habitacional)?|jardim|jd\.|vila|parque|residencial|"
+                  rf"condom[íi]nio|loteamento|conjunto{_ESPACO}+habitacional|distrito|"
+                  rf"n[úu]cleo{_ESPACO}+(?:rural|habitacional)|col[ôo]nia{_ESPACO}+agr[íi]cola)")
+#: Nome do bairro: palavras com inicial maiúscula na mesma linha, com conectores ("Jardim das Flores",
+#: "Setor M Norte", "Guará II").
+_NOME_BAIRRO = (rf"(?-i:(?:d[aeo]s?{_ESPACO}+)?[A-ZÀ-Ú][\wÀ-ú'’]*"
+                rf"(?:{_ESPACO}+(?:d[aeo]s?{_ESPACO}+|e{_ESPACO}+)?[A-ZÀ-Ú][\wÀ-ú'’]*){{0,4}})")
+#: Nome do bairro escrito em minúsculas ("setor sul", "bairro jardim america"), sem começar por
+#: advérbio ou pronome ("no bairro onde moro").
+_NOME_BAIRRO_MINUSCULO = (rf"(?-i:(?!(?:onde|que|para|com|desde|perto|aqui|ali|mesmo|todo|toda|inteir[oa]|"
+                          rf"vizinh[oa]|pr[óo]xim[oa])\b)[a-zà-ú][\wà-ú'’]{{2,}}"
+                          rf"(?:{_ESPACO}+(?:d[aeo]s?{_ESPACO}+)?[a-zà-ú][\wà-ú'’]{{2,}}){{0,2}})")
+#: Bairro após o endereço (", Bairro Centro", " no bairro Jardim América", " - Setor Sul", ", Zona Rural",
+#: ", Centro"). "Centro" e "zona rural" seguidos de "de" nomeiam o município ("centro de Sinop", "zona
+#: rural de Formosa"), que fica visível.
+_BAIRRO_DEPOIS = re.compile(
+    rf"{_ESPACO}*(?:[,\-–]{_ESPACO}*)?(?:(?:n[oa]|em){_ESPACO}+)?"
+    rf"(?P<b>(?P<r>{_ROTULO_BAIRRO}){_ESPACO}*:?{_ESPACO}*(?P<n>{_NOME_BAIRRO}|(?P<min>{_NOME_BAIRRO_MINUSCULO}))"
+    rf"|(?:zona|[áa]rea){_ESPACO}+rural(?!{_ESPACO}+d[aeo]s?\b)"
+    rf"|centro(?:{_ESPACO}+(?-i:[A-ZÀ-Ú][\wÀ-ú]+))?(?!{_ESPACO}+(?:d[aeo]s?\b|(?-i:[a-zà-ú]))))(?![\wÀ-ú])",
+    re.IGNORECASE,
+)
+#: Nome de lugar (bairro ou município) antes do CEP.
+_NOME_LUGAR = rf"(?-i:[A-ZÀ-Ú][\wÀ-ú'’]+(?:{_ESPACO}+(?:d[aeo]s?{_ESPACO}+)?[A-ZÀ-Ú][\wÀ-ú'’]+){{0,4}})"
+#: CEP após o endereço, precedido ou não de bairro e município (", Águas Claras, CEP 71939-000",
+#: ", Icaraí, Niterói - CEP 24230-010"): seguido do CEP, o município deixa de estar isolado no fim.
+_CEP_DEPOIS = re.compile(
+    rf"(?:{_ESPACO}*[,\-–]{_ESPACO}*(?:{_CIDADE_UF}|{_NOME_LUGAR})){{0,2}}{_ESPACO}*[,\-–]?{_ESPACO}*"
+    rf"(?:CEP{_ESPACO}*[:\-]?{_ESPACO}*\d{{2}}\.?\d{{3}}{_ESPACO}?-?{_ESPACO}?\d{{3}}|\d{{2}}\.?\d{{3}}-\d{{3}})(?!\d)",
+    re.IGNORECASE,
+)
+#: Componentes após o bairro (", Quadra 4, Lote 12").
+_COMPONENTES_DEPOIS = re.compile(
+    rf"(?:{_ESPACO}*[,\-–]?{_ESPACO}*(?:(?:n[oa]|d[ao]){_ESPACO}+)?(?:{_COMPONENTE}|{_COMPONENTE_NOMEADO}))+",
+    re.IGNORECASE,
+)
+#: Lote, casa ou bairro imediatamente antes do endereço ("Lote 4, Quadra 12", "Setor M Norte QNM 14",
+#: "Vila Planalto, Acampamento Tamboril").
+_PARTE_ANTES = re.compile(
+    rf"(?:(?:{_COMPONENTE_LOTE}|(?P<b>(?P<r>{_ROTULO_BAIRRO}){_ESPACO}+(?P<n>{_NOME_BAIRRO})))"
+    rf"{_ESPACO}*[,\-–]?{_ESPACO}*)+\Z",
+    re.IGNORECASE,
+)
+#: Ligação entre duas partes do mesmo endereço ("Sítio Recanto Feliz na Estrada do Barreiro",
+#: "Assentamento Estrela Dalva, no km 15", "km 12 da Rodovia LMG-800").
+_ENTRE_PARTES = re.compile(rf"{_ESPACO}*(?:[,\-–]{_ESPACO}*)?(?:(?:n[oa]s?|em|d[aeo]s?|à|ao){_ESPACO}+)?",
+                           re.IGNORECASE)
+#: Órgão ou equipamento público citado antes do endereço: o endereço é institucional e, pela LAI, de
+#: divulgação obrigatória; não é estendido a bairro e CEP.
+_INSTITUICAO = re.compile(
+    r"\b(?:secretaria|minist[ée]rio|prefeitura|c[âa]mara|assembleia|tribunal|f[óo]rum|delegacia|batalh[ãa]o|"
+    r"quartel|autarquia|universidade|instituto|escola|col[ée]gio|creche|hospital|posto\s+de\s+sa[úu]de|UBS|"
+    r"unidade\s+b[áa]sica|centro\s+de\s+sa[úu]de|policl[íi]nica|cart[óo]rio|defensoria|procuradoria|promotoria|"
+    r"ouvidoria|conselho\s+tutelar|CRAS|CREAS|detran|administra[çc][ãa]o\s+regional|[óo]rg[ãa]o|reparti[çc][ãa]o|"
+    r"superintend[êe]ncia|ger[êe]ncia\s+regional)\b",
+    re.IGNORECASE,
+)
+#: Expressão de que o endereço é da própria pessoa, que prevalece sobre a menção a órgão público.
+_RESIDENCIA_PROPRIA = re.compile(
+    r"\b(?:moro|resido|reside|residente|residimos|mora(?:mos)?|morador[a]?|domicili\w*|"
+    r"minha\s+(?:casa|resid[êe]ncia|propriedade|ch[áa]cara)|meu\s+(?:endere[çc]o|im[óo]vel|lote|s[íi]tio)|"
+    r"nosso\s+endere[çc]o|propriet[áa]ri[oa])\b",
+    re.IGNORECASE,
+)
+#: Fim de frase, que delimita a busca de contexto institucional.
+_FIM_FRASE = re.compile(r"[.!?;\n]")
+#: Regras de endereço identificado só pelo lote, sem logradouro.
+_LOTE_SEM_LOGRADOURO = frozenset({"endereco:gleba", "endereco:conjunto", "endereco:localidade-lote",
+                                  "endereco:rural-lote", "endereco:setor"})
+
+
+def _institucional(texto: str, inicio: int) -> bool:
+    """Indica se o endereço que começa em ``inicio`` é de órgão ou equipamento público: há menção a
+    órgão na mesma frase, até 100 caracteres antes, e nenhuma expressão de residência própria."""
+    janela = max(0, inicio - 100)
+    fins = [m.end() for m in _FIM_FRASE.finditer(texto, janela, inicio)]
+    janela = fins[-1] if fins else janela
+    return bool(_INSTITUICAO.search(texto, janela, inicio)) and not _RESIDENCIA_PROPRIA.search(texto, janela, inicio)
+
+
+def _nome_de_localidade(nome: str) -> bool:
+    """Indica se o nome é de município, estado ou região administrativa do DF ("Vila Velha", "Distrito
+    Federal", "Jardim Botânico")."""
+    chave = " ".join(dobrar(nome).split())
+    return chave in municipios() or chave in _NOMES_ESTADOS or bool(_LOCALIDADES.fullmatch(nome))
+
+
+def _bairro_valido(m, depois: bool) -> bool:
+    """Confere o bairro casado por :data:`_BAIRRO_DEPOIS` ou :data:`_PARTE_ANTES`.
+
+    Rejeita o nome de município, estado ou região administrativa que começa por "Vila", "Jardim" ou
+    "Distrito" ("Vila Velha", "Distrito Federal") e, depois do endereço, o "setor de" de um órgão
+    ("Rua das Flores, 14, no setor de RH"); antes de quadra ou lote, "Setor de Mansões" é o setor.
+    """
+    if not m.group("b") or not m.group("r"):
+        return True
+    rotulo = dobrar(m.group("r"))
+    if depois and rotulo.startswith("setor") and re.match(r"d[aeo]s?\s", m.group("n")):
+        return False
+    return rotulo.startswith(("bairro", "setor")) or not _nome_de_localidade(m.group("b"))
+
+
+def _bairro_depois(texto: str, d: Deteccao) -> int | None:
+    """Fim do bairro que segue o endereço, ou ``None``."""
+    m = _BAIRRO_DEPOIS.match(texto, d.fim)
+    if m is None or not _bairro_valido(m, depois=True):
+        return None
+    # Nome em minúsculas: só depois da palavra "bairro" ou em endereço também escrito em minúsculas.
+    if (m.group("min") and not dobrar(m.group("r")).startswith("bairro")
+            and any(c.isupper() for c in texto[d.inicio:d.fim])):
+        return None
+    return m.end()
+
+
+def _completar(texto: str, d: Deteccao) -> None:
+    """Estende o endereço aos complementos vizinhos: bairro, lote, componentes e CEP depois dele e
+    lote, casa ou bairro imediatamente antes. Endereços de órgãos públicos não são estendidos."""
+    if _institucional(texto, d.inicio):
+        return
+    while True:
+        fim = _bairro_depois(texto, d)
+        if fim is None:
+            m = _CEP_DEPOIS.match(texto, d.fim) or _COMPONENTES_DEPOIS.match(texto, d.fim)
+            fim = m.end() if m else None
+        if fim is None or fim <= d.fim:
+            break
+        d.fim = fim
+    m = _PARTE_ANTES.search(texto, max(0, d.inicio - 80), d.inicio)
+    if m and _bairro_valido(m, depois=False):
+        d.inicio = m.start()
+
+
+def _unir_vizinhos(texto: str, deteccoes: list[Deteccao]) -> list[Deteccao]:
+    """Une os trechos de endereço contíguos ou ligados só por pontuação ou preposição, para que a
+    ligação ("na", "no km", "da") não fique visível entre duas tarjas."""
+    enderecos = sorted((d for d in deteccoes if d.tipo == "ENDERECO"), key=lambda d: (d.inicio, -d.fim))
+    unidos: list[Deteccao] = []
+    for d in enderecos:
+        ult = unidos[-1] if unidos else None
+        if ult is not None and (d.inicio <= ult.fim or _ENTRE_PARTES.fullmatch(texto, ult.fim, d.inicio)):
+            ult.fim = max(ult.fim, d.fim)
+            ult.score = max(ult.score, d.score)
+            continue
+        unidos.append(d)
+    return [d for d in deteccoes if d.tipo != "ENDERECO"] + unidos
+
+
 #: Regiões administrativas do Distrito Federal e bairros de Brasília.
 REGIOES_DF = (
     "Plano Piloto", "Brasília", "Gama", "Taguatinga", "Brazlândia", "Sobradinho", "Sobradinho II", "Planaltina",
@@ -197,7 +389,11 @@ class ReconhecedorEndereco(ReconhecedorPadroes):
         super().__init__("localizacao", PADROES)
 
     def detectar(self, texto: str) -> list[Deteccao]:
-        """Achados de todas as regras, com a confiança do endereçamento do DF ajustada."""
+        """Achados de todas as regras, com a confiança do endereçamento do DF ajustada.
+
+        Cada endereço é estendido aos complementos vizinhos (bairro, lote, CEP) e os trechos do mesmo
+        endereço ligados só por pontuação ou preposição são unidos.
+        """
         saida = []
         for d in super().detectar(texto):
             # "Sítio Novo", "Fazenda Rio Grande", "Estância Velha": o nome do próprio município, citado
@@ -208,6 +404,10 @@ class ReconhecedorEndereco(ReconhecedorPadroes):
             # "Secretaria de Estado de Fazenda …", "Ministério da Fazenda": órgão, não propriedade.
             if d.origem == "endereco:rural" and _ORGAO_ANTES.search(texto, max(0, d.inicio - 60), d.inicio):
                 continue
+            # Gleba, trecho, conjunto ou lote de assentamento como sede de órgão ou equipamento público
+            # ("a escola, localizada na Gleba 4, Lote 12"): endereço institucional.
+            if d.origem in _LOTE_SEM_LOGRADOURO and _institucional(texto, d.inicio):
+                continue
             if d.origem == "endereco:df":
                 trecho = texto[d.inicio:d.fim]
                 componentes = len(_COMP_RE.findall(trecho))
@@ -215,8 +415,10 @@ class ReconhecedorEndereco(ReconhecedorPadroes):
                     d.score = max(d.score, 0.85)
                 elif componentes == 1:
                     d.score = max(d.score, 0.75)
+            if d.tipo == "ENDERECO":
+                _completar(texto, d)
             saida.append(d)
-        return saida
+        return _unir_vizinhos(texto, saida)
 
 
 #: Nome de região administrativa, com qualificador opcional ("Riacho Fundo II", "Gama Leste").
