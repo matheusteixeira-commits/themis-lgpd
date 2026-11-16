@@ -42,8 +42,7 @@ from .base import Deteccao
 
 # --------------------------------------------------------------------------- Órgãos e unidades
 #: Designações de órgão, entidade ou unidade pública, inclusive as unidades de atendimento de saúde e
-#: de assistência social pelas siglas (UBS, UPA, CAPS, CRAS…), o Serviço de Informação ao Cidadão e os
-#: equipamentos municipais ("Garagem Municipal", "Mercado Público").
+#: de assistência social pelas siglas (UBS, UPA, CAPS, CRAS…).
 _ORGAO = (
     r"(?:secretaria|subsecretaria|minist[ée]rio|prefeitura|governo|c[âa]mara|assembleia|tribunal|f[óo]rum|"
     r"delegacia|batalh[ãa]o|quartel|autarquia|funda[çc][ãa]o|universidade|instituto|escola|col[ée]gio|creche|"
@@ -54,10 +53,7 @@ _ORGAO = (
     r"pol[íi]cia|corpo\s+de\s+bombeiros|defesa\s+civil|detran|pal[áa]cio|pa[çc]o\s+municipal|"
     r"centro\s+(?:administrativo|de\s+\w+|municipal|estadual|regional|especializado)|"
     r"central\s+de\s+\w+|unidade\s+(?:de\s+\w+|b[áa]sica|municipal|estadual|regional|descentralizada)|"
-    r"posto\s+de\s+\w+|servi[çc]o\s+de\s+informa[çc][ãa]o\s+ao\s+cidad[ãa]o|"
-    r"(?:garagem|almoxarifado|p[áa]tio|galp[ãa]o|dep[óo]sito|mercado|terminal|cemit[ée]rio|est[áa]dio|gin[áa]sio|"
-    r"teatro|biblioteca|museu|parque)\s+(?:municipal|estadual|p[úu]blic[oa])|"
-    r"(?-i:UBSF?|USF|UPA|CAPS\w*|CRAS|CREAS|CEO|CIEVS|SAMU|HEMOCENTRO|SINE|e-?SIC|SIC))"
+    r"posto\s+de\s+\w+|(?-i:UBSF?|USF|UPA|CAPS\w*|CRAS|CREAS|CEO|CIEVS|SAMU|HEMOCENTRO|SINE))"
 )
 _ORGAO_RE = re.compile(r"\b" + _ORGAO + r"\b", re.IGNORECASE)
 #: Linha que começa pela designação de um órgão ou unidade (cabeçalho, rodapé, linha de contato).
@@ -115,7 +111,7 @@ _DESTINATARIO = re.compile(r"\b(?:a[o]?\s+(?:senhor|senhora|sr\.?|sra\.?)|à\s+(
 
 
 @lru_cache(maxsize=16)
-def _documento_do_orgao(texto: str) -> bool:
+def documento_do_orgao(texto: str) -> bool:
     """Indica se o documento foi expedido pelo órgão: uma das três primeiras linhas é o timbre ou a
     designação de órgão ou unidade. Pedidos e manifestações de cidadãos não têm timbre."""
     linhas = [m.group() for m in re.finditer(r"[^\n]*\S[^\n]*", texto[:1500])][:3]
@@ -131,7 +127,7 @@ def _rodapes(texto: str) -> tuple[tuple[int, int], ...]:
     É rodapé a linha repetida em outra página, a que vem ao lado da paginação e a última linha do
     documento logo depois do cargo do signatário, fora de bloco de endereçamento a destinatário.
     """
-    if not _documento_do_orgao(texto):
+    if not documento_do_orgao(texto):
         return ()
     linhas = [(m.start(), m.end()) for m in re.finditer(r"[^\n]*\S[^\n]*", texto)]
     conteudo = [" ".join(_PAGINACAO.sub("", texto[a:b]).split()) for a, b in linhas]
@@ -408,7 +404,7 @@ def _email_de_empresa(texto: str, d: Deteccao) -> bool:
     e-mail da empresa é o canal pelo qual a própria requerente recebe a resposta."""
     valor = texto[d.inicio:d.fim]
     local, _, dominio = valor.lower().rpartition("@")
-    if not _documento_do_orgao(texto) or _DOMINIO_PUBLICO.search(dominio):
+    if not documento_do_orgao(texto) or _DOMINIO_PUBLICO.search(dominio):
         return False
     if not _SETOR_EMPRESA_NO_EMAIL.match(dobrar(local)):
         return False
@@ -452,7 +448,7 @@ def _contexto_contato(texto: str, d: Deteccao, anterior: int, contatos: list[Det
     # As regras seguintes de canal do órgão (celular, provedor gratuito, designação do setor, rótulo de
     # atendimento) só valem no documento expedido pelo órgão: no pedido do cidadão, o número citado ao
     # lado do órgão costuma ser o da própria pessoa.
-    doc_orgao = _documento_do_orgao(texto)
+    doc_orgao = documento_do_orgao(texto)
     if d.tipo == "TELEFONE" and (celular(valor) or _MEIO_MOVEL_RE.search(perto)):
         return "orgao" if doc_orgao and _movel_do_orgao(texto, d, contatos) else "pessoal"
     if _MEIO_MOVEL_RE.search(perto):
@@ -528,28 +524,28 @@ _LOCAL_DE_SERVICO = (r"(?:audit[óo]rio|plen[áa]rio|sal[ãa]o\s+(?:nobre|de\s+(
                      r"centro\s+cultural|gal?p[ãa]o|garagem|p[áa]tio|almoxarifado|dep[óo]sito|terminal|rodovi[áa]ria|"
                      r"biblioteca|museu)")
 #: Endereço introduzido pela sede ou pela unidade: "na sede da …", "a Diretoria …, situada na", "na UBS
-#: X, na Rua", "no Galpão da Defesa Civil, na Rua". Num pedido, a mesma construção costuma descrever o
-#: lugar que a própria pessoa frequenta; por isso só vale no anúncio do serviço (ver :data:`_ANUNCIO`).
+#: X, na Rua". Num pedido, a mesma construção costuma descrever o lugar que a própria pessoa frequenta;
+#: por isso só vale no anúncio do serviço (ver :data:`_ANUNCIO`).
 _ENDERECO_SEDE = re.compile(
     r"(?:(?:\b(?:n[ao]|à|a)\s+|^\s*)sede\b[^.;\n]{0,90}?"
     r"|\b" + _ORGAO + r"\b[^.;\n]{0,90}?(?:,\s*)?\b(?:situad|sediad|instalad)[oa]s?\s+"
-    r"|\b(?:n[oa]|à|ao)\s+(?:" + _LOCAL_DE_SERVICO + r"\s+(?:d[aeo]s?\s+)?)?" + _ORGAO + r"\b[^.;\n,]{0,70},\s*)"
-    + _FIM_ENDERECO_ORGAO,
+    r"|\b(?:n[oa]|à|ao)\s+" + _ORGAO + r"\b[^.;\n,]{0,70},\s*)" + _FIM_ENDERECO_ORGAO,
     re.IGNORECASE,
 )
-#: Rótulo do endereço da unidade ("Endereço da unidade:"), canal de atendimento ("Atendimento presencial
-#: do SIC:") e edifício-sede do governo ("Palácio …", "Centro Administrativo …"), que bastam por si.
+#: Rótulo do endereço da unidade ("Endereço da unidade:") e edifício-sede do governo ("Palácio …",
+#: "Centro Administrativo …"), que bastam por si.
 _ENDERECO_ORGAO = re.compile(
     r"(?:\bendere[çc]o\s+d[ao]\s+(?:unidade|[óo]rg[ãa]o)\s*:\s*"
-    r"|\batendimento(?!\s+domiciliar)(?:\s+(?:presencial|ao\s+p[úu]blico))?(?:\s+d[aoe]s?\s+[^:\n]{1,50})?\s*:\s*"
     r"|\b(?:pal[áa]cio|pa[çc]o\s+municipal|centro\s+administrativo|edif[íi]cio[-\s]sede)\b[^.;\n]{0,60}?)"
     + _FIM_ENDERECO_ORGAO,
     re.IGNORECASE,
 )
 #: Local público de evento ou de serviço logo antes do endereço ("Local: Auditório da Regional – Rua…",
-#: "no Plenário …, Rua…"): ninguém mora em auditório, galpão ou pátio.
-_LOCAL_ANTES = re.compile(r"\b" + _LOCAL_DE_SERVICO + r"\b[^.;\n]{0,70}?[,–\-]\s*(?:(?:n[oa]|à|em)\s+)?$",
-                          re.IGNORECASE)
+#: "no Galpão da Defesa Civil, na Rua…", "no pátio da Garagem Municipal, Rua…") ou canal de atendimento
+#: ("Atendimento presencial do SIC: Rua…"): ninguém mora em auditório, galpão ou pátio.
+_LOCAL_ANTES = re.compile(r"(?:\b" + _LOCAL_DE_SERVICO + r"\b[^.;\n]{0,70}?[,–\-]\s*(?:(?:n[oa]|à|em)\s+)?"
+                          r"|\batendimento(?!\s+domiciliar)(?:\s+(?:presencial|ao\s+p[úu]blico))?"
+                          r"(?:\s+d[aoe]s?\s+[^:\n]{1,50})?\s*:\s*)$", re.IGNORECASE)
 #: Anúncio do serviço pelo órgão, na mesma frase do endereço: horário de atendimento ("de segunda a
 #: sexta-feira, das 8h às 17h"), hora do ato ("às 10 horas, … compareceu") ou providência a cargo do
 #: público ou do órgão ("poderão ser retirados", "deverá ser protocolada", "fica assegurada vista").
@@ -591,15 +587,15 @@ _CAMPO_PESSOA = re.compile(r"^\s*(?:nome|cpf|rg|nis|cns|data\s+de\s+nascimento|t
 def endereco_institucional(texto: str, inicio: int) -> bool:
     """Indica se o endereço que começa em ``inicio`` é de sede ou unidade de órgão público, sem expressão
     de residência própria na frase: está no cabeçalho ou no rodapé do documento, segue o rótulo do
-    endereço da unidade, o canal de atendimento, o edifício-sede ou um local público de serviço
-    (auditório, galpão, pátio), ou é introduzido pela sede ou pela unidade numa frase que anuncia o
-    serviço."""
+    endereço da unidade ou o edifício-sede, ou é introduzido pela sede ou pela unidade numa frase que
+    anuncia o serviço. Em documento expedido pelo órgão, vale também o endereço que segue um local
+    público de serviço (auditório, galpão, pátio) ou o canal de atendimento."""
     antes = _frase_antes(texto, inicio, 140)
     if _RESIDENCIA.search(antes):
         return False
     if inicio < _fim_cabecalho(texto) or _em_rodape(texto, inicio) or _ENDERECO_ORGAO.search(antes):
         return True
-    if _LOCAL_ANTES.search(antes):
+    if documento_do_orgao(texto) and _LOCAL_ANTES.search(antes):
         return True
     if not _ENDERECO_SEDE.search(antes):
         return False
@@ -618,18 +614,17 @@ def _bloco_de_empresa(texto: str, inicio: int) -> bool:
 
 
 def endereco_de_empresa(texto: str, inicio: int) -> bool:
-    """Indica se o endereço que começa em ``inicio`` é de pessoa jurídica: campo de endereço de bloco que
-    qualifica a empresa ou, em documento expedido pelo órgão, sede de empresa citada na frase ("…Ltda.,
-    CNPJ…, com sede na Rua…") e estabelecimento comercial logo antes ("Pastelaria Boa Massa, Avenida…").
-    Num pedido, o endereço da empresa costuma ser o da própria requerente."""
+    """Indica se o endereço que começa em ``inicio``, em documento expedido pelo órgão, é de pessoa
+    jurídica: sede de empresa citada na frase ("…Ltda., CNPJ…, com sede na Rua…"), estabelecimento
+    comercial logo antes ("Pastelaria Boa Massa, Avenida…") ou campo de endereço de bloco que qualifica a
+    empresa. Num pedido, o endereço da empresa costuma ser o da própria requerente."""
+    if not documento_do_orgao(texto):
+        return False
     antes = _frase_antes(texto, inicio, 200)
     if _RESIDENCIA.search(antes):
         return False
-    if _bloco_de_empresa(texto, inicio):
-        return True
-    if not _documento_do_orgao(texto):
-        return False
-    return bool(_SEDE_DE_EMPRESA.search(antes) and _PESSOA_JURIDICA.search(antes)) or bool(_ESTABELECIMENTO.search(antes))
+    return (bool(_SEDE_DE_EMPRESA.search(antes) and _PESSOA_JURIDICA.search(antes))
+            or bool(_ESTABELECIMENTO.search(antes)) or _bloco_de_empresa(texto, inicio))
 
 
 def _reclassificar_enderecos(texto: str, deteccoes: list[Deteccao]) -> None:
@@ -678,6 +673,9 @@ _ENUMERACAO_PLACA = re.compile(r"^\s*(?:,|;|\be\b)\s*$", re.IGNORECASE)
 #: veículos são de particulares.
 _DOC_FROTA = re.compile(r"\b(?:frota|ve[íi]culos\s+(?:oficiais|pr[óo]prios)|viaturas|bens\s+(?:m[óo]veis\s+)?"
                         r"inserv[íi]veis|aliena[çc][ãa]o\s+de\s+(?:bens|ve[íi]culos))\b", re.IGNORECASE)
+#: Sem timbre, só a menção expressa à frota oficial (e a tabela precisa associar a placa a uma unidade).
+_DOC_FROTA_OFICIAL = re.compile(r"\b(?:frota\s+(?:oficial|pr[óo]pria|municipal|estadual)|ve[íi]culos\s+oficiais|viaturas)\b",
+                                re.IGNORECASE)
 _DOC_APREENSAO = re.compile(r"\b(?:apreendid|removid|recolhid|retid|abandonad|n[ãa]o\s+retirad|custodiad)[oa]s\b",
                             re.IGNORECASE)
 #: Veículo que, pela própria designação, é de serviço público ("a viatura", "a ambulância", "a unidade
@@ -745,10 +743,10 @@ def _reclassificar_veiculos(texto: str, deteccoes: list[Deteccao]) -> None:
     if not veiculos:
         return
     nomes = [(d.inicio, d.fim) for d in deteccoes if d.tipo == "NOME"]
-    doc_frota = bool(_DOC_FROTA.search(texto)) and not _DOC_APREENSAO.search(texto)
-    # A citação no singular só vale em documento expedido pelo órgão: no pedido ou na manifestação do
-    # cidadão, a placa da viatura costuma apontar o servidor que a conduzia.
-    doc_orgao = _documento_do_orgao(texto)
+    # A citação no singular e a tabela de lotes só valem em documento expedido pelo órgão: no pedido ou na
+    # manifestação do cidadão, a placa da viatura costuma apontar o servidor que a conduzia.
+    doc_orgao = documento_do_orgao(texto)
+    doc_frota = doc_orgao and bool(_DOC_FROTA.search(texto)) and not _DOC_APREENSAO.search(texto)
     oficiais: set[str] = set()
     linhas_oficiais: set[tuple[int, int]] = set()
     anterior: Deteccao | None = None
@@ -762,7 +760,7 @@ def _reclassificar_veiculos(texto: str, deteccoes: list[Deteccao]) -> None:
         if not oficial and "|" in linha:
             # Linha de tabela que associa unidade do órgão ou lote de alienação a placas, sem nome de pessoa.
             sem_pessoa = not any(la <= x < lb for x, _ in nomes) and not _PESSOAL.search(linha)
-            oficial = sem_pessoa and (doc_frota or (d.tipo == "PLACA" and bool(_DOC_FROTA.search(texto))
+            oficial = sem_pessoa and (doc_frota or (d.tipo == "PLACA" and bool(_DOC_FROTA_OFICIAL.search(texto))
                                                     and bool(_ORGAO_RE.search(linha))))
         if not oficial and "|" not in linha and doc_orgao:
             oficial = _veiculo_do_orgao(texto, d)
@@ -814,7 +812,7 @@ def _codigo_orcamentario(texto: str, d: Deteccao) -> bool:
 
 
 def _numeracao_de_item(texto: str, d: Deteccao) -> bool:
-    return d.tipo == "IP" and bool(_NUMERACAO_ANTES.search(texto, max(0, d.inicio - 40), d.inicio))
+    return d.tipo == "IP" and documento_do_orgao(texto) and bool(_NUMERACAO_ANTES.search(texto, max(0, d.inicio - 40), d.inicio))
 
 
 def _nfe_dv_valido(digitos: str) -> bool:
@@ -840,13 +838,13 @@ def _numero_publico(texto: str, d: Deteccao, chaves: list[tuple[int, int]], veic
     if any(a <= d.inicio and d.fim <= b for a, b in chaves):
         return d.tipo in ("TELEFONE", "CARTAO", "CONTA_BANCARIA", "PROTOCOLO", "DOCUMENTO", "CPF", "CNS", "PIS")
     if d.tipo == "CONTA_BANCARIA":
-        return bool(_SIMBOLO_CARGO.search(texto, max(0, d.inicio - 30), d.inicio))
+        return documento_do_orgao(texto) and bool(_SIMBOLO_CARGO.search(texto, max(0, d.inicio - 30), d.inicio))
     if d.tipo != "TELEFONE":
         return False
     if any(v.inicio <= d.inicio and d.fim <= v.fim for v in veiculos):
         return True
     # Num pedido, o número que segue "Convênio nº" pode ser referência do próprio requerente.
-    return _documento_do_orgao(texto) and bool(_ATO_ANTES.search(texto, max(0, d.inicio - 40), d.inicio))
+    return documento_do_orgao(texto) and bool(_ATO_ANTES.search(texto, max(0, d.inicio - 40), d.inicio))
 
 
 def reclassificar(texto: str, deteccoes: list[Deteccao]) -> list[Deteccao]:

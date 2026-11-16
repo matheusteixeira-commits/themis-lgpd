@@ -1460,7 +1460,7 @@ _NORMATIVO_ANTES = re.compile(r"\b(?:cabe|caber[áa]|compete|competir[áa]|incum
 
 #: Pessoa designada só pela responsabilidade ("o responsável pela biblioteca"): a própria indicação de
 #: responsável não basta para individualizá-la; é preciso outro elemento ("…do bloco 2").
-_RESPONSAVEL_NO_INICIO = re.compile(r"respons[áa]vel\s+pel[oa]s?\b", re.IGNORECASE)
+_RESPONSAVEL_NO_INICIO = re.compile(r"(?:(?:atual|mesm[oa]|referid[oa])\s+)?respons[áa]vel\s+pel[oa]s?\b", re.IGNORECASE)
 
 
 class _PadraoIndividualizado(Padrao):

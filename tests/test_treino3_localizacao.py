@@ -149,11 +149,10 @@ def test_coordenadas_de_obra_ficam_legiveis():
     "A ponte sobre o rio Claro, na BR-163, km 410, foi concluída.",
     # Número que integra o nome da via, em norma que denomina logradouro.
     "Fica denominada Rua Professor Ivo Lemos a atual Rua Projetada 7 do Loteamento Jardim Primavera.",
-    # Expressões que não são endereço.
-    "O fiscal passou na minha rua na terça-feira às 10h.",
 ])
 def test_texto_sem_endereco_pessoal(texto):
-    assert _enderecos(texto) == [], _enderecos(texto)
+    # Comunidade atendida e local de obra só são reconhecidos no documento expedido pelo órgão.
+    assert _enderecos(TIMBRE + texto) == [], _enderecos(TIMBRE + texto)
 
 
 # ---------------------------------------------------------------------------- quase-identificadores

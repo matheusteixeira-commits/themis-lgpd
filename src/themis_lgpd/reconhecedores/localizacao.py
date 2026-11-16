@@ -28,6 +28,7 @@ import regex as re
 
 from ..texto import dobrar
 from .base import ANTES_NUM, CONTEXTUAL, DEPOIS_NUM, Deteccao, Padrao, ReconhecedorPadroes
+from .institucional import documento_do_orgao
 
 #: Siglas das 27 unidades da federação.
 UFS = ("AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI",
@@ -101,9 +102,6 @@ _NOME_LOGRADOURO = (r"(?:[^\n,;:()!?\d.|]|(?<=\b(?:Dr|Dra|Prof|Gov|Pres|Sen|Dep|
 #: moradia de uma família.
 _CASA_COLETIVA = (r"(?!\s*,\s*casa\s+d[aeo]s?\s+(?:farinha|reza|apoio|sa[úu]de|cultura|mel|sementes|passagem|"
                   r"acolhimento|artesanato|ora[çc][ãa]o|mem[óo]ria|conselhos?|cidadania))")
-#: O nome do logradouro não começa por preposição, conjunção ou verbo: "rua na terça-feira às 10h",
-#: "quadra permite construções acima de 3 pavimentos" e "via nos últimos 24 meses" não são endereços.
-_INICIO_NOME = r"(?!(?:n[ao]s?|em|que|onde|para|pra|com|e|é|foi|est[áa]|tem|permite|deve|ser|fica|ficou)\b)"
 #: Nome de logradouro que homenageia uma data ("15 de Novembro", "1º de Maio", "7 de Setembro").
 _NOME_DATA = r"(?:[12]?\d|3[01])[º°]?\s+de\s+" + _MESES
 #: Número do imóvel: com milhar ("1.234"), simples com letra ("230A") ou "s/n"; também como ponto de
@@ -164,7 +162,7 @@ PADROES: list[Padrao] = [
            nome="cep:contexto"),
     # Tipo de logradouro, nome, número ou componente, complementos e cauda.
     Padrao("ENDERECO",
-           r"\b" + _LOGRADOURO + r"\s+(?:" + _NOME_DATA + r"|" + _INICIO_NOME + _NOME_LOGRADOURO
+           r"\b" + _LOGRADOURO + r"\s+(?:" + _NOME_DATA + r"|" + _NOME_LOGRADOURO
            # "Rua Projetada 4": o número integra o nome da via e não é o do imóvel.
            + r")\s*,?\s*(?:(?<!\bprojetad[ao]\s{1,3})" + _NUMERO + r"|" + _COMPONENTE + r")" + _COMPONENTES
            + _CAUDA, 0.85, contexto=CTX_RESIDENCIA, janela=60, nome="endereco:logradouro"),
@@ -620,15 +618,14 @@ class ReconhecedorEndereco(ReconhecedorPadroes):
             # "Secretaria de Estado de Fazenda …", "Ministério da Fazenda": órgão, não propriedade.
             if d.origem == "endereco:rural" and _ORGAO_ANTES.search(texto, max(0, d.inicio - 60), d.inicio):
                 continue
-            # "a UBS da comunidade rural Sítio Lagoa Seca", "a escola do Sítio Boa Vista": o nome designa a
-            # comunidade atendida pela unidade pública, não a propriedade de uma família.
-            if (d.origem == "endereco:rural" and not residencia
+            # No documento expedido pelo órgão, "a UBS da comunidade rural Sítio Lagoa Seca" e "a escola do
+            # Sítio Boa Vista" designam a comunidade atendida pela unidade pública, e rodovia e quilômetro
+            # sem residência nem propriedade ("ponte na RO-010, km 87"), o local da obra.
+            if (d.origem == "endereco:rural" and not residencia and documento_do_orgao(texto)
                     and _COMUNIDADE_ANTES.search(texto, max(0, d.inicio - 80), d.inicio)):
                 continue
-            # Rodovia e quilômetro sem residência nem propriedade ("ponte na RO-010, km 87"): local de obra,
-            # de acidente ou de equipamento público.
             if (d.origem in ("endereco:rodovia", "endereco:km-rodovia") and not residencia
-                    and not _PROPRIEDADE_NA_RODOVIA.search(texto, d.inicio, d.fim)):
+                    and not _PROPRIEDADE_NA_RODOVIA.search(texto, d.inicio, d.fim) and documento_do_orgao(texto)):
                 continue
             # Via no exterior: com número, componente ou, havendo expressão de residência, cruzamento.
             if d.origem == "endereco:exterior" and not (re.search(r"\d", texto[d.inicio:d.fim]) or (

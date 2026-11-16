@@ -71,7 +71,7 @@ coluna **Validação** indica o que é conferido além do formato.
 | `TELEFONE` | Telefone | `[TELEFONE]` | 85 | Padrões próprios e biblioteca phonenumbers (região BR) | (61) 99876-5432 |
 | `PERFIL_REDE_SOCIAL` | Perfil em rede social | `[PERFIL]` | 85 | `@usuario` com contexto, URL de rede social ou identificador logo após o nome do aplicativo de mensagem ("WeChat: …", "Telegram: …") | @maria.souza |
 | `IP` | Endereço IP | `[IP]` | 80 | Reconhecedor do Presidio | 203.0.113.45 |
-| `ENDERECO` | Endereço | `[ENDEREÇO]` | 70 | Logradouro (inclusive abreviado, numerado, com ordem — "2ª Travessa" — e passarela) e componentes (inclusive barraco e "casa sem número"), com o ponto de referência que o completa ("ao lado da capela…") e complementos atípicos ("fundos", "quarto 3", "2º andar", "beco 5"); propriedades e localidades rurais, ocupações e favelas, com a descrição da casa, a posição e a distância ("casa de taipa, segunda à esquerda depois da capela", "a 3 km da escola"); linha das colônias do Sul ("Linha São Pedro, s/n, km 7"); valor do campo de moradia ("Endereço:", "Residência:", "Local de pernoite:"), sem município, UF e território; ponto de pernoite de pessoa em situação de rua ("pernoita sob o viaduto…"); endereço no exterior ("Calle 7 con Carrera 9", "Rue X, nº 17"); lote de assentamento em texto de regularização fundiária; unidade de abrigo; coordenadas da moradia; rodovias das 27 UFs com expressão de residência ou propriedade (sem elas, "BR-163, km 410" é local de obra); endereçamento do DF; município ou região de residência. Linha de tabela ("Rua X \| 9") não forma endereço | Rua B-15, Quadra 30, Lote 10; Sítio Boa Esperança; PE-060, km 10; QNM 12 Conjunto B Casa 4 |
+| `ENDERECO` | Endereço | `[ENDEREÇO]` | 70 | Logradouro (inclusive abreviado, numerado, com ordem — "2ª Travessa" — e passarela) e componentes (inclusive barraco e "casa sem número"), com o ponto de referência que o completa ("ao lado da capela…") e complementos atípicos ("fundos", "quarto 3", "2º andar", "beco 5"); propriedades e localidades rurais, ocupações e favelas, com a descrição da casa, a posição e a distância ("casa de taipa, segunda à esquerda depois da capela", "a 3 km da escola"); linha das colônias do Sul ("Linha São Pedro, s/n, km 7"); valor do campo de moradia ("Endereço:", "Residência:", "Local de pernoite:"), sem município, UF e território; ponto de pernoite de pessoa em situação de rua ("pernoita sob o viaduto…"); endereço no exterior ("Calle 7 con Carrera 9", "Rue X, nº 17"); lote de assentamento em texto de regularização fundiária; unidade de abrigo; coordenadas da moradia; rodovias das 27 UFs (no documento expedido pelo órgão, só com expressão de residência ou propriedade: sem elas, "BR-163, km 410" é local de obra); endereçamento do DF; município ou região de residência. Linha de tabela ("Rua X \| 9") não forma endereço | Rua B-15, Quadra 30, Lote 10; Sítio Boa Esperança; PE-060, km 10; QNM 12 Conjunto B Casa 4 |
 | `CAR` | Recibo do Cadastro Ambiental Rural | `[CAR]` | 90 | Formato (UF, código IBGE do município e 32 caracteres hexadecimais) | MT-5107925-1A2B.3C4D.… |
 | `CEP` | CEP | `[CEP]` | 80 | Formato com hífen ou após "CEP" | 72215-120 |
 | `CONTA_BANCARIA` | Agência/conta bancária | `[CONTA BANCÁRIA]` | 85 | Contexto bancário; IBAN pelo Presidio | agência 1234, conta 56789-0 |
@@ -281,20 +281,21 @@ reconhecedores, o contexto do documento inteiro reclassifica esses achados para 
   bens públicos (leilão de bens inservíveis; o leilão de veículos apreendidos ou removidos não entra),
   com o RENAVAM e o chassi da mesma linha.
 
-Na dúvida, o achado continua pessoal e tarjado: celular em frase com pessoa designada ("com o fiscal
-do contrato pelo celular…", "pelo celular do leiloeiro"); e-mail de provedor de uso pessoal sem sigla de
+Na dúvida, o achado continua pessoal e tarjado: celular em frase com pessoa designada ("com o fiscal do
+contrato pelo celular…", "pelo celular do leiloeiro"); e-mail de provedor de uso pessoal sem sigla de
 setor, de empresa (`.com.br`) fora de contexto de fornecimento ou com nome de pessoa (prenome, iniciais
 coladas ao sobrenome); vínculo pessoal próximo ("meu telefone", "telefone da genitora", "residente na",
 campo de qualificação como "Nome:" e "Endereço:" na linha anterior) prevalece sobre a menção ao órgão; o
 veículo designado por tipo comum ("o carro de placa…") ou com posse particular ("do declarante",
-"particular") continua tarjado. A citação de veículo no singular, a sede e o estabelecimento de empresa,
-o e-mail de fornecedor, o celular do órgão, o e-mail do setor em provedor gratuito ou com nome próprio,
-o número após a designação do setor ou o rótulo de atendimento, o e-mail sob "Contato:", o pedido de
-resposta e o número após "Convênio nº" só são reclassificados em documento expedido pelo órgão (timbre
-nas três primeiras linhas): no pedido ou na manifestação do cidadão, a placa da viatura aponta o
-servidor que a conduzia, a empresa costuma ser a própria requerente e o número citado ao lado do órgão
-costuma ser o da própria pessoa. O mesmo número, e-mail ou identificador de
-veículo recebe a mesma classificação em todo o documento.
+"particular") continua tarjado. A citação de veículo no singular, a tabela de lotes de leilão, a sede, o
+estabelecimento e o bloco de formulário de empresa, o e-mail de fornecedor, o endereço após local
+público de serviço ou canal de atendimento, o celular do órgão, o e-mail do setor em provedor gratuito
+ou com nome próprio, o número após a designação do setor ou o rótulo de atendimento, o e-mail sob
+"Contato:", o pedido de resposta, o número após "Convênio nº", o subitem lido como IP e o símbolo de
+cargo só são reclassificados em documento expedido pelo órgão (timbre nas três primeiras linhas): no
+pedido ou na manifestação do cidadão, a placa da viatura aponta o servidor que a conduzia, a empresa
+costuma ser a própria requerente e o número citado ao lado do órgão costuma ser o da própria pessoa. O
+mesmo número, e-mail ou identificador de veículo recebe a mesma classificação em todo o documento.
 
 Números públicos com forma de dado pessoal são descartados: códigos de natureza de despesa ("natureza
 de despesa 3.3.90.39") em contexto orçamentário e subitens ou códigos de classificação ("subitem
