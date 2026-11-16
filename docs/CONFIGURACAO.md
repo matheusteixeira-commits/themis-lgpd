@@ -70,6 +70,7 @@ A regra de cada perfil por categoria está em [TIPOS_DE_DADOS.md](TIPOS_DE_DADOS
 | `THEMIS_MAX_TAREFAS` | `20` | `2` | Tarefas assíncronas (`/v1/tarefas`) mantidas em memória ao mesmo tempo, incluídas as concluídas ainda não baixadas; acima disso, 503 |
 | `THEMIS_TAREFA_TTL_S` | `900` | `900` | Tempo, em segundos, em que o resultado de uma tarefa concluída aguarda o download antes de ser apagado da memória |
 | `THEMIS_TAREFA_TIMEOUT_S` | `3600` | `300` | Tempo máximo de processamento de uma tarefa assíncrona, em segundos |
+| `THEMIS_SOFFICE` | vazio | vazio | Executável do LibreOffice usado para converter `.doc`, `.xls`, `.ppt` e `.rtf` (também na CLI). Vazio: procura no `PATH` e nos locais de instalação padrão |
 
 Valores booleanos aceitam `1`, `true`, `sim`, `yes` e `on` (sem distinção de caixa) como verdadeiro;
 qualquer outro valor é falso. Valores numéricos inválidos são substituídos pelo padrão.

@@ -30,7 +30,8 @@ from . import __version__
 
 #: Extensões incluídas ao percorrer pastas. Arquivos indicados explicitamente são aceitos com qualquer
 #: extensão, pois o formato é identificado pelo conteúdo.
-EXTENSOES = frozenset({".pdf", ".docx", ".xlsx", ".csv", ".txt", ".png", ".jpg", ".jpeg"})
+EXTENSOES = frozenset({".pdf", ".docx", ".xlsx", ".pptx", ".odt", ".ods", ".csv", ".txt", ".html", ".htm", ".eml",
+                       ".png", ".jpg", ".jpeg", ".tif", ".tiff", ".zip", ".doc", ".xls", ".ppt", ".rtf"})
 
 #: Situação de cada arquivo e o código de saída correspondente; o código do lote é o maior deles.
 OK, REJEITADO, ERRO = "ok", "rejeitado", "erro"

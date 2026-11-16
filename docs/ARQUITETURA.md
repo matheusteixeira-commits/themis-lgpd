@@ -195,11 +195,20 @@ flowchart TD
     E[Arquivo] --> D{detectar_formato}
     D -->|%PDF| P[pdf.py]
     D -->|ZIP com word/document.xml| W[docx.py]
+    D -->|ZIP com ppt/presentation.xml| S[apresentacao.py]
     D -->|ZIP com xl/workbook.xml| X[planilha.py: XLSX]
+    D -->|ZIP com mimetype ODF| O[odf.py]
+    D -->|outro ZIP| Z[compactado.py]
+    D -->|DOC, XLS, PPT, RTF| L[conversao.py: LibreOffice]
     D -->|.csv| C[planilha.py: CSV]
-    D -->|PNG/JPEG| I[imagem.py]
+    D -->|PNG/JPEG/TIFF| I[imagem.py]
+    D -->|HTML| H[html.py]
+    D -->|cabeçalhos RFC 5322| M[email_eml.py]
     D -->|texto| T[texto.py]
-    P & W & X & C & I & T --> V[verificacao.py]
+    L -->|DOCX, XLSX, PPTX| D
+    Z -->|cada arquivo| D
+    M -->|cada anexo| D
+    P & W & S & X & O & C & I & H & T --> V[verificacao.py]
 ```
 
 | Formato | Módulo | Extração | Reconstrução | Verificação |
@@ -209,7 +218,13 @@ flowchart TD
 | XLSX | `formatos/planilha.py` | openpyxl (células e objetos da pasta de trabalho) e XML de gráficos e desenhos | openpyxl; pós-processamento de gráficos e desenhos | Idem DOCX |
 | CSV | `formatos/planilha.py` | Módulo `csv`, delimitador detectado | Mesmo delimitador, UTF-8 com BOM | Texto gerado |
 | TXT | `formatos/texto.py` | UTF-8 ou Windows-1252 | UTF-8 | Texto gerado |
-| PNG, JPEG | `formatos/imagem.py` | OCR (Tesseract, pela entrada padrão, ou RapidOCR); sem OCR, `FalhaOCR` | Tarja nos pixels, PNG novo | Novo OCR da imagem gerada |
+| PPTX | `formatos/apresentacao.py` (núcleo de `docx.py`) | Idem DOCX | Idem DOCX | Idem DOCX |
+| ODT, ODS | `formatos/odf.py` | Partes XML do pacote ODF, em fluxo por parte, células e fórmulas | Edição do XML; pacote regravado com `mimetype` primeiro e manifesto refeito | Idem DOCX |
+| HTML | `formatos/html.py` | lxml.html: fluxo de texto, atributos, URLs, imagens `data:` | Árvore regravada em UTF-8 | Texto e atributos da página gerada |
+| EML | `formatos/email_eml.py` | Módulo `email` (política moderna): cabeçalhos, partes, anexos | Mensagem nova; anexos pelo próprio formato | Cabeçalhos, partes de texto e HTML, nomes de anexos |
+| ZIP | `formatos/compactado.py` | Cada entrada pelo próprio formato; nomes analisados | ZIP novo com manifesto | Nomes e manifesto; cada arquivo pelo seu formato |
+| DOC, XLS, PPT, RTF | `formatos/conversao.py` | Conversão pelo LibreOffice (`--headless`, perfil temporário) | Formato de destino | Formato de destino |
+| PNG, JPEG, TIFF | `formatos/imagem.py` | OCR (Tesseract, pela entrada padrão, ou RapidOCR); sem OCR, `FalhaOCR` | Tarja nos pixels, PNG novo (TIFF: TIFF novo, mesmas páginas) | Novo OCR da imagem gerada |
 
 O detalhamento das proteções de cada formato está em
 [SEGURANCA_E_PRIVACIDADE.md](SEGURANCA_E_PRIVACIDADE.md#proteções-por-formato).
@@ -283,9 +298,18 @@ src/themis_lgpd/
 │   ├── __init__.py      Detecção de formato, limites, anonimizar_arquivo, exceções
 │   ├── pdf.py           PDF
 │   ├── pdfa.py          Camada de texto Unicode, idioma e PDF/A-2b do PDF gerado
-│   ├── docx.py          Política de remoção e análise do Word
+│   ├── docx.py          Política de remoção e análise do Word; núcleo comum aos pacotes OOXML
+│   ├── apresentacao.py  PowerPoint (PPTX)
 │   ├── planilha.py      XLSX e CSV
-│   ├── imagem.py        PNG e JPEG
+│   ├── odf.py           ODT e ODS
+│   ├── html.py          Páginas HTML (documentos do SEI)
+│   ├── email_eml.py     Mensagens de e-mail, com anexos
+│   ├── compactado.py    ZIP (exportação de processos), com manifesto
+│   ├── conversao.py     DOC, XLS, PPT e RTF pelo LibreOffice
+│   ├── imagem.py        PNG, JPEG e TIFF; imagens incorporadas
+│   ├── midia.py         Remoção de metadados de imagens sem recompressão
+│   ├── qr.py            Localização e leitura de QR codes (BR Code do PIX)
+│   ├── metarquivo.py    Texto de metarquivos EMF e WMF
 │   ├── texto.py         TXT
 │   ├── ocr.py           Tesseract e RapidOCR
 │   ├── pacote.py        Contêiner OPC (ZIP + relacionamentos)

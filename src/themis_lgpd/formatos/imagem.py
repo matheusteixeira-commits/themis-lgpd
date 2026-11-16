@@ -1,4 +1,4 @@
-"""Anonimização de imagens: arquivos PNG e JPEG e imagens incorporadas em documentos.
+"""Anonimização de imagens: arquivos PNG, JPEG e TIFF (uma ou várias páginas) e imagens incorporadas.
 
 O texto da imagem é reconhecido por OCR e os QR codes são localizados e decodificados (ver
 :mod:`themis_lgpd.formatos.qr`). O texto e o conteúdo dos QR codes são analisados — no caso de
@@ -251,3 +251,87 @@ def anonimizar_imagem(dados: bytes, anon: Anonimizador, nome: str, *, ocr: bool 
     if analise.qr_tarjados:
         avisos.append(f"{analise.qr_tarjados} QR code(s) tarjado(s) (PIX, conteúdo com dado pessoal ou não legível).")
     return ResultadoArquivo(analise.codificar("png"), "png", nome, resultados, avisos)
+
+
+def _paginas_tiff(dados: bytes, limite_paginas: int) -> tuple[list, str, tuple | None]:
+    """Páginas do TIFF em RGB, o modo de cor a usar na gravação e a resolução da primeira página.
+
+    Raises:
+        ArquivoInvalido: TIFF inválido, grande demais ou com páginas além do limite.
+    """
+    from PIL import Image, ImageOps, ImageSequence
+
+    Image.MAX_IMAGE_PIXELS = MAX_PIXELS
+    try:
+        original = Image.open(io.BytesIO(dados))
+        total = getattr(original, "n_frames", 1)
+    except Exception as erro:
+        raise ArquivoInvalido("Imagem TIFF inválida.") from erro
+    if total > limite_paginas:
+        raise ArquivoInvalido(f"TIFF com {total} páginas, acima do limite de {limite_paginas}.")
+    paginas, modos, dpi = [], set(), None
+    try:
+        for quadro in ImageSequence.Iterator(original):
+            quadro.load()
+            dpi = dpi or quadro.info.get("dpi")
+            modos.add(quadro.mode)
+            paginas.append(ImageOps.exif_transpose(quadro).convert("RGB"))
+    except Exception as erro:
+        raise ArquivoInvalido("Imagem TIFF inválida ou grande demais.") from erro
+    finally:
+        original.close()
+    # Páginas em preto e branco (o padrão das digitalizadoras de documentos) continuam em 1 bit, com
+    # compressão CCITT G4; páginas em tons de cinza, em 8 bits.
+    modo = "1" if modos == {"1"} else "L" if modos <= {"1", "L", "LA", "I;16", "I;16B"} else "RGB"
+    return paginas, modo, dpi
+
+
+def anonimizar_tiff(dados: bytes, anon: Anonimizador, nome: str, *, ocr: bool = True, verificar: bool = True,
+                    limite_paginas: int = 500) -> ResultadoArquivo:
+    """Anonimiza um TIFF de uma ou várias páginas, como os gerados por digitalizadoras.
+
+    O texto de todas as páginas é analisado no mesmo lote (um nome tarjado numa página é tarjado em
+    todas). O arquivo gerado é um TIFF novo, com as mesmas páginas, resolução e profundidade de cor,
+    sem nenhuma etiqueta de metadados do original (autor, programa, datas, EXIF, GPS, XMP).
+
+    Raises:
+        ArquivoInvalido: TIFF inválido, acima dos limites ou OCR desativado.
+        FalhaOCR: Nenhum mecanismo de OCR disponível, ou falha na execução do OCR.
+        VazamentoDetectado: A verificação encontrou valor tarjado legível em alguma página.
+    """
+    from PIL import Image
+
+    from . import ocr as mod_ocr
+
+    if not ocr:
+        raise ArquivoInvalido("Imagens só podem ser anonimizadas com o OCR ativado.")
+    if not mod_ocr.ocr_disponivel():
+        raise FalhaOCR("Imagens exigem OCR: instale o Tesseract (idioma 'por') ou 'pip install themis-lgpd[ocr]'.")
+    paginas, modo, dpi = _paginas_tiff(dados, limite_paginas)
+    analises = [ImagemAnalisada(img, anon.modo) for img in paginas]
+    unidades = [u for a in analises for u in a.unidades()]
+    resultados = X.analisar(unidades, anon) if unidades else []
+    for analise in analises:
+        analise.desenhar()
+        if verificar and analise.tarjada:
+            analise.verificar(resultados, anon.permitir)
+
+    if modo == "1":
+        gravadas = [a.img.convert("L").point(lambda v: 255 if v >= 128 else 0, mode="1") for a in analises]
+    else:
+        gravadas = [a.img.convert(modo) for a in analises]
+    gravadas = [Image.frombytes(img.mode, img.size, img.tobytes()) for img in gravadas]  # sem etiquetas
+    saida = io.BytesIO()
+    opcoes = {"dpi": tuple(round(float(v)) for v in dpi)} if dpi else {}
+    gravadas[0].save(saida, format="TIFF", save_all=True, append_images=gravadas[1:],
+                     compression="group4" if modo == "1" else "tiff_deflate", **opcoes)
+
+    avisos = [f"Texto de {len(paginas)} página(s) reconhecido por OCR: confira se todos os dados foram tarjados "
+              "(manuscritos, carimbos e fotos de rosto não são detectados)."]
+    sem_texto = sum(1 for a in analises if a.segmento is None)
+    if sem_texto:
+        avisos.append(f"O OCR não reconheceu texto em {sem_texto} página(s): revise-a(s) manualmente.")
+    qr = sum(a.qr_tarjados for a in analises)
+    if qr:
+        avisos.append(f"{qr} QR code(s) tarjado(s) (PIX, conteúdo com dado pessoal ou não legível).")
+    return ResultadoArquivo(saida.getvalue(), "tiff", nome, resultados, avisos)

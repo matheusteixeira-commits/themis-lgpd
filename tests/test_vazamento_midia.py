@@ -351,17 +351,21 @@ def test_pdf_digitalizado_falha_fechada_se_a_tarja_nao_cobre_os_pixels(anon, mon
 
 
 # ---------------------------------------------------------------------------- formatos estruturados
-@pytest.mark.parametrize("conteudo", [
-    b"<!DOCTYPE html><html><body><p>CPF 123&#46;456&#46;789-09</p></body></html>",
-    b"<?xml version='1.0'?><pedido><cpf>52998224725</cpf></pedido>",
-    rb"{\rtf1\ansi Jo\'e3o da Concei\'e7\'e3o}",
-    b"From: Joana <j@exemplo.com>\r\nTo: ouvidoria@exemplo.gov.br\r\nSubject: Pedido\r\n"
-    b"Content-Transfer-Encoding: base64\r\n\r\nQ1BGIDUyOS45ODIuMjQ3LTI1",
-    b"II*\x00" + b"\x00" * 32,
+@pytest.mark.parametrize(("conteudo", "formato"), [
+    (b"<!DOCTYPE html><html><body><p>CPF 123&#46;456&#46;789-09</p></body></html>", "html"),
+    (b"<?xml version='1.0'?><pedido><cpf>52998224725</cpf></pedido>", None),
+    (rb"{\rtf1\ansi Jo\'e3o da Concei\'e7\'e3o}", "rtf"),
+    (b"From: Joana <j@exemplo.com>\r\nTo: ouvidoria@exemplo.gov.br\r\nSubject: Pedido\r\n"
+     b"Content-Transfer-Encoding: base64\r\n\r\nQ1BGIDUyOS45ODIuMjQ3LTI1", "eml"),
+    (b"II*\x00" + b"\x00" * 32, "tiff"),
 ])
-def test_formatos_estruturados_nao_sao_tratados_como_texto(conteudo):
-    with pytest.raises(ArquivoInvalido):
-        detectar_formato(conteudo, "arquivo.txt")
+def test_formatos_estruturados_nao_sao_tratados_como_texto(conteudo, formato):
+    """Cada formato com estrutura própria tem tratamento próprio ou é recusado; nunca vira texto simples."""
+    if formato is None:
+        with pytest.raises(ArquivoInvalido):
+            detectar_formato(conteudo, "arquivo.txt")
+    else:
+        assert detectar_formato(conteudo, "arquivo.txt") == formato
 
 
 def test_texto_comum_continua_aceito():

@@ -135,7 +135,8 @@ def cmd_anonimizar(args) -> int:
         print(f"✗ {erro}", file=sys.stderr)
         return 1
     if not tarefas:
-        print("✗ nenhum arquivo suportado encontrado (PDF, DOCX, XLSX, CSV, TXT, PNG, JPG).", file=sys.stderr)
+        extensoes = ", ".join(sorted(e.lstrip(".") for e in lote.EXTENSOES))
+        print(f"✗ nenhum arquivo suportado encontrado (extensões: {extensoes}).", file=sys.stderr)
         return 1
 
     # Uma única entrada de arquivo com --saida que não é pasta: --saida é o próprio arquivo gerado.
@@ -364,7 +365,8 @@ def main(argv: list[str] | None = None) -> int:
     sub = ap.add_subparsers(dest="comando", required=True)
 
     a = sub.add_parser("anonimizar",
-                       help="anonimiza arquivos e pastas (PDF, DOCX, XLSX, CSV, TXT, PNG/JPG) ou '-' (stdin)")
+                       help="anonimiza arquivos e pastas (PDF, DOCX, XLSX, PPTX, ODT, ODS, CSV, TXT, HTML, EML, "
+                            "PNG/JPG/TIFF, ZIP; DOC/XLS/PPT/RTF com o LibreOffice) ou '-' (stdin)")
     a.add_argument("entradas", nargs="+", help="arquivos e pastas; '-' lê a entrada padrão")
     a.add_argument("-o", "--saida",
                    help="arquivo ou pasta de saída, com a árvore das entradas (padrão: <nome>_anonimizado.<ext>)")

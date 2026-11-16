@@ -78,9 +78,10 @@ _ELEMENTOS_REMOVER = frozenset({X.q("w", "docVars"), X.q("w", "attachedTemplate"
 
 _NS_W14 = "http://schemas.microsoft.com/office/word/2010/wordml"
 _NS_W15 = "http://schemas.microsoft.com/office/word/2012/wordml"
-#: Identificadores gerados pelo Word a cada sessão de edição e para cada parágrafo. Não são visíveis,
-#: mas permitem correlacionar o documento anonimizado com a versão original e com outras versões.
-_ELEMENTOS_IDENTIFICADORES = frozenset({f"{{{_NS_W14}}}docId", f"{{{_NS_W15}}}docId"})
+_NS_P14 = "http://schemas.microsoft.com/office/powerpoint/2010/main"
+#: Identificadores gerados pelo Word e pelo PowerPoint a cada sessão de edição, parágrafo e slide. Não
+#: são visíveis, mas permitem correlacionar o arquivo anonimizado com a versão original e com outras.
+_ELEMENTOS_IDENTIFICADORES = frozenset({f"{{{_NS_W14}}}docId", f"{{{_NS_W15}}}docId", f"{{{_NS_P14}}}creationId"})
 _ATRIBUTOS_IDENTIFICADORES = frozenset({f"{{{_NS_W14}}}paraId", f"{{{_NS_W14}}}textId"})
 #: Pasta e prefixo dos nomes neutros dados às partes de mídia.
 _PREFIXO_MIDIA = "midia"
@@ -245,10 +246,30 @@ def anonimizar_docx(dados: bytes, anon: Anonimizador, nome: str, *, ocr: bool = 
         FalhaOCR: Há imagens a analisar e nenhum mecanismo de OCR está disponível.
         VazamentoDetectado: A verificação encontrou valor tarjado no documento gerado.
     """
+    return anonimizar_ooxml(dados, anon, nome, formato="docx", relacionamentos=_RELACIONAMENTOS_REMOVER,
+                            tipos_principais=_TIPOS_PRINCIPAIS, ocr=ocr, verificar=verificar)
+
+
+def anonimizar_ooxml(dados: bytes, anon: Anonimizador, nome: str, *, formato: str, relacionamentos: dict,
+                     tipos_principais: dict[str, str], ocr: bool = True, verificar: bool = True) -> ResultadoArquivo:
+    """Núcleo comum aos pacotes OOXML de documentos (DOCX) e apresentações (PPTX).
+
+    Args:
+        dados: Conteúdo do arquivo.
+        anon: Anonimizador configurado.
+        nome: Nome do arquivo de saída.
+        formato: ``docx`` ou ``pptx``, usado nas mensagens e no resultado.
+        relacionamentos: Relacionamentos removidos, pelo último segmento do tipo, e a categoria do
+            aviso correspondente (``None`` quando a remoção não gera aviso).
+        tipos_principais: Tipos de conteúdo da parte principal convertidos para o tipo comum
+            (sem macros, documento em vez de modelo).
+        ocr: Analisa por OCR o texto das imagens incorporadas.
+        verificar: Relê o pacote gerado e confirma que nenhum valor tarjado continua presente.
+    """
     try:
         import lxml  # noqa: F401
     except ImportError as erro:  # pragma: no cover - dependência opcional
-        raise ArquivoInvalido("Suporte a DOCX requer: pip install 'themis-lgpd[arquivos]'") from erro
+        raise ArquivoInvalido(f"Suporte a {formato.upper()} requer: pip install 'themis-lgpd[arquivos]'") from erro
 
     pacote = Pacote.ler(dados)
     antes = pacote.partes_a_manter()
@@ -258,11 +279,11 @@ def anonimizar_docx(dados: bytes, anon: Anonimizador, nome: str, *, ocr: bool = 
     nucleo = None
     for origem, arvore, rel in pacote.iterar_relacionamentos():
         tipo = tipo_relacionamento(rel)
-        if tipo in _RELACIONAMENTOS_REMOVER:
+        if tipo in relacionamentos:
             removidos_por_parte.setdefault(origem, set()).add(rel.get("Id"))
             arvore.remove(rel)
-            if _RELACIONAMENTOS_REMOVER[tipo]:
-                categorias[_RELACIONAMENTOS_REMOVER[tipo]] += 1
+            if relacionamentos[tipo]:
+                categorias[relacionamentos[tipo]] += 1
         elif externo(rel):
             externos.append(rel)
         elif tipo == "core-properties" and origem == "":
@@ -279,8 +300,8 @@ def anonimizar_docx(dados: bytes, anon: Anonimizador, nome: str, *, ocr: bool = 
             continue
         raiz = ler_xml(pacote.partes[parte], dtd_externa=parte.lower().endswith(".svg"))
         if isinstance(raiz.tag, str) and raiz.tag.startswith("{" + _NS_STRICT):
-            raise ArquivoInvalido("Documento no formato OOXML Strict, que não é suportado: salve-o como "
-                                  "'Documento do Word (.docx)' e tente novamente.")
+            raise ArquivoInvalido("Documento no formato OOXML Strict, que não é suportado: salve-o no formato "
+                                  f"padrão do Office (.{formato}) e tente novamente.")
         revisoes += _aceitar_revisoes(raiz)
         comentarios += _remover_comentarios(raiz)
         _remover_elementos(raiz, removidos_por_parte.get(parte, set()))
@@ -321,12 +342,12 @@ def anonimizar_docx(dados: bytes, anon: Anonimizador, nome: str, *, ocr: bool = 
     substituir = {parte: gravar_xml(raiz) for parte, raiz in arvores.items()}
     substituir.update({parte: bytes(meta.dados) for parte, meta in metarquivos.items()})
     tarjadas = 0
-    for parte, (analise, formato) in imagens.items():
+    for parte, (analise, tipo_imagem) in imagens.items():
         if analise.tarjada:
             analise.desenhar()
             if verificar:
                 analise.verificar(resultados, anon.permitir)
-            substituir[parte] = analise.codificar(formato)
+            substituir[parte] = analise.codificar(tipo_imagem)
             tarjadas += 1
     substituir.update(limpar_imagens(pacote.partes, [p for p in manter if p not in substituir]))
     if nucleo:
@@ -334,14 +355,14 @@ def anonimizar_docx(dados: bytes, anon: Anonimizador, nome: str, *, ocr: bool = 
     renomear = _nomes_neutros(manter)
     pacote.renomear_partes(renomear)
     if TIPOS_CONTEUDO in pacote.partes:
-        substituir[TIPOS_CONTEUDO] = pacote.ajustar_tipos(manter, _TIPOS_PRINCIPAIS, renomear)
+        substituir[TIPOS_CONTEUDO] = pacote.ajustar_tipos(manter, tipos_principais, renomear)
     saida = pacote.gravar(manter, substituir, renomear)
 
     avisos: list[str] = []
     if revisoes:
         avisos.append(f"{revisoes} alteração(ões) controlada(s) aceita(s): o texto excluído foi removido do arquivo.")
-    if comentarios:
-        avisos.append(f"{comentarios} comentário(s) removido(s).")
+    if comentarios or categorias["comentarios"]:
+        avisos.append(f"{comentarios or categorias['comentarios']} comentário(s) removido(s).")
     if categorias["objetos"]:
         avisos.append(f"{categorias['objetos']} objeto(s) incorporado(s) (planilhas de gráficos, objetos OLE, "
                       "controles) removido(s) sem análise; gráficos mantêm a aparência, mas deixam de ser editáveis.")
@@ -351,6 +372,9 @@ def anonimizar_docx(dados: bytes, anon: Anonimizador, nome: str, *, ocr: bool = 
     if categorias["assinatura"]:
         avisos.append("A assinatura digital do documento foi removida (ela identifica o signatário e deixaria de "
                       "ser válida após a anonimização).")
+    if categorias["midia"]:
+        avisos.append(f"{categorias['midia']} áudio(s) ou vídeo(s) incorporado(s) removido(s) sem análise (podem "
+                      "conter voz ou imagem de pessoas); a imagem de capa permanece.")
     if categorias["macros"]:
         avisos.append("Macros e personalizações removidas.")
     if locais:
@@ -370,7 +394,8 @@ def anonimizar_docx(dados: bytes, anon: Anonimizador, nome: str, *, ocr: bool = 
         sobras = verificar_ausencia(texto_de_pacote(saida), valores_tarjados(resultados),
                                     valores_protegidos(resultados, anon.permitir))
         if sobras:
-            raise VazamentoDetectado(f"{len(sobras)} trecho(s) tarjado(s) ainda presente(s) no DOCX gerado.")
+            raise VazamentoDetectado(f"{len(sobras)} trecho(s) tarjado(s) ainda presente(s) no {formato.upper()} "
+                                     "gerado.")
         if imagens_com_metadados(saida):
-            raise VazamentoDetectado("Imagem com metadados (EXIF, GPS ou XMP) no DOCX gerado.")
-    return ResultadoArquivo(saida, "docx", nome, resultados, avisos)
+            raise VazamentoDetectado(f"Imagem com metadados (EXIF, GPS ou XMP) no {formato.upper()} gerado.")
+    return ResultadoArquivo(saida, formato, nome, resultados, avisos)

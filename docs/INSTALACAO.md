@@ -9,6 +9,7 @@
 | Disco | Cerca de 1,5 GB (dependências e modelo `pt_core_news_lg`) |
 | Sistema | Linux, Windows ou macOS |
 | OCR (opcional) | Tesseract com o idioma `por`, ou RapidOCR (instalado pelo extra `ocr`) |
+| LibreOffice (opcional) | Para os formatos antigos `.doc`, `.xls`, `.ppt` e para `.rtf`, convertidos antes da anonimização |
 
 ## Pacote portátil para Windows
 
@@ -84,7 +85,7 @@ nomes: permanecem a lista de nomes brasileiros e os gatilhos de contexto.
 ### OCR
 
 O OCR é usado em PDFs digitalizados, em páginas com imagens grandes ou com fontes sem mapeamento de
-texto, e em imagens PNG e JPEG. O Themis usa o Tesseract quando ele está instalado com o idioma `por`
+texto, e em imagens PNG, JPEG e TIFF. O Themis usa o Tesseract quando ele está instalado com o idioma `por`
 (melhor qualidade para português) e, na falta dele, o RapidOCR.
 
 | Sistema | Instalação do Tesseract |
@@ -97,6 +98,23 @@ texto, e em imagens PNG e JPEG. O Themis usa o Tesseract quando ele está instal
 Sem nenhum mecanismo de OCR, imagens não podem ser processadas e PDFs que exigem OCR são recusados
 (exceção `FalhaOCR`), a menos que o OCR seja desativado explicitamente (CLI `--sem-ocr`); nesse caso, as páginas que
 exigiriam OCR são listadas em aviso como não analisadas.
+
+### LibreOffice (formatos antigos)
+
+Arquivos `.doc`, `.xls`, `.ppt` e `.rtf` são convertidos para DOCX, XLSX ou PPTX pelo LibreOffice e
+então anonimizados; o arquivo gerado fica no formato novo. Sem o LibreOffice, esses arquivos são
+recusados com orientação. O executável é procurado na variável `THEMIS_SOFFICE`, no `PATH` (`soffice`
+ou `libreoffice`) e nos locais de instalação padrão do Windows (`C:\Program Files\LibreOffice`) e do
+macOS.
+
+| Sistema | Instalação |
+|---|---|
+| Debian, Ubuntu | `sudo apt install libreoffice-writer-nogui libreoffice-calc-nogui libreoffice-impress-nogui` |
+| Fedora | `sudo dnf install libreoffice-writer libreoffice-calc libreoffice-impress` |
+| macOS (Homebrew) | `brew install --cask libreoffice` |
+| Windows | Instalador de libreoffice.org |
+
+A imagem Docker e o pacote portátil para Windows não incluem o LibreOffice.
 
 ## Instalação com Docker
 
@@ -205,5 +223,6 @@ pip install pt_core_news_lg-3.8.0-py3-none-any.whl
 | "Suporte a PDF requer: pip install 'themis-lgpd[arquivos]'" | Extra `arquivos` ausente | `pip install "themis-lgpd[arquivos]"` |
 | Imagens recusadas por falta de OCR | Nenhum mecanismo de OCR | Instale o Tesseract com `por` ou o extra `ocr` |
 | PDF recusado por exigir OCR | Páginas digitalizadas sem OCR disponível | Instale o OCR, ou use `--sem-ocr` e revise manualmente as páginas listadas |
+| `.doc`, `.xls`, `.ppt` ou `.rtf` recusado mencionando o LibreOffice | LibreOffice ausente ou fora do `PATH` | Instale o LibreOffice ou indique o executável em `THEMIS_SOFFICE` |
 | `themis: command not found` | Ambiente virtual não ativado | Ative o ambiente ou use `python -m themis_lgpd.cli` |
 | Primeira análise lenta | Carregamento do modelo (uma vez por processo) | Reutilize o mesmo processo ou `Anonimizador` |

@@ -44,7 +44,15 @@ jobs:
         run: ruff check src tests benchmark scripts
       - name: Análise de segurança do código
         run: bandit -q -r src -c pyproject.toml
+      - name: LibreOffice (conversão de DOC, XLS, PPT e RTF)
+        if: matrix.python == '3.12'
+        run: |
+          sudo apt-get install -y --no-install-recommends libreoffice-writer-nogui libreoffice-calc-nogui             libreoffice-impress-nogui
+          soffice --version
       - name: Testes
+        env:
+          # Com o LibreOffice instalado, os testes de conversão não podem ser pulados.
+          THEMIS_EXIGIR_LIBREOFFICE: ${{ matrix.python == '3.12' && '1' || '' }}
         run: pytest --cov --cov-report=term-missing:skip-covered
       - name: Trava de regressão — benchmark sintético (recall mínimo 99%)
         run: python benchmark/sintetico.py --n 400 --minimo 0.99
@@ -100,7 +108,7 @@ jobs:
           pip install -r requirements/producao.txt
           pip install "pt_core_news_lg @ https://github.com/explosion/spacy-models/releases/download/pt_core_news_lg-3.8.0/pt_core_news_lg-3.8.0-py3-none-any.whl#sha256=2561c9a72a938d37141e9694e1a36d25061a44ce7e4f3bad2d3fa3bb836191af"
           pip install --no-deps -e .
-          pip install pytest httpx faker segno
+          pip install pytest httpx faker segno python-pptx
           pip check
       - name: Testes
         run: pytest -q -p no:cov -o addopts=""

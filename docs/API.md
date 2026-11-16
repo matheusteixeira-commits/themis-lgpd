@@ -167,7 +167,7 @@ Requisição `multipart/form-data`:
 
 | Campo | Tipo | Padrão | Descrição |
 |---|---|---|---|
-| `arquivo` | arquivo | obrigatório | PDF, DOCX, XLSX, CSV, TXT, PNG ou JPEG, até `THEMIS_MAX_MB` |
+| `arquivo` | arquivo | obrigatório | Qualquer formato suportado (PDF, DOCX, XLSX, PPTX, ODT, ODS, CSV, TXT, HTML, EML, PNG, JPEG, TIFF, ZIP; DOC, XLS, PPT e RTF com o LibreOffice no servidor), até `THEMIS_MAX_MB` |
 | `perfil` | texto | do órgão (`lai`) | Perfil |
 | `modo` | texto | do órgão (`etiqueta`) | Modo de saída |
 | `permitir`, `bloquear` | texto (repetível) | — | Termos nunca ou sempre tarjados, somados aos do `themis.toml` |
@@ -187,7 +187,7 @@ A resposta é o arquivo gerado, com os cabeçalhos:
 
 | Cabeçalho | Conteúdo |
 |---|---|
-| `Content-Type` | Tipo MIME do arquivo gerado (imagens são devolvidas em PNG) |
+| `Content-Type` | Tipo MIME do arquivo gerado (PNG e JPEG são devolvidos em PNG; formatos antigos do Office, no formato aberto) |
 | `Content-Disposition` | `attachment; filename*=UTF-8''<nome>_anonimizado.<ext>` |
 | `X-Themis-Tarjados` | Quantidade de trechos tarjados |
 | `X-Themis-Para-Revisar` | Quantidade de alertas para revisão |

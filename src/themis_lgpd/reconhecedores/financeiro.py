@@ -137,7 +137,10 @@ PROCESSOS: list[Padrao] = [
            r"\bmatr[íi]cula|\binscri[çc][ãa]o|\bn[úu]mero\s+que\s+me\s+passaram|\bcertid(?:[ãa]o|[õo]es)|\bCDAs?\b|"
            r"\bd[íi]vida\s+ativa|\bauto\s+de\s+infra[çc][ãa]o|\bnotifica[çc][ãa]o|\bmulta|\bIPTU|\bIPVA|"
            r"\brefer[êe]ncia(?:\s+interna)?|\bguia|\bboleto)"
-           r"[^\d\n;]{0,40}?" + _NAO_NORMA + r"(?P<v>(?-i:[A-Z]{1,4})(?:[-\s])?\d[\dA-Z./\-]{2,22}[\dA-Z]|\d[\dA-Z./\-]{2,22}[\dA-Z])(?![\w])",
+           # O prefixo de letras ("AB-12345") não pode ser a sigla de outro documento ("pedido - CPF 529…"),
+           # que tem reconhecedor próprio e cuja sigla deve continuar visível.
+           r"[^\d\n;]{0,40}?" + _NAO_NORMA + r"(?P<v>(?<![\wÀ-ú])(?!(?-i:CPF|CNPJ|RG|CNH|PIS|NIS|CEP|NB|CNS|OAB|CRM|SIAPE)\b)"
+           r"(?-i:[A-Z]{1,4})(?:[-\s])?\d[\dA-Z./\-]{2,22}[\dA-Z]|\d[\dA-Z./\-]{2,22}[\dA-Z])(?![\w])",
            0.8,
            camada=CONTEXTUAL,
            grupo="v", validador=lambda valor: _id_plausivel(valor), nome="protocolo:ocorrencia"),

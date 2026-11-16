@@ -96,7 +96,109 @@ O pacote é tratado no nível do XML, parte por parte.
 
 **Recusado:** pacotes com entradas duplicadas ou criptografadas, XML com declaração de DTD, documentos
 no formato OOXML Strict e arquivos acima dos limites de tamanho descompactado (300 MB) ou de número de
-entradas (10.000). Documentos protegidos por senha e formatos antigos (`.doc`) são recusados.
+entradas (10.000). Documentos protegidos por senha são recusados; o formato antigo `.doc` é
+convertido pelo LibreOffice, quando instalado (ver adiante).
+
+### PPTX
+
+O mesmo tratamento do DOCX (`formatos/apresentacao.py` usa o núcleo de `formatos/docx.py`).
+
+**Analisado e tarjado:** texto de todos os slides, inclusive os ocultos, das anotações do orador, dos
+slides mestres e layouts, de tabelas, gráficos (com os valores em cache), SmartArt e formas; texto
+alternativo de imagens; destinos de hiperlinks externos; texto e QR codes das imagens (OCR), com tarja
+nos pixels.
+
+**Removido:** comentários e a lista de autores, inclusive os comentários modernos do Microsoft 365;
+histórico de alterações e de revisões da coautoria (`changesInfo`, `revisionInfo`), que registram
+usuários; propriedades do documento e miniatura; marcas (*tags*) de suplementos; dados XML
+personalizados; objetos incorporados; áudios e vídeos incorporados (podem conter voz ou imagem de
+pessoas; a imagem de capa permanece); macros; assinaturas digitais; identificadores de criação de
+slides. `.pptm`, `.potx` e `.ppsx` são gravados como `.pptx` comum.
+
+### ODT e ODS
+
+Formato aberto adotado pelo e-PING (`formatos/odf.py`).
+
+**Analisado e tarjado:** texto de todos os parágrafos de `content.xml`, de `styles.xml` (cabeçalhos e
+rodapés) e de objetos incorporados (gráficos e fórmulas), num único lote — inclusive conteúdo misto,
+em que um nome está dividido entre trechos de formatação (`text:span`) e espaços codificados
+(`text:s`); atributos de texto livre (títulos, nomes de objetos e de planilhas, valores de formulários);
+fórmulas e valores de células; destinos de links externos; texto e QR codes das imagens. Em planilhas,
+a célula cujo texto foi tarjado perde também o valor numérico ou de data guardado à parte
+(`office:value`) e a fórmula, que poderiam reconstituir o dado.
+
+**Removido:** alterações controladas (aceitas: o texto excluído e os autores desaparecem),
+comentários (`office:annotation`), miniatura, configurações (`settings.xml`, que registra impressora e
+caminhos), macros e scripts, objetos binários incorporados, imagens em formatos que não podem ser
+analisados e assinaturas. Os metadados (`meta.xml`) são substituídos por um registro mínimo, sem autor
+nem título. O pacote é regravado com o `mimetype` em primeiro lugar e sem compressão, como exige a
+norma, e o manifesto lista apenas as partes mantidas. Documentos ODF de outros tipos (apresentação,
+desenho) são recusados.
+
+### HTML
+
+Formato dos documentos produzidos no SEI e em portais (`formatos/html.py`). A página é interpretada —
+entidades como `&#46;` e `&eacute;` decodificadas — e todo o texto entra num único fluxo de análise: um
+nome dividido entre elementos (`<b>Maria</b> Souza`) é visto inteiro. Também são analisados os
+atributos com texto do autor (`title`, `alt`, `placeholder`, valores de formulário, `aria-label`,
+atributos `data-`), os endereços de links — um link com dado pessoal (`mailto:`, CPF na URL) passa a
+apontar para `#` — e as imagens incorporadas em `data:` (OCR, QR codes e metadados).
+
+**Removido:** comentários, scripts e manipuladores de eventos (`on…`), quadros e objetos incorporados
+(`iframe`, `object`, `embed`), que trariam conteúdo não analisado, e metadados (`<meta>` de autor,
+descrição e semelhantes). A saída é gravada em UTF-8.
+
+### Mensagens de e-mail (EML)
+
+A mensagem é interpretada (corpo em base64 ou *quoted-printable*, cabeçalhos com codificação RFC
+2047) e reconstruída (`formatos/email_eml.py`):
+
+- **cabeçalhos:** apenas Assunto (anonimizado), Data e os endereços (De, Para, Cc, Responder-para),
+  com o nome anonimizado e o endereço trocado por `tarjado@anonimizado.invalid` (domínio que a
+  RFC 2606 garante inexistente). Rotas de entrega (`Received`), identificadores de mensagem,
+  assinaturas DKIM e cabeçalhos `X-…`, que registram endereços IP, servidores e programas, são
+  descartados;
+- **corpo:** as partes de texto e HTML, analisadas com o assunto e os nomes dos correspondentes no
+  mesmo lote;
+- **anexos:** cada anexo é anonimizado pelo próprio formato (inclusive outra mensagem, até três
+  níveis) e o nome do arquivo é analisado; anexos que não podem ser anonimizados são removidos, com
+  aviso.
+
+Mensagens do Outlook (`.msg`) são recusadas com orientação para salvá-las como `.eml`.
+
+### ZIP (exportação de processos)
+
+Cada arquivo do ZIP é anonimizado pelo próprio formato e gravado num ZIP novo, com a mesma estrutura de
+pastas (`formatos/compactado.py`):
+
+- **nomes de pastas e de arquivos** são analisados, com os valores tarjados nos documentos propagados
+  para eles (`Requerimento de [NOME].pdf`). Nomes gravados por programas antigos do Windows, na página
+  de código 850, são decodificados antes da análise;
+- **removidos:** arquivos que não podem ser anonimizados (formato não suportado, protegidos por senha,
+  criptografados dentro do ZIP, ilegíveis), arquivos de sistema (`__MACOSX`, `Thumbs.db`, `.DS_Store`,
+  `desktop.ini`), ligações simbólicas, o comentário do ZIP e as datas e atributos das entradas;
+- **caminhos** são normalizados: componentes `..`, raiz e letra de unidade são descartados (proteção
+  contra *zip slip*), e caracteres inválidos em nomes de arquivo, substituídos;
+- **manifesto** (`manifesto_anonimizacao.json`, na raiz): para cada arquivo, o nome de saída, a
+  situação, o motivo de remoção, o formato, os SHA-256 de entrada e de saída, a contagem de dados
+  tarjados por tipo e os avisos — sem nomes originais nem conteúdo.
+
+ZIPs dentro de ZIPs são processados até três níveis; além disso, a entrada é removida e o motivo,
+registrado. Valem os mesmos limites de tamanho descompactado e de número de entradas do DOCX. Os nomes
+gravados e o manifesto passam pela verificação final; um nome que deixe escapar valor tarjado
+interrompe a operação (`VazamentoDetectado`).
+
+### Formatos antigos do Office e RTF (via LibreOffice)
+
+`.doc`, `.xls`, `.ppt` e `.rtf` não são lidos diretamente: os binários do Office 97–2003 guardam texto
+em estruturas que só um leitor completo interpreta com segurança, e o RTF codifica caracteres em
+escapes próprios (`\'e3`). O tipo é identificado pelo conteúdo — inclusive o `.doc` que é na verdade
+RTF ou HTML, comum em sistemas antigos. Com o LibreOffice instalado (`formatos/conversao.py`), o
+arquivo é convertido para DOCX, XLSX ou PPTX e passa por toda a limpeza daquele formato; o arquivo
+gerado fica no formato novo, com aviso. A conversão roda em processo separado, sem interface, com
+perfil de usuário temporário descartado ao final (macros não são habilitadas) e tempo máximo de 180
+segundos. Sem o LibreOffice, o arquivo é recusado com orientação. O executável é procurado em
+`THEMIS_SOFFICE`, no `PATH` e nos locais de instalação padrão do Windows e do macOS.
 
 Documentos `.docm` e `.dotx` são gravados como `.docx` comum.
 
@@ -133,7 +235,7 @@ saída é gravada em UTF-8 com BOM.
 O texto é decodificado como UTF-8 (com ou sem BOM) ou, na falha, como Windows-1252, com aviso; a saída
 é sempre UTF-8.
 
-### Imagens (PNG e JPEG)
+### Imagens (PNG, JPEG e TIFF)
 
 O texto é reconhecido por OCR local e as regiões tarjadas são cobertas nos pixels, com margem de
 4 pixels; a orientação registrada no EXIF é aplicada antes do OCR. Imagens só são processadas com o
@@ -142,6 +244,12 @@ interrompido com `FalhaOCR`. A imagem é gravada como PNG novo: nenhum metadado 
 perfil de cor, miniatura) é copiado. Após a tarja, a imagem gerada passa por novo OCR e nova busca de
 QR codes. O limite de descompressão do Pillow é fixado em 60 milhões de pixels, como proteção contra
 imagens construídas para esgotar a memória.
+
+TIFF de uma ou várias páginas (o formato das digitalizadoras) tem o texto de todas as páginas analisado
+no mesmo lote e é gravado como TIFF novo, com as mesmas páginas, resolução e profundidade de cor —
+preto e branco em 1 bit com compressão CCITT G4 —, sem nenhuma etiqueta de metadados do original
+(autor, programa, datas, descrição, EXIF, GPS, XMP). O número de páginas obedece ao mesmo limite dos
+PDFs.
 
 ### Imagens incorporadas, QR codes e metarquivos
 
@@ -173,10 +281,11 @@ origem) são analisados como as demais partes XML.
 
 ### Formatos recusados
 
-HTML, XML, RTF, mensagens de e-mail, mensagens do Outlook (`.msg`), TIFF, GIF, BMP e WebP avulsos são
-recusados com orientação de conversão. Nesses formatos o conteúdo pode estar codificado (entidades
-como `&#46;`, escapes como `\'e3`, corpo em base64) e não pode ser tratado como texto simples sem
-deixar dados fora da análise.
+XML que não é página HTML, mensagens do Outlook (`.msg`), apresentações e desenhos ODF, imagens GIF, BMP
+e WebP avulsas, documentos protegidos por senha e, sem o LibreOffice, `.doc`, `.xls`, `.ppt` e `.rtf`
+são recusados com orientação de conversão. Nenhum formato com estrutura própria é tratado como texto
+simples: o conteúdo poderia estar codificado (entidades como `&#46;`, escapes como `\'e3`, corpo em
+base64) e ficar fora da análise.
 
 ## Verificação final
 

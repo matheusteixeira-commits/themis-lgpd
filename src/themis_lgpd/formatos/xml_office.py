@@ -195,12 +195,18 @@ def _gravar_texto(el, texto: str) -> None:
         el.set(_XML_SPACE, "preserve")
 
 
-def _distribuir(elementos: list, textos: list[str], substituicoes: list[dict]) -> None:
+def _distribuir(elementos: list, textos: list[str], substituicoes: list[dict], gravar=None) -> None:
     """Aplica as substituições, feitas sobre o texto concatenado, aos elementos de origem.
 
     O substituto é gravado no primeiro elemento real alcançado pelo trecho; a parte do trecho que cai
     nos elementos seguintes é apagada. Separadores não existem no XML e são ignorados.
+
+    Args:
+        gravar: Função ``(elemento, texto)`` que grava o texto; o padrão grava o texto do elemento.
+            Formatos de conteúdo misto (ODF) passam uma função que grava também o texto que segue um
+            elemento (``tail``).
     """
+    gravar = gravar or _gravar_texto
     inicios: list[int] = []
     posicao = 0
     for t in textos:
@@ -222,7 +228,7 @@ def _distribuir(elementos: list, textos: list[str], substituicoes: list[dict]) -
         texto = textos[k]
         for ini, fim, novo in sorted(lista, reverse=True):
             texto = texto[:ini] + novo + texto[fim:]
-        _gravar_texto(elementos[k], texto)
+        gravar(elementos[k], texto)
 
 
 def _aplicador_fluxo(elementos: list, textos: list[str], anon: Anonimizador) -> Callable[[Resultado], list[Resultado]]:

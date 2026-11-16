@@ -27,6 +27,7 @@ from themis_lgpd import __version__, relatorio
 from themis_lgpd.config import carregar
 from themis_lgpd.configuracao import carregar as carregar_orgao
 from themis_lgpd.formatos import ArquivoInvalido, FalhaOCR, VazamentoDetectado, anonimizar_arquivo
+from themis_lgpd.lote import EXTENSOES
 from themis_lgpd.motor import Anonimizador
 from themis_lgpd.operadores import MODOS
 from themis_lgpd.perfis import PERFIS
@@ -124,7 +125,7 @@ def _downloads_relatorio(resultados, nome: str, chave: str) -> None:
                                    f"{nome}_auditoria_INTERNO.csv", key=f"rv{chave}")
 
 
-aba_texto, aba_arquivo = st.tabs(["Texto", "Arquivo (PDF, DOCX, XLSX, CSV, TXT, imagem)"])
+aba_texto, aba_arquivo = st.tabs(["Texto", "Arquivo (PDF, Office, ODF, HTML, e-mail, imagem, ZIP)"])
 
 # ------------------------------------------------------------------ texto
 with aba_texto:
@@ -177,7 +178,7 @@ with aba_texto:
 
 # ------------------------------------------------------------------ arquivo
 with aba_arquivo:
-    enviado = st.file_uploader("Envie o arquivo", type=["pdf", "docx", "xlsx", "csv", "txt", "png", "jpg", "jpeg"],
+    enviado = st.file_uploader("Envie o arquivo", type=sorted(e.lstrip(".") for e in EXTENSOES),
                                help=f"Até {CFG.max_mb} MB" + (f" e {CFG.max_paginas} páginas" if CFG.max_paginas else ""))
     if enviado is not None:
         dados = enviado.getvalue()

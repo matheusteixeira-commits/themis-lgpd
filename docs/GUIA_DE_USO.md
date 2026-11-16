@@ -42,7 +42,8 @@ padrão, escuta somente em `127.0.0.1`; use `--endereco 0.0.0.0` apenas atrás d
 
 ### Arquivo
 
-1. Envie um arquivo PDF, DOCX, XLSX, CSV, TXT, PNG ou JPEG e acione **Anonimizar arquivo**.
+1. Envie um arquivo (PDF, DOCX, XLSX, PPTX, ODT, ODS, CSV, TXT, HTML, EML, PNG, JPEG, TIFF, ZIP e, com
+   o LibreOffice instalado, DOC, XLS, PPT e RTF) e acione **Anonimizar arquivo**.
 2. Confira os contadores de trechos tarjados e de alertas, os avisos (conteúdo removido, convertido ou
    não analisado) e a pré-visualização da primeira página (PDF) ou da imagem.
 3. Baixe o arquivo anonimizado.
@@ -77,7 +78,7 @@ themis [--versao] <comando> [opções]
 
 | Comando | Descrição |
 |---|---|
-| `anonimizar` | Anonimiza arquivos e pastas (PDF, DOCX, XLSX, CSV, TXT, PNG, JPEG) ou a entrada padrão (`-`) |
+| `anonimizar` | Anonimiza arquivos e pastas (todos os formatos suportados) ou a entrada padrão (`-`) |
 | `analisar` | Lista, em JSON, o que seria tarjado em um texto |
 | `perfis` | Lista os perfis e os modos de saída |
 | `interface` | Inicia a interface web local |

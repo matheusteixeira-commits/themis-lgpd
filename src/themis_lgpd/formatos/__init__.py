@@ -1,9 +1,13 @@
-"""Anonimização de arquivos: TXT, CSV, XLSX, DOCX, PDF e imagens (PNG e JPEG, por OCR).
+"""Anonimização de arquivos.
+
+Formatos: PDF; DOCX, XLSX e PPTX; ODT e ODS; TXT, CSV e HTML; mensagens de e-mail (EML); imagens
+PNG, JPEG e TIFF (por OCR); ZIP (cada arquivo pelo seu formato); e, com o LibreOffice instalado,
+DOC, XLS, PPT e RTF, convertidos para o formato aberto correspondente.
 
 O formato é identificado pelo conteúdo (assinatura do arquivo), não pela extensão. Cada formato
-produz um arquivo novo no mesmo formato — imagens são sempre gravadas em PNG — e, por padrão,
-relê o arquivo gerado para confirmar que nenhum valor tarjado permanece legível
-(ver :mod:`themis_lgpd.formatos.verificacao`).
+produz um arquivo novo no mesmo formato — PNG e JPEG são gravados em PNG; formatos antigos do
+Office, no formato aberto — e, por padrão, relê o arquivo gerado para confirmar que nenhum valor
+tarjado permanece legível (ver :mod:`themis_lgpd.formatos.verificacao`).
 
 Exemplo::
 
@@ -42,6 +46,13 @@ MIMES = {
     "pdf": "application/pdf",
     "png": "image/png",
     "jpg": "image/png",  # imagens são sempre gravadas em PNG, sem metadados
+    "odt": "application/vnd.oasis.opendocument.text",
+    "html": "text/html; charset=utf-8",
+    "eml": "message/rfc822",
+    "ods": "application/vnd.oasis.opendocument.spreadsheet",
+    "pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    "tiff": "image/tiff",
+    "zip": "application/zip",
 }
 
 
@@ -74,8 +85,9 @@ class ResultadoArquivo:
 
     Attributes:
         dados: Conteúdo do arquivo gerado.
-        formato: Formato detectado na entrada (``txt``, ``csv``, ``xlsx``, ``docx``, ``pdf``, ``png``
-            ou ``jpg``).
+        formato: Formato do arquivo (``pdf``, ``docx``, ``xlsx``, ``pptx``, ``odt``, ``ods``, ``txt``,
+            ``csv``, ``html``, ``eml``, ``png``, ``jpg``, ``tiff`` ou ``zip``). Arquivos convertidos
+            pelo LibreOffice têm o formato gerado pela conversão.
         nome: Nome sugerido para o arquivo gerado.
         resultados: Resultado da análise de cada trecho de texto do arquivo.
         avisos: Informações ao usuário sobre conteúdo removido, não analisado ou convertido.
@@ -122,22 +134,44 @@ def detectar_formato(dados: bytes, nome: str = "") -> str:
             return "docx"
         if "xl/workbook.xml" in nomes:
             return "xlsx"
-        raise ArquivoInvalido("Arquivo ZIP que não é DOCX nem XLSX.")
+        if "ppt/presentation.xml" in nomes:
+            return "pptx"
+        if "mimetype" in nomes:
+            from .odf import tipo_odf
+
+            tipo = tipo_odf(dados)
+            if tipo in {"odt", "ods"}:
+                return tipo
+            raise ArquivoInvalido("Documento ODF de tipo não suportado: use ODT (texto) ou ODS (planilha).")
+        return "zip"
     if cabeca.startswith(b"\xd0\xcf\x11\xe0"):
-        raise ArquivoInvalido("Formato antigo do Office (.doc/.xls), mensagem do Outlook (.msg) ou documento protegido "
-                              "por senha, que não são suportados: remova a senha e salve como .docx/.xlsx/.pdf.")
-    if cabeca.startswith((b"II*\x00", b"MM\x00*", b"GIF87a", b"GIF89a", b"BM")) or (
-            cabeca.startswith(b"RIFF") and dados[8:12] == b"WEBP"):
-        raise ArquivoInvalido("Formato de imagem não suportado: converta para PNG, JPEG ou PDF.")
+        from .conversao import tipo_ole
+
+        tipo = tipo_ole(dados)
+        if tipo in {"doc", "xls", "ppt"}:
+            return tipo
+        if tipo == "protegido":
+            raise ArquivoInvalido("Documento protegido por senha: remova a senha e tente novamente.")
+        if tipo == "msg":
+            raise ArquivoInvalido("Mensagens do Outlook (.msg) não são suportadas: salve a mensagem como .eml.")
+        raise ArquivoInvalido("Arquivo do Office em formato antigo não identificado: salve-o como .docx, .xlsx ou .pdf.")
+    if cabeca.startswith((b"II*\x00", b"MM\x00*")):
+        return "tiff"
+    if cabeca.startswith((b"GIF87a", b"GIF89a", b"BM")) or (cabeca.startswith(b"RIFF") and dados[8:12] == b"WEBP"):
+        raise ArquivoInvalido("Formato de imagem não suportado: converta para PNG, JPEG, TIFF ou PDF.")
     if b"\x00" in dados[:4096]:
         raise ArquivoInvalido("Formato binário não suportado.")
+    # Sistemas antigos geram ".doc" que na verdade é RTF ou HTML: o conteúdo decide o formato.
+    estruturado = _texto_estruturado(dados)
+    if estruturado:
+        return estruturado
     # Extensão de formato binário com conteúdo de texto: arquivo corrompido ou renomeado. Processá-lo
     # como texto geraria uma saída com outra extensão, que o usuário poderia não conferir.
     extensao = nome.rsplit(".", 1)[-1] if "." in nome else ""
-    if extensao in {"pdf", "docx", "xlsx", "png", "jpg", "jpeg", "doc", "xls"}:
+    if extensao in {"pdf", "docx", "xlsx", "pptx", "odt", "ods", "png", "jpg", "jpeg", "tif", "tiff", "doc", "xls",
+                    "ppt", "zip"}:
         raise ArquivoInvalido(f"O conteúdo não corresponde à extensão .{extensao}: o arquivo está corrompido ou "
                               "foi renomeado.")
-    _recusar_texto_estruturado(dados)
     return "csv" if nome.endswith(".csv") else "txt"
 
 
@@ -148,25 +182,31 @@ _CABECALHO_EMAIL = re.compile(rb"^(?:from|to|cc|subject|date|message-id|mime-ver
                               rb"content-type|reply-to|x-mailer):", re.IGNORECASE)
 
 
-def _recusar_texto_estruturado(dados: bytes) -> None:
-    """Recusa formatos de texto com estrutura própria que não podem ser tratados como texto simples.
+def _texto_estruturado(dados: bytes) -> str | None:
+    """Identifica formatos de texto com estrutura própria, que não podem ser tratados como texto simples.
 
     Em HTML, XML e RTF, o conteúdo pode estar codificado (entidades como ``&#46;``, escapes como
     ``\\'e3``) e a marcação se mistura ao texto; em e-mails, o corpo costuma estar em base64. Tratá-los
     como texto simples deixaria dados pessoais sem análise.
 
+    Returns:
+        ``html``, ``eml`` ou ``rtf``, que têm tratamento próprio; ``None`` para texto simples.
+
     Raises:
-        ArquivoInvalido: O conteúdo é HTML, XML, RTF ou mensagem de e-mail.
+        ArquivoInvalido: O conteúdo é XML que não é página HTML.
     """
     inicio = dados[:8192].lstrip(b"\xef\xbb\xbf \t\r\n")
     if inicio[:5].lower() == b"{\\rtf":
-        raise ArquivoInvalido("Arquivos RTF não são suportados: salve o documento como DOCX ou PDF.")
+        return "rtf"
     if _MARCACAO.match(inicio):
-        raise ArquivoInvalido("Arquivos HTML ou XML ainda não são suportados como texto: salve como PDF ou DOCX.")
+        if re.search(rb"<(?:html|body|head|div|p|table|span|br)\b", inicio, re.IGNORECASE) or \
+                inicio[:9].lower() == b"<!doctype":
+            return "html"
+        raise ArquivoInvalido("Arquivos XML não são suportados: salve o conteúdo como PDF, DOCX ou ODT.")
     linhas = inicio.split(b"\n\n", 1)[0].replace(b"\r", b"").split(b"\n")[:40]
     if sum(1 for linha in linhas if _CABECALHO_EMAIL.match(linha)) >= 2:
-        raise ArquivoInvalido("Mensagens de e-mail (.eml) ainda não são suportadas: salve o conteúdo e os anexos "
-                              "como PDF.")
+        return "eml"
+    return None
 
 
 def verificar_zip(dados: bytes, limite: int = LIMITE_DESCOMPACTADO) -> None:
@@ -232,6 +272,10 @@ def anonimizar_arquivo(
         raise ArquivoInvalido("Arquivo vazio.")
     anon = anonimizador or Anonimizador()
     formato = detectar_formato(dados, nome)
+    if formato in {"doc", "xls", "ppt", "rtf"}:
+        return _anonimizar_convertido(dados, nome, formato, anon, limite_bytes=limite_bytes,
+                                      limite_paginas=limite_paginas, ocr=ocr, colunas=colunas,
+                                      colunas_integrais=colunas_integrais, verificar=verificar)
     saida = nome_saida(nome, formato)
     if formato == "txt":
         from .texto import anonimizar_txt
@@ -247,9 +291,45 @@ def anonimizar_arquivo(
         verificar_zip(dados)
         from .docx import anonimizar_docx
         return anonimizar_docx(dados, anon, saida, ocr=ocr, verificar=verificar)
+    if formato == "pptx":
+        verificar_zip(dados)
+        from .apresentacao import anonimizar_pptx
+        return anonimizar_pptx(dados, anon, saida, ocr=ocr, verificar=verificar)
+    if formato == "zip":
+        from .compactado import anonimizar_zip
+        return anonimizar_zip(dados, anon, saida, ocr=ocr, verificar=verificar, limite_paginas=limite_paginas,
+                              limite_bytes=limite_bytes, colunas_integrais=colunas_integrais, pdfa=pdfa)
+    if formato == "tiff":
+        from .imagem import anonimizar_tiff
+        return anonimizar_tiff(dados, anon, saida, ocr=ocr, verificar=verificar, limite_paginas=limite_paginas)
     if formato == "pdf":
         from .pdf import anonimizar_pdf
         return anonimizar_pdf(dados, anon, saida, limite_paginas=limite_paginas, ocr=ocr, verificar=verificar,
                               pdfa=pdfa)
+    if formato == "eml":
+        from .email_eml import anonimizar_eml
+        return anonimizar_eml(dados, anon, saida, ocr=ocr, verificar=verificar, limite_paginas=limite_paginas)
+    if formato == "html":
+        from .html import anonimizar_html
+        return anonimizar_html(dados, anon, saida, ocr=ocr, verificar=verificar)
+    if formato in {"odt", "ods"}:
+        verificar_zip(dados)
+        from .odf import anonimizar_odf
+        return anonimizar_odf(dados, anon, saida, ocr=ocr, verificar=verificar)
     from .imagem import anonimizar_imagem
     return anonimizar_imagem(dados, anon, saida, ocr=ocr, verificar=verificar)
+
+
+def _anonimizar_convertido(dados: bytes, nome: str, origem: str, anon: Anonimizador, **opcoes) -> ResultadoArquivo:
+    """Converte DOC, XLS, PPT ou RTF pelo LibreOffice e anonimiza o arquivo convertido."""
+    from .conversao import DESTINOS, converter
+
+    destino = DESTINOS[origem]
+    convertido = converter(dados, origem)
+    if detectar_formato(convertido) != destino:
+        raise ArquivoInvalido(f"A conversão do arquivo .{origem} não produziu um arquivo .{destino} válido.")
+    base = nome.rsplit(".", 1)[0] if "." in (nome or "") else (nome or "documento")
+    resultado = anonimizar_arquivo(convertido, f"{base}.{destino}", anon, **opcoes)
+    resultado.avisos.insert(0, f"Arquivo .{origem} convertido para .{destino} pelo LibreOffice; o arquivo gerado "
+                               f"está no formato .{destino}.")
+    return resultado

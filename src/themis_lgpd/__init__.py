@@ -7,7 +7,7 @@ Uso básico::
     resultado = Anonimizador(perfil="lai").anonimizar("Requerente: Maria Souza, CPF 529.982.247-25.")
     resultado.texto  # 'Requerente: [NOME], CPF [CPF].'
 
-Arquivos (PDF, DOCX, XLSX, CSV, TXT e imagens) são tratados por :mod:`themis_lgpd.formatos`.
+Arquivos (PDF, Office, ODF, HTML, e-mail, imagens e ZIP) são tratados por :mod:`themis_lgpd.formatos`.
 """
 
 from ._versao import __version__

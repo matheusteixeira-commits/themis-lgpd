@@ -41,7 +41,9 @@ arquivos; e verificação independente de cada arquivo gerado.
   verificação final não são entregues.
 - **Propagação:** um dado identificado em qualquer ponto do documento é tarjado em todas as
   ocorrências.
-- **Arquivos:** PDF (com tarja real), DOCX, XLSX, CSV, TXT, PNG e JPEG, com OCR local; PDF gerado
+- **Arquivos:** PDF (com tarja real), DOCX, XLSX, PPTX, ODT, ODS, HTML (documentos do SEI), e-mail
+  (EML, com anexos), CSV, TXT, PNG, JPEG e TIFF multipágina, com OCR local; ZIP de processo (cada
+  arquivo pelo seu formato, nomes analisados, manifesto); DOC, XLS, PPT e RTF com o LibreOffice; PDF gerado
   pesquisável e acessível (rótulos das tarjas para leitores de tela, idioma declarado) e, opcionalmente,
   em PDF/A-2b para arquivamento, validado pelo veraPDF.
 - **Revisão humana** na interface web; relatório e nota de tarjamento com base legal.
@@ -123,8 +125,14 @@ Referência completa: [docs/GUIA_DE_USO.md](https://github.com/matheusteixeira-c
 | PDF | Texto horizontal e girado, campos de formulário e anotações visíveis, páginas digitalizadas e fontes sem mapeamento de texto (por OCR) | Texto sob as tarjas (páginas com tarja são rasterizadas, com camada de texto pesquisável), metadados, comentários, anexos, JavaScript, marcadores, dados de assinatura |
 | DOCX | Todas as partes: corpo, tabelas, cabeçalhos, rodapés, notas, caixas de texto, gráficos, campos, textos alternativos, destinos de hiperlinks | Alterações controladas (aceitas), comentários, propriedades, miniatura, objetos incorporados, macros, partes órfãs |
 | XLSX | Todas as células (inclusive a primeira linha), literais em fórmulas, nomes de abas, cabeçalhos de impressão, validações, formatação condicional, filtros, nomes definidos, gráficos | Comentários, hiperlinks, tabelas dinâmicas, vínculos externos, caches de gráficos, propriedades |
+| PPTX | Slides (inclusive ocultos), anotações do orador, mestres e layouts, tabelas, gráficos, textos alternativos, hiperlinks, imagens | Comentários e autores, histórico de coautoria, propriedades, marcas de suplementos, áudios e vídeos, objetos incorporados, macros |
+| ODT, ODS | Parágrafos (inclusive conteúdo misto), cabeçalhos e rodapés, células, fórmulas e valores, objetos incorporados, atributos de texto livre, imagens | Alterações controladas (aceitas), comentários, metadados, miniatura, configurações, macros, objetos binários |
+| HTML | Texto da página (entidades decodificadas), atributos com texto (`title`, `alt`, formulários), endereços de links, imagens em `data:` | Scripts, eventos, quadros e objetos incorporados, comentários, metadados |
+| EML | Assunto, nomes dos correspondentes, corpo em texto e HTML, nomes e conteúdo dos anexos (cada um pelo seu formato) | Endereços de e-mail (trocados por endereço reservado), rotas de entrega, identificadores, DKIM, cabeçalhos `X-…` |
+| ZIP | Cada arquivo pelo seu formato; nomes de pastas e de arquivos | Arquivos não suportados ou protegidos (registrados no manifesto), arquivos de sistema, comentário e datas |
+| DOC, XLS, PPT, RTF | Convertidos para DOCX, XLSX ou PPTX pelo LibreOffice (quando instalado) e tratados como tal | O mesmo do formato de destino |
 | CSV, TXT | Todo o conteúdo | — |
-| PNG, JPEG | Texto reconhecido por OCR | Metadados (EXIF, GPS); a saída é um PNG novo |
+| PNG, JPEG, TIFF | Texto reconhecido por OCR, QR codes | Metadados (EXIF, GPS, XMP, etiquetas TIFF); PNG e JPEG saem em PNG, TIFF em TIFF com as mesmas páginas |
 
 Todo arquivo gerado é relido por um caminho independente; se algum valor tarjado continuar legível,
 nenhum arquivo é entregue. Detalhes em [docs/SEGURANCA_E_PRIVACIDADE.md](https://github.com/matheusteixeira-commits/themis-lgpd/blob/main/docs/SEGURANCA_E_PRIVACIDADE.md).

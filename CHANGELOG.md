@@ -23,7 +23,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - DOCX: nomes internos de arquivos de mídia neutralizados; identificadores de sessão de edição
   (`rsid`, `paraId`, `docId`) removidos.
 - HTML, XML, RTF e mensagens de e-mail deixam de ser tratados como texto simples (o conteúdo
-  codificado escapava à análise) e são recusados com orientação; o mesmo para TIFF, GIF, BMP e WebP.
+  codificado escapava à análise): HTML, e-mail e RTF passam a ter tratamento próprio (ver *formatos
+  usados pelos órgãos*); XML e imagens GIF, BMP e WebP são recusados com orientação.
 - Detecção: "meu RG é o …", número do registro em conselhos com região ("CRN-3 88421"), registros
   profissionais em minúsculas, "sob o nº", e itens seguintes de enumerações ("as CDAs X e Y", "os CPFs
   X, Y e Z").
@@ -124,6 +125,34 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
   texto, perfil sRGB, metadados apenas com a identificação PDF/A e versão 1.7; validado no CI pelo
   veraPDF com PDFs de fontes não incorporadas, página digitalizada, cor CMYK e o exemplo fictício.
 
+### Adicionado — formatos usados pelos órgãos
+
+- ODT e ODS (formato aberto do e-PING): texto com conteúdo misto, cabeçalhos e rodapés, células,
+  fórmulas e valores (a célula tarjada perde também o valor numérico e a fórmula), objetos incorporados
+  e imagens; alterações controladas aceitas; comentários, metadados, miniatura, configurações e macros
+  removidos; `mimetype` gravado primeiro e sem compressão.
+- HTML (documentos do SEI): entidades decodificadas, texto em fluxo único, atributos com texto,
+  endereços de links e imagens em `data:` analisados; scripts, eventos, quadros e metadados removidos.
+- Mensagens de e-mail (EML): assunto, correspondentes, corpo em texto e HTML (base64 e
+  *quoted-printable*) e anexos, cada um pelo próprio formato e com o nome analisado; endereços trocados
+  por endereço reservado; rotas de entrega, identificadores e DKIM descartados.
+- ZIP de processo: cada arquivo pelo próprio formato, nomes de pastas e arquivos analisados (com os
+  valores tarjados nos documentos propagados para eles e nomes em página de código 850 decodificados),
+  arquivos não suportados removidos e manifesto `manifesto_anonimizacao.json` com SHA-256 de entrada e
+  de saída, situação e contagem por tipo; proteção contra *zip slip*, arquivos de sistema e ligações
+  simbólicas removidos; até três níveis de ZIP aninhado.
+- TIFF de uma ou várias páginas (digitalizadoras): OCR de todas as páginas no mesmo lote e TIFF novo
+  com as mesmas páginas, resolução e profundidade de cor (1 bit com CCITT G4), sem etiquetas de
+  metadados.
+- PPTX (também `.pptm`, `.potx`, `.ppsx`): slides, inclusive ocultos, anotações do orador, mestres,
+  gráficos, textos alternativos e imagens analisados; comentários e autores (inclusive os modernos),
+  histórico de coautoria, marcas de suplementos, áudios e vídeos e macros removidos.
+- DOC, XLS, PPT e RTF convertidos pelo LibreOffice, quando instalado, para DOCX, XLSX ou PPTX e
+  anonimizados como tal (perfil temporário, sem interface, tempo máximo); `.doc` que é na verdade RTF
+  ou HTML identificado pelo conteúdo; sem o LibreOffice, recusa com orientação. Testado no CI com o
+  LibreOffice instalado.
+- A CLI em lote, a interface e a API aceitam todos os formatos novos.
+
 ### Desempenho
 
 - Análise de textos longos quase linear: 100 mil caracteres em 4,7 s (1.0.0: 11,3 s). O reforço de
@@ -140,6 +169,9 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Relatórios CSV e XLSX exibiam um apóstrofo nas células vazias.
 - Arquivo com extensão de formato binário e conteúdo de texto (um `.pdf` renomeado) era processado
   como texto e gerava saída com outra extensão; passa a ser recusado.
+- Sigla de documento antes do número ("Pedido de acesso - CPF 529.982.247-25") era capturada como
+  prefixo de protocolo e tarjada como `[PROTOCOLO] [CPF]`; siglas de documentos deixam de compor
+  números de protocolo.
 - `themis analisar` e `themis reverter` exibiam o rastreamento do Python para arquivo inexistente,
   texto fora de UTF-8 ou senha incorreta; passam a exibir mensagem e a sair com código 1.
 
