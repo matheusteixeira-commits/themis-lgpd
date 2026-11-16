@@ -42,22 +42,22 @@ coluna **Validação** indica o que é conferido além do formato.
 | Código | Nome | Etiqueta | Prioridade | Validação | Exemplo fictício |
 |---|---|---|---|---|---|
 | `NOME` | Nome de pessoa | `[NOME]` | 75 | Modelo de linguagem, lista de nomes ou gatilho de contexto | Maria Aparecida Souza |
-| `CPF` | CPF | `[CPF]` | 100 | Módulo 11; formato pontuado ou contexto dispensam a validação | 529.982.247-25 |
+| `CPF` | CPF | `[CPF]` | 100 | Módulo 11; formato pontuado ou contexto dispensam a validação; CPF parcialmente mascarado com dígitos visíveis | 529.982.247-25; `***.982.247-**`; 529.XXX.XXX-25 |
 | `RG` | RG / Carteira de identidade | `[RG]` | 95 | Contexto obrigatório ("RG", "identidade", "CIN"); inclui órgão emissor e UF | RG 1.234.567 SSP/DF |
 | `CNH` | CNH | `[CNH]` | 95 | Dígitos verificadores; contexto obrigatório | CNH 39825979149 |
 | `PIS` | PIS/PASEP/NIS/NIT | `[PIS]` | 95 | Módulo 11; sem pontuação característica, exige contexto | 190.74833.78-3 |
 | `TITULO_ELEITOR` | Título de eleitor | `[TÍTULO DE ELEITOR]` | 95 | Dígitos verificadores com código da UF | 8762 3286 2410 |
-| `CNS` | Cartão Nacional de Saúde (SUS) | `[CARTÃO SUS]` | 95 | Módulo 11 (definitivo e provisório) | 112 9040 4796 6691 |
+| `CNS` | Cartão Nacional de Saúde (SUS) | `[CARTÃO SUS]` | 95 | Módulo 11 (definitivo e provisório); grupos separados por espaço ou ponto | 112 9040 4796 6691 |
 | `PASSAPORTE` | Passaporte | `[PASSAPORTE]` | 90 | Contexto obrigatório | passaporte AB123456 |
 | `CTPS` | Carteira de trabalho | `[CTPS]` | 90 | Contexto obrigatório; inclui série e UF | CTPS 1234567 série 0012/DF |
 | `CERTIDAO` | Matrícula de certidão civil | `[CERTIDÃO]` | 90 | Formato de 32 dígitos (Provimento CNJ nº 3/2009); termo com livro e folha | termo 4521, livro A-32, folha 118 |
-| `MATRICULA` | Matrícula funcional | `[MATRÍCULA]` | 85 | Contexto obrigatório ("matrícula", "SIAPE", "MASP", "ID funcional", "registro funcional") | MASP 1234567-8 |
-| `REGISTRO_PROFISSIONAL` | Registro profissional (OAB, CRM, RNTRC, CADASTUR…) | `[REGISTRO PROFISSIONAL]` | 85 | Sigla do conselho, com ou sem região, inclusive em minúsculas | OAB/DF 12.345; CRN-3 88421 |
-| `BENEFICIO` | Benefício previdenciário ou social (NB do INSS) | `[BENEFÍCIO]` | 90 | Contexto obrigatório ("NB", "benefício") | NB 123.456.789-0 |
-| `REGISTRO_SAUDE` | Prontuário, DNV, AIH ou cartão de vacina | `[REGISTRO DE SAÚDE]` | 85 | Contexto obrigatório | prontuário nº 2891163 |
+| `MATRICULA` | Matrícula funcional | `[MATRÍCULA]` | 85 | Contexto obrigatório ("matrícula", "Matr.", "SIAPE", "MASP", "ID funcional", "nº funcional", "registro funcional"; "RF" só no formato do registro funcional), com o vínculo ("/01"); coluna de tabela com esse cabeçalho | MASP 1234567-8; Id. funcional 1234567/01; RF 123.456.7/1 |
+| `REGISTRO_PROFISSIONAL` | Registro profissional (OAB, CRM, RNTRC, CADASTUR…) e RQE | `[REGISTRO PROFISSIONAL]` | 85 | Sigla do conselho com a UF ou a região ("6ª Região"), inclusive em minúsculas; coluna de tabela com a sigla no cabeçalho | OAB/DF 12.345; CRN-3 88421; CRESS 6ª Região nº 1.234; RQE 4.321 |
+| `BENEFICIO` | Benefício previdenciário ou social (NB do INSS) | `[BENEFÍCIO]` | 90 | Contexto obrigatório ("NB", "benefício"), inclusive no cabeçalho da coluna de uma tabela | NB 123.456.789-0 |
+| `REGISTRO_SAUDE` | Prontuário, DNV, AIH ou cartão de vacina | `[REGISTRO DE SAÚDE]` | 85 | Contexto obrigatório; o prontuário pode trazer a sigla do serviço ("Prontuário CER:", "Prontuário SIGLA nº") e o número, a sigla da unidade | prontuário nº 2891163; Prontuário: ABC-0123/2024 |
 | `MATRICULA_ESCOLAR` | Matrícula escolar ou RA | `[MATRÍCULA ESCOLAR]` | 85 | Contexto obrigatório ("RA", "registro acadêmico", "matrícula do aluno") | RA 123456789-X |
 | `INSCRICAO_IMOVEL` | Inscrição imobiliária (IPTU, CCM) | `[INSCRIÇÃO]` | 80 | Contexto obrigatório | inscrição imobiliária 01.23.456.0789.001 |
-| `DOCUMENTO` | Número de documento | `[DOCUMENTO]` | 80 | Contexto obrigatório | Documento do cliente: 1234567-8 |
+| `DOCUMENTO` | Número de documento | `[DOCUMENTO]` | 80 | Contexto obrigatório; coluna de tabela com cabeçalho de inscrição, protocolo ou requerimento | Documento do cliente: 1234567-8 |
 | `DATA_NASCIMENTO` | Data de nascimento | `[DATA DE NASCIMENTO]` | 85 | Contexto ("nascido em", "data de nascimento") | nascida em 12/03/1985 |
 
 ### Contato, localização e finanças
@@ -84,8 +84,8 @@ coluna **Validação** indica o que é conferido além do formato.
 | `RENAVAM` | RENAVAM | `[RENAVAM]` | 90 | Contexto obrigatório ("RENAVAM", "renavan"); o dígito verificador eleva a confiança | RENAVAM 72510273464 |
 | `CHASSI` | Chassi (VIN) | `[CHASSI]` | 90 | Com "chassi", qualquer fabricante; sem a palavra, prefixo 9 (fabricantes no Brasil) com letras e dígitos | 9BWZZZ377VT004251 |
 | `PROCESSO_JUDICIAL` | Processo judicial (CNJ) | `[PROCESSO JUDICIAL]` | 85 | Módulo 97 (Resolução CNJ nº 65/2008); formato pontuado dispensa a validação | 4686958-42.2023.8.07.6678 |
-| `PROCESSO_ADMINISTRATIVO` | Processo administrativo (SEI/NUP) | `[PROCESSO]` | 80 | Ano plausível; formatos federais e estaduais (NUP-21, SEI-MG, SEI-PE, SEI-BA, RJ); contexto para formatos livres (PROA, eProtocolo, SGPe) | 00410-00012345/2024-11; 1500.01.0012345/2024-12 |
-| `PROTOCOLO` | Protocolo | `[PROTOCOLO]` | 75 | Contexto ("protocolo", "ocorrência", "boletim") | protocolo nº 2024123456 |
+| `PROCESSO_ADMINISTRATIVO` | Processo administrativo (SEI/NUP) | `[PROCESSO]` | 80 | Ano plausível; formatos federais e estaduais (NUP-21, SEI-MG, SEI-PE, SEI-BA, RJ); contexto para formatos livres (PROA, eProtocolo, SGPe, sigla do sistema ou do órgão antes do número). Não se aplica a avisos de licitação, atas de pregão, termos de referência e extratos de contrato sem pessoa natural | 00410-00012345/2024-11; 1500.01.0012345/2024-12; Processo SIGLA: ABC-2024/01234 |
+| `PROTOCOLO` | Protocolo e número de documento sobre pessoa | `[PROTOCOLO]` | 75 | Contexto ("protocolo", "ocorrência", "boletim"); laudo, parecer médico ou psicossocial, relatório social ou de atendimento, investigação, declaração de óbito, CAT, procedimento, sindicância, mandado, auto e termo lavrados contra o autuado, ficha e guia individuais, com qualificativos e sigla da unidade; registros policiais pela sigla (BO, REDS, RAI, TCO). Relatórios de auditoria, fiscalização e gestão, laudos de imóveis e obras, códigos de tabelas públicas (IBGE, CNAE, CBO) e boletins que são publicações ficam legíveis | protocolo nº 2024123456; Relatório Social nº 733/2026; Laudo nº 4410/2025-PTC |
 
 ### Pessoa jurídica, localidades e outros
 
