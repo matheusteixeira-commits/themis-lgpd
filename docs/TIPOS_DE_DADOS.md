@@ -60,7 +60,7 @@ coluna **Validação** indica o que é conferido além do formato.
 | `MATRICULA_ESCOLAR` | Matrícula escolar ou RA | `[MATRÍCULA ESCOLAR]` | 85 | Contexto obrigatório ("RA", "registro acadêmico", "matrícula do aluno") | RA 123456789-X |
 | `INSCRICAO_IMOVEL` | Inscrição imobiliária (IPTU, CCM) | `[INSCRIÇÃO]` | 80 | Contexto obrigatório | inscrição imobiliária 01.23.456.0789.001 |
 | `DOCUMENTO` | Número de documento | `[DOCUMENTO]` | 80 | Contexto obrigatório; coluna de tabela com cabeçalho de inscrição, protocolo ou requerimento | Documento do cliente: 1234567-8 |
-| `DATA_NASCIMENTO` | Data de nascimento | `[DATA DE NASCIMENTO]` | 85 | Contexto ("nascido em", "data de nascimento", "DN") ou coluna "Nascimento" de tabela; formatos numérico, ISO, por extenso, com mês abreviado e de registro civil | nascida em 12/03/1985; 1º de março de 1985 |
+| `DATA_NASCIMENTO` | Data de nascimento | `[DATA DE NASCIMENTO]` | 85 | Contexto ("nascido em", "data de nascimento", "DN", e em documentos de estrangeiros "nacida el", "nato a … il", "née le") ou coluna "Nascimento" de tabela; formatos numérico (também com espaços no lugar das barras e com o ano primeiro), ISO, com mês em algarismos romanos ou abreviado, por extenso (também em espanhol, italiano e francês), de registro civil e toda por extenso; o ano isolado ou presumido. "Nasceu em" com sujeito que é programa, projeto ou entidade não é data de nascimento | nascida em 12/03/1985; 1º de março de 1985; DN 03/XI/2015; nascido aos onze dias do mês de julho de mil novecentos e oitenta |
 | `IDADE` | Idade de pessoa | `[IDADE]` | 80 | Contexto que liga a idade a uma pessoa identificável (ver [Idade e valores de pessoa natural](#idade-e-valores-de-pessoa-natural)) | Idade: 52 anos; Fulano, 33 anos, CPF…; o filho, de 6 anos |
 
 ### Contato, localização e finanças
@@ -295,42 +295,59 @@ Idade e valor monetário só são dado pessoal quando se referem a uma pessoa id
 números em normas, editais, estatísticas e contratos com empresas são informação pública. Por isso os
 tipos `IDADE` e `VALOR_PESSOAL` dependem do contexto (`src/themis_lgpd/reconhecedores/pessoais.py`).
 
-**Idade** é tarjada no campo de formulário ("Idade: 52 anos", "Idade: 47 a"), em aposto ao nome, às
-iniciais ou ao papel da pessoa ("Fulano, 33 anos, CPF…", "P.R.S., 8 anos;", "a genitora, de 29 anos",
-"um sobrinho de 12 anos"), com verbo ("hoje com 3 anos", "contava 20 anos", "tem 9 anos"), em "62
-(sessenta e dois) anos de idade", ao lado da data de nascimento ("10/10/2010 (15 anos)") e na coluna
+**Idade** é tarjada no campo de formulário ("Idade: 52 anos", "Idade: 47 a", "Idade referida: 58
+anos"), em aposto ao nome, às iniciais, ao prenome isolado ou ao papel da pessoa ("Fulano, 33 anos,
+CPF…", "P.R.S., 8 anos;", "a genitora, de 29 anos", "a neta, Íris, de 7 anos", "um sobrinho de 12
+anos"), inclusive com nacionalidade, ocupação, parentesco ou documento entre o nome e a idade ("Fulana,
+peruana, doceira, 41 anos", "Fulano, CPF…, de 58 anos"), com verbo ("hoje com 3 anos", "contava 20
+anos", "tem 9 anos"), em "62 (sessenta e dois) anos de idade", por extenso ("de doze anos", "vinte e
+seis anos"), ao lado da data de nascimento ("10/10/2010 (15 anos)", "03/XI/2015 (10 anos)"), entre
+parênteses depois do nome de criança ou adolescente ("a criança Fulana de Tal (8)") e na coluna
 "Idade" de tabelas de pessoas. Permanecem legíveis faixas e requisitos ("de 6 a 14 anos", "idade
 mínima de 18 anos", "a partir de 60 anos", "18 anos ou mais"), durações ("há 10 anos", "pena de 6 anos",
-"36 anos de contribuição", "prazo de 2 anos"), grupos ("pessoas com 60 anos"), a idade em que algo
-ocorreu ("aos 14 anos") e disposições normativas sem pessoa identificada ("o servidor com 75 anos de
-idade será aposentado").
+"36 anos de contribuição", "prazo de 2 anos", "dois anos para concluir"), grupos ("pessoas com 60
+anos"), a idade em que algo ocorreu ("aos 14 anos"), a antiguidade de bens, lugares, entidades e
+programas ("a ponte, que tem 80 anos", "120 anos de emancipação") e disposições normativas sem pessoa
+identificada ("o servidor com 75 anos de idade será aposentado").
 
 **Valores recebidos, pagos ou devidos por pessoa natural** — remuneração, salário, proventos, renda,
 benefício, pensão, bolsa, aluguel, dívida, parcela, desconto em folha, multa, fiança, indenização,
-prejuízo alegado, bem subtraído ou avaliado — recebem `VALOR_PESSOAL`, na categoria `ECONOMICO`, em
-reais, em salários mínimos ("pensão de um salário mínimo") ou como percentual dos rendimentos ("pensão
-alimentícia de 30% dos rendimentos líquidos"). Decide a expressão mais próxima antes do valor, na mesma
-frase:
+prejuízo alegado, bem subtraído ou avaliado, pecúlio do preso — recebem `VALOR_PESSOAL`, na categoria
+`ECONOMICO`, em reais ou em moeda estrangeira ("US$ 1.300,00"), com a moeda por extenso ("800 reais",
+"duzentos e dez reais"), em milhar por extenso no relato ("chega a seis mil"), em salários mínimos,
+inteiros ou em fração ("pensão de um salário mínimo", "um quarto do salário mínimo", "dois salários e
+meio"), ou como percentual dos rendimentos ou do salário mínimo ("pensão alimentícia de 30% dos
+rendimentos líquidos"). Decide a expressão mais próxima antes do valor, na mesma frase (a quebra de
+linha no meio da frase não a interrompe; as expressões entre parênteses só decidem na falta de outra):
 
-- expressão de valor público (contrato, licitação, proposta, orçamento, dotação, repasse, empresa,
-  erário, tabela, valor estimado ou global, valor fixado, taxa, valor da causa) mantém o valor legível,
-  assim como limites e faixas ("até R$ 660,00", "de R$ 1.000,00 a R$ 10.000,00"), médias e valores por
-  grupo ("a renda média das famílias", "R$ 600,00 por família") e dívidas do próprio ente ("o débito do
-  Município");
+- expressão de valor público (contrato, licitação, proposta, orçamento, dotação, repasse, receita de
+  convênio, rendimento de aplicação financeira, empresa, erário, tabela, valor estimado ou global, valor
+  fixado, taxa, valor da causa) mantém o valor legível, assim como limites e faixas ("até R$ 660,00", "de
+  R$ 1.000,00 a R$ 10.000,00", "limitada a R$ 50.000,00"), médias sem pessoa designada na frase ("valor
+  médio de R$ 1.640,00"), valores por grupo ("a renda média das famílias", "R$ 600,00 por família", "pago
+  a 52 famílias") e dívidas, multas e prejuízos do próprio ente ou de autarquia ("o débito do Município",
+  "prejuízo ao INSS");
 - expressão de vínculo pessoal (renda, remuneração, dívida, multa…) tarja o valor, salvo em oração
   normativa ("fica fixado o subsídio do cargo em…", "o servidor fará jus a diárias de…") ou atribuída a
-  pessoa jurídica, quando a frase não identifica uma pessoa (CPF, iniciais, tratamento, primeira
-  pessoa);
-- expressão de vínculo fraco (benefício, auxílio, bolsa, recebeu, pagou) tarja o valor quando a frase
-  designa uma pessoa ("a requerente", "a família", "seu benefício").
+  pessoa jurídica que não seja só a credora ("multa… devida pela contratada", mas "dívida de R$ 515,00
+  com a concessionária" é da pessoa), quando a frase não identifica uma pessoa (CPF, iniciais,
+  tratamento, primeira pessoa); a oração normativa de um caso concreto ("a pensão fixada em…", quando a
+  frase cita o requerido, a genitora ou o réu) continua pessoal; em documento que só identifica pessoas
+  jurídicas (com CNPJ e sem CPF), a multa sem pessoa designada na frase fica legível;
+- expressão de vínculo fraco (benefício, auxílio, bolsa, recebeu, recebendo, pagou, gasta, ganha, tira,
+  rende, vive com) tarja o valor quando a frase designa uma pessoa ("a requerente", "a família", "seu
+  benefício", "ela", "Dona Fulana", frase que começa por prenome ou por verbo de relato com o sujeito
+  oculto: "Gastou em média…").
 
 Também são tarjados os valores das tabelas de pessoas (com coluna de nome, parentesco, CPF, matrícula
 ou rubrica de contracheque), todos os valores de declarações de bens (Lei nº 8.429/1992, art. 13), os
 valores sem contexto decisivo em extratos de contrato ou termo de outorga cuja contraparte é pessoa
-física (identificada por CPF) e em frases com CPF e sem CNPJ, e as repetições, no mesmo documento, de um
-valor já reconhecido como pessoal. Agência, conta, cartão e chave PIX continuam nos tipos da categoria
-`FINANCEIRO`. Os valores de `VALOR_PESSOAL` não são propagados para outros trechos do documento, pois a
-mesma quantia pode ter outro sentido em outra frase.
+física (identificada por CPF), em frases com CPF e sem CNPJ e na seção de renda ("RENDA FAMILIAR",
+"Renda e despesas") de ficha cadastral, prontuário ou estudo social sobre pessoa ou família identificada
+(com CPF, NIS ou código familiar), o dinheiro levado ou guardado ("R$ 950,00 em dinheiro") e as
+repetições, no mesmo documento, de um valor já reconhecido como pessoal. Agência, conta, cartão e chave
+PIX continuam nos tipos da categoria `FINANCEIRO`. Os valores de `VALOR_PESSOAL` não são propagados para
+outros trechos do documento, pois a mesma quantia pode ter outro sentido em outra frase.
 
 No perfil `identificadores`, `ECONOMICO` vira alerta; nos demais, é tarjado. Para manter legíveis as
 remunerações de agentes públicos publicadas em transparência ativa, use um perfil personalizado com
