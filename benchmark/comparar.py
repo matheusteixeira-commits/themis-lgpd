@@ -12,9 +12,14 @@ Sistemas comparados:
 
 O resultado é gravado em ``benchmark/COMPARACAO.md`` (tabela) e ``benchmark/COMPARACAO.json``.
 
+O esic-ner é medido na partição ``test``, que é a lockbox do processo de treinamento: cada execução
+exige ``--lockbox MOTIVO`` e fica registrada em ``benchmark/treino/registro_lockbox.jsonl``, como em
+``benchmark/esic_ner.py --particao lockbox``.
+
 Uso::
 
-    python benchmark/comparar.py [--n 1000] [--semente 7] [--outro-src ../outra-versao/src --outro-rotulo "Themis 1.0"]
+    python benchmark/comparar.py --lockbox MOTIVO [--n 1000] [--semente 7]
+        [--outro-src ../outra-versao/src --outro-rotulo "Themis 1.0"]
 """
 
 from __future__ import annotations
@@ -30,7 +35,7 @@ from pathlib import Path
 AQUI = Path(__file__).resolve().parent
 sys.path.insert(0, str(AQUI))
 
-from esic_ner import carregar, metricas, trechos_themis  # noqa: E402
+from esic_ner import _registrar_lockbox, carregar, metricas, trechos_themis  # noqa: E402
 from sintetico import avaliar, gerar  # noqa: E402
 
 
@@ -96,16 +101,20 @@ def medir(rotulo, trechos_fn, anonimizar_fn, dados, docs_sint, ignorar_cnpj):
     return {"sistema": rotulo, "esic_ner": esic, "sintetico": sint}
 
 
-def outro_themis(src: str, rotulo: str, n: int, semente: int) -> dict:
+def outro_themis(src: str, rotulo: str, n: int, semente: int, motivo: str) -> dict:
     """Mede outra versão do Themis em subprocesso, com o código-fonte dela no ``PYTHONPATH``.
 
     Usa os scripts de avaliação da própria versão comparada (``<raiz>/benchmark``), com o mesmo
-    número de documentos e a mesma semente da avaliação sintética.
+    número de documentos e a mesma semente da avaliação sintética. Nas versões em que o esic-ner tem
+    partições, a partição ``test`` é pedida explicitamente (``--particao lockbox``), para que as duas
+    versões sejam medidas nos mesmos pedidos.
     """
     raiz = Path(src).resolve().parent
     env = {**os.environ, "PYTHONPATH": str(Path(src).resolve()), "PYTHONIOENCODING": "utf-8"}
     saida_esic = raiz / "esic.json"
-    subprocess.run([sys.executable, str(raiz / "benchmark" / "esic_ner.py"), "--json", str(saida_esic)],  # noqa: S603
+    script = raiz / "benchmark" / "esic_ner.py"
+    particao = ["--particao", "lockbox", "--lockbox", motivo] if "--particao" in script.read_text(encoding="utf-8") else []
+    subprocess.run([sys.executable, str(script), *particao, "--json", str(saida_esic)],  # noqa: S603
                    env=env, check=True, capture_output=True, cwd=raiz)
     sint = subprocess.run([sys.executable, str(raiz / "benchmark" / "sintetico.py"), "--n", str(n),  # noqa: S603
                            "--semente", str(semente)], env=env, check=True, capture_output=True, cwd=raiz)
@@ -143,6 +152,8 @@ def main() -> None:
     ap.add_argument("--outro-src", help="src/ de outra versão do Themis para comparar")
     ap.add_argument("--outro-rotulo", default="Themis (outra versão)")
     ap.add_argument("--saida", type=Path, default=AQUI / "COMPARACAO.md")
+    ap.add_argument("--lockbox", metavar="MOTIVO", required=True,
+                    help="autoriza e registra a avaliação na partição test do esic-ner (lockbox)")
     args = ap.parse_args()
 
     from themis_lgpd import Anonimizador, __version__
@@ -153,10 +164,11 @@ def main() -> None:
     trechos_p, anon_p = presidio_puro()
     resultados.append(medir("Presidio puro (pt)", trechos_p, anon_p, dados, docs, ignorar_cnpj=True))
     if args.outro_src:
-        resultados.append(outro_themis(args.outro_src, args.outro_rotulo, args.n, args.semente))
+        resultados.append(outro_themis(args.outro_src, args.outro_rotulo, args.n, args.semente, args.lockbox))
     anon = Anonimizador("lai")
     resultados.append(medir(f"Themis {__version__} (sobre o Presidio)", lambda t: trechos_themis(anon, t),
                             lambda t: [r.texto for r in anon.anonimizar_lote(t)], dados, docs, ignorar_cnpj=True))
+    _registrar_lockbox(f"comparação com o Presidio puro: {args.lockbox}", "lai", resultados[-1]["esic_ner"])
     md = (f"# Comparação\n\nesic-ner (teste, {len(dados)} pedidos) e benchmark sintético ({args.n} documentos, "
           f"semente {args.semente}); perfil LAI do Themis. Gerado por `benchmark/comparar.py`.\n\n"
           + tabela(resultados) + "\n")

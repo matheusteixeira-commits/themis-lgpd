@@ -60,6 +60,8 @@ jobs:
         run: |
           python benchmark/nacional.py --n 540 --conjunto desenvolvimento --minimo 0.99 --preservacao-minima 0.99
           python benchmark/nacional.py --n 540 --conjunto validacao --minimo 0.99 --preservacao-minima 0.99
+      - name: Trava de regressão — conjunto de referência de documentos oficiais (recall ≥ 93%, precisão ≥ 92,5%, preservação ≥ 95,5%)
+        run: python benchmark/avaliar_ouro.py --recall-minimo 0.93 --precisao-minima 0.925 --preservacao-minima 0.955
       - name: PDF/A-2b validado pelo veraPDF
         if: matrix.python == '3.12'
         run: |

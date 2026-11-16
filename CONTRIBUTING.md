@@ -51,10 +51,14 @@ Os testes marcados como `lento` (OCR, PDFs grandes) podem ser excluídos durante
 Benchmarks completos ([docs/BENCHMARKS.md](docs/BENCHMARKS.md)):
 
 ```bash
-python benchmark/esic_ner.py
+python benchmark/esic_ner.py                     # partição de seleção do esic-ner
+python benchmark/avaliar_ouro.py                  # conjunto de referência (só métricas agregadas)
 python benchmark/sintetico.py --n 1000 --semente 7
-python benchmark/comparar.py
 ```
+
+A partição de teste do esic-ner é reservada à avaliação de cada versão publicada
+(`esic_ner.py --particao lockbox --lockbox MOTIVO` e `comparar.py --lockbox MOTIVO`); cada uso fica
+registrado em `benchmark/treino/registro_lockbox.jsonl`.
 
 ## Organização do código
 
@@ -96,7 +100,9 @@ Presidio já tem um reconhecedor que possa ser configurado para o caso. A arquit
    `tests/test_vazamento_arquivos.py` para arquivos.
 2. Toda tarja indevida corrigida ganha um caso em `test_nao_tarja_informacao_publica`.
 3. O recall do benchmark sintético não pode cair; mudanças que afetem a detecção informam no pull
-   request os resultados do esic-ner e da comparação (`python benchmark/comparar.py`).
+   request os resultados da seleção do esic-ner e do conjunto de referência (`python
+   benchmark/esic_ner.py` e `python benchmark/avaliar_ouro.py`). Exemplos de erro só podem ser
+   examinados nas partições de ajuste (`--erros`).
 4. Nenhuma mensagem de erro, aviso ou registro de log pode conter conteúdo do documento processado.
 5. Nenhuma funcionalidade pode fazer requisições de rede durante o processamento.
 6. Nenhuma dependência do núcleo pode ter licença incompatível com a MIT (por exemplo, AGPL).
