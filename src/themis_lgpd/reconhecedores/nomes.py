@@ -36,8 +36,14 @@ dobrar = lru_cache(maxsize=1 << 16)(_dobrar)
 
 #: Palavra: letras, apóstrofos internos ("D'Ávila") e um hífen interno ("Ana-Maria").
 _TOKEN = re.compile(r"\p{L}[\p{L}'’]*(?:-\p{L}[\p{L}'’]*)?")
-#: Partículas que ligam partes de um nome ("Maria da Silva", "Van Dijk").
-CONECTORES = frozenset({"da", "de", "do", "das", "dos", "e", "d'", "d’", "di", "del", "van", "von"})
+#: Partículas que ligam partes de um nome ("Maria da Silva", "Van Dijk"), inclusive as de sobrenomes
+#: espanhóis, italianos, franceses, alemães, holandeses e árabes ("FULANA DEL CAMPO", "FULANO DE LOS
+#: SANTOS", "FULANO DE' BELTRANI DELLA COSTA", "FULANA VON DER BERG", "FULANO AL BELTRANI", "GARCÍA Y LÓPEZ").
+CONECTORES = frozenset({
+    "da", "de", "do", "das", "dos", "e", "d'", "d’", "di", "del", "van", "von", "de'", "de’", "della", "dello", "delle",
+    "dei", "degli", "dalla", "dal", "du", "des", "la", "las", "los", "el", "al", "y", "der", "den", "ter", "ten", "zu",
+    "vom", "zum", "bin", "ibn", "bint",
+})
 
 #: Palavras que nunca iniciam nem encerram um nome de pessoa: instituições, cargos, pronomes de
 #: tratamento, fórmulas de cortesia, meses, siglas de órgãos e documentos (sem acentos, minúsculas).
@@ -165,7 +171,7 @@ PALAVRAS_COMUNS = PALAVRAS_COMUNS | frozenset(dobrar(p) for p in [
 #: Pronome de tratamento ou título que precede o nome; não faz parte do trecho tarjado.
 TITULOS = re.compile(
     r"^(?:sr|sra|srta|dr|dra|prof|profa|profª|exmo|exma|ilmo|ilma|sr\.ª|senhor|senhora|doutor|doutora|"
-    r"professor|professora|dom|dona|seu)\.?$", re.IGNORECASE)
+    r"professor|professora|dom|dona|seu|enf|enfa|enfo|enfª|enfº|enf\.ª|enf\.a)\.?$", re.IGNORECASE)
 
 #: Palavras que, imediatamente antes de um nome próprio, indicam lei, logradouro ou instituição
 #: ("Lei Maria da Penha", "Escola Paulo Freire"): o nome homenageia alguém, não identifica o titular
@@ -177,12 +183,20 @@ _EXCECOES_ANTES = re.compile(
     r"\bedif[íi]cio|\bed\.|\bcentro|\bparque|\best[áa]dio|\bgin[áa]sio|\bviaduto|\bponte|\brodovia|\baeroporto|"
     r"\buniversidade|\bfaculdade|\bteatro|\bbiblioteca|\bmuseu|\bmemorial|\bpr[êe]mio|"
     r"\bprograma|\bprojeto|\bcondom[íi]nio|\bresidencial|\bvila|\bjardim|\bbairro|\bsetor|\bclube|"
-    r"\bigreja|\bpar[óo]quia|\bcreche|\bhemocentro|\bcomplexo|\bterminal|\besta[çc][ãa]o)"
-    r"(?:\s+(?:estadual|municipal|federal))?"
-    r"(?:\s+(?:professora?|prof[aª]?\.?|doutora?|dra?\.|coronel|cel\.|general|marechal|major|capit[ãa]o|tenente|"
-    r"almirante|brigadeiro|sargento|padre|pe\.|frei|irm[ãa]|monsenhor|c[ôo]nego|bispo|dom|dona|deputad[oa]|"
+    r"\bigreja|\bpar[óo]quia|\bcreche|\bhemocentro|\bcomplexo|\bterminal|\besta[çc][ãa]o|"
+    # Embarcações ("B/M Comandante Fulano", "lancha-ambulância Enfermeira Fulana", "N/M Dona Fulana") e
+    # nomes próprios de equipamentos, honrarias, bolsas, operações policiais e políticas públicas.
+    r"\b[BNLMR]/[MBVT]|\blancha(?:-ambul[âa]ncia)?|\bambulancha|\bbarco(?:-hospital|\s+escolar|\s+hospital|"
+    r"\s+de\s+(?:sa[úu]de|apoio|linha))?|\bbalsa|\bferry(?:-boat)?|\bnavio(?:-hospital)?|\bembarca[çc][ãa]o"
+    r"(?:\s+de\s+apoio)?|\brebocador|\bcatamar[ãa]|\bvoadeira|\bplen[áa]rio|\bsal[ãa]o|\borquestra|\bcoral|"
+    r"\bmedalha|\bcomenda|\btrof[ée]u|\bopera[çc][ãa]o|\bpol[íi]tica\s+(?:nacional|estadual|municipal)|"
+    r"\bconjunto\s+habitacional|\bmercado(?:\s+p[úu]blico)?|\bronda)"
+    r"(?:\s+(?:estadual|municipal|federal|p[úu]blic[oa]))?"
+    r"(?:\s+(?:professora?|prof[aª]?\.?[aª]?|doutora?|dra?\.|coronel|cel\.|general|marechal|major|capit[ãa]o|"
+    r"tenente|almirante|brigadeiro|sargento|padre|pe\.|frei|irm[ãa]o?|monsenhor|c[ôo]nego|bispo|dom|dona|deputad[oa]|"
     r"senador[a]?|governador[a]?|prefeit[oa]|presidente|desembargador[a]?|ministr[oa]|vereador[a]?|"
-    r"engenheir[oa]|maestro|bar[ãa]o|visconde|comendador[a]?|juiz|ju[íi]za))?\s*$",
+    r"engenheir[oa]|maestro|bar[ãa]o|visconde|comendador[a]?|juiz|ju[íi]za|enfermeir[oa]|comandante|pastor[a]?|"
+    r"ti[oa]|mestre|seu|madre|delegad[oa]|infante|m[ée]dic[oa]|pr[áa]tico))?\s*$",
     re.IGNORECASE,
 )
 #: Designação institucional de município antes do nome ("Prefeitura Municipal de", "Secretaria de
@@ -195,13 +209,17 @@ _MUNICIPIO_INSTITUCIONAL = re.compile(
     r"aeroporto|rodovi[áa]ria|campus)\s+d[eoa]\s*$",
     re.IGNORECASE,
 )
-#: Título que inicia nomes de municípios ("Dom Eliseu", "Padre Bernardo", "Governador Valadares").
+#: Título que inicia nomes de municípios ("Dom Eliseu", "Padre Bernardo", "Governador Valadares",
+#: "Comendador Levy Gasparian", "Desembargador Otoni").
 _TITULO_ANTES = re.compile(r"\b(?:dom|dona|padre|frei|presidente|governador|senador|deputado|professor|coronel|"
                            r"general|marechal|major|capit[ãa]o|tenente|doutor|bar[ãa]o|visconde|conde|almirante|"
-                           r"ministro|monsenhor|bispo)\s+$", re.IGNORECASE)
-#: "São Paulo", "Santa Maria": topônimos e santos. Sensível a maiúsculas, para não confundir com o
-#: verbo "são".
-_SANTOS_ANTES = re.compile(r"\b(?:São|Santa|Santo|SÃO|SANTA|SANTO)\s*$")
+                           r"ministro|monsenhor|bispo|engenheiro|comendador|desembargador|conselheiro|prefeito|"
+                           r"vereador|pastor|sargento|cabo|soldado|brigadeiro|juiz|irm[ãa]o?|madre|abade|"
+                           r"cardeal|arcebispo|c[ôo]nego)\s+$", re.IGNORECASE)
+#: "São Paulo", "Santa Maria", "Nossa Senhora da Glória": topônimos, santos e invocações religiosas.
+#: Sensível a maiúsculas, para não confundir com o verbo "são".
+_SANTOS_ANTES = re.compile(r"\b(?:São|Santa|Santo|SÃO|SANTA|SANTO|Nossa[ \t]+Senhora(?:[ \t]+d[aeo]s?)?|"
+                           r"NOSSA[ \t]+SENHORA(?:[ \t]+D[AEO]S?)?)\s*$")
 
 #: Núcleo de nome de órgão, unidade ou equipamento público, logradouro, norma, prêmio ou programa, que
 #: costuma homenagear pessoas ("Unidade Básica de Saúde Doutor Fulano", "EE Professora Fulana",
@@ -218,11 +236,29 @@ _NUCLEOS_INSTITUICAO = frozenset(dobrar(p) for p in [
     "acude", "barragem", "ubs", "ubsf", "usf", "upa", "caps", "capsi", "capsad", "cras", "creas", "cerest",
     "ee", "eeb", "eef", "eem", "eeef", "eefm", "eeefm", "emef", "emei", "emeif", "cmei", "cei", "cef", "ced",
     "ciep", "caic", "etec", "ue", "ueb",
+    # Abreviaturas de escola ("ESC. MUN. DR. FULANO") e prefixos de embarcação ("B/M", "N/M").
+    "esc", "b/m", "n/m", "l/m", "m/v", "r/m", "n/t",
+])
+#: Núcleos que só designam uma entidade com inicial maiúscula ("Mercado Seu Fulano", "Plenário Vereador
+#: Fulano", "Coral Fulano de Tal", "Associação Beneficente Doutor Fulano", "Operação Fulana", "Bolsa
+#: Talento Fulano"); em minúsculas são palavras comuns ("a bolsa de Fulana").
+_NUCLEOS_PROPRIOS = frozenset(dobrar(p) for p in [
+    "mercado", "plenario", "salao", "orquestra", "coral", "coro", "banda", "operacao", "bolsa", "conjunto",
+    "ronda", "politica", "associacao", "sociedade", "irmandade", "cemiterio", "capela", "santuario", "arena",
+    "lancha", "barco", "balsa", "navio", "embarcacao", "rebocador", "catamara", "voadeira", "ambulancha", "trilha",
+    "turma", "catedra", "cadeira", "galeria",
+])
+#: Embarcações, cujo nome próprio segue o substantivo comum em minúsculas ("a lancha Comandante Fulano").
+_EMBARCACOES = frozenset(dobrar(p) for p in [
+    "lancha", "barco", "balsa", "navio", "embarcacao", "rebocador", "catamara", "voadeira", "ambulancha",
 ])
 #: Qualificadores de nome de instituição escritos em minúsculas ("escola municipal", "hospital regional").
 _QUALIFICADORES_INSTITUICAO = frozenset({
-    "estadual", "municipal", "federal", "regional", "distrital", "publico", "publica", "geral",
+    "estadual", "municipal", "federal", "regional", "distrital", "publico", "publica", "geral", "mun",
 })
+#: Abreviaturas que terminam em ponto dentro do nome de uma instituição ("Av.", "Esc.", "Hosp."). Fora
+#: delas, um núcleo seguido de ponto encerra a frase ("ficou em casa. Fulana voltou").
+_ABREVIATURAS_NUCLEO = frozenset({"av", "esc", "pca", "trav", "rod", "est", "col", "ed", "cond", "res", "conj"})
 #: Títulos e patentes que precedem o nome do homenageado ("Hospital Regional Dr. Fulano", "EEEFM
 #: Presidente Fulano", "Policlínica Enfermeira Fulana", "CRAS Irmã Fulana").
 _HONORIFICOS = frozenset(dobrar(p) for p in [
@@ -235,9 +271,18 @@ _HONORIFICOS = frozenset(dobrar(p) for p in [
     "maestro", "barao", "baronesa", "visconde", "viscondessa", "conde", "condessa", "comendador", "comendadora",
     "juiz", "juiza", "santo", "santa", "sao", "beato", "beata",
 ])
+#: Tratamentos e títulos que só iniciam o nome do homenageado com inicial maiúscula ("Mercado Público Seu
+#: Fulano", "B/M Tia Fulana", "Instituto Delegado Fulano"); em minúsculas, a menção é a uma pessoa ("do
+#: programa da tia Fulana").
+_HONORIFICOS_MAIUSCULOS = frozenset({
+    "tia", "tio", "mestre", "seu", "delegado", "delegada", "infante", "rainha", "rei", "princesa", "principe",
+    "imperador", "imperatriz", "pastora", "vovo",
+})
+_HONORIFICOS = _HONORIFICOS | _HONORIFICOS_MAIUSCULOS
 
-#: Palavra, sigla com pontos ("U.E.", "Dr.") ou travessão, para percorrer o nome de uma instituição.
-_PALAVRA_CADEIA = re.compile(r"\p{L}[\p{L}'’ª-]*\.?(?:\p{L}\.)*|[–—]")
+#: Palavra, sigla com pontos ("U.E.", "Dr."), título com ordinal ("Prof.ª", que a normalização torna
+#: "Prof.a"), prefixo de embarcação ("B/M") ou travessão, para percorrer o nome de uma instituição.
+_PALAVRA_CADEIA = re.compile(r"\p{Lu}/\p{Lu}(?!\p{L})|\p{L}[\p{L}'’ª-]*(?:\.[ªºao](?!\p{L}))?\.?(?:\p{L}\.)*|[–—]")
 
 
 def _instituicao_antes(texto: str, inicio: int) -> bool:
@@ -253,7 +298,7 @@ def _instituicao_antes(texto: str, inicio: int) -> bool:
     linha = texto.rfind("\n", 0, inicio) + 1
     janela = max(linha, inicio - 120)
     palavras = list(_PALAVRA_CADEIA.finditer(texto, janela, inicio))
-    pos, anterior_titulo, vistas = inicio, False, 0
+    pos, anterior_titulo, vistas, conector, proprias = inicio, False, 0, False, 0
     gramaticais = _palavras_gramaticais()
     for m in reversed(palavras):
         if texto[m.end():pos].strip(" \t"):
@@ -266,11 +311,23 @@ def _instituicao_antes(texto: str, inicio: int) -> bool:
             anterior_titulo = False
             continue
         dob = dobrar(palavra.rstrip(".")).replace(".", "")
-        if dob in _NUCLEOS_INSTITUICAO:
-            return True
+        if palavra.endswith(".") and "." not in palavra[:-1] and dob not in _ABREVIATURAS_NUCLEO \
+                and (dob in _NUCLEOS_INSTITUICAO or dob in _NUCLEOS_PROPRIOS) and len(dob) > 2:
+            return False  # "ficou em casa. Fulana voltou": o ponto encerra a frase
+        if dob in _NUCLEOS_INSTITUICAO or dob in _NUCLEOS_PROPRIOS:
+            # Núcleo em minúsculas seguido só de "de" indica posse, não nome próprio ("a escola de Fulano",
+            # "a lancha de Fulano"); as embarcações e entidades de :data:`_NUCLEOS_PROPRIOS` em minúsculas
+            # valem só imediatamente antes do nome ("a lancha Comandante Fulano").
+            if palavra[:1].isupper():
+                return True
+            if dob in _NUCLEOS_PROPRIOS:
+                return not conector and dob in _EMBARCACOES
+            return not (conector and not proprias)
         vistas += 1
-        anterior_titulo = dob in _HONORIFICOS
-        if anterior_titulo or dob in CONECTORES or dob == "em" or dob in _QUALIFICADORES_INSTITUICAO:
+        conector = conector or dob in CONECTORES
+        proprias += palavra[:1].isupper() and dob not in CONECTORES
+        anterior_titulo = dob in _HONORIFICOS and (palavra[:1].isupper() or dob not in _HONORIFICOS_MAIUSCULOS)
+        if anterior_titulo or dob in CONECTORES or dob in ("em", "por") or dob in _QUALIFICADORES_INSTITUICAO:
             continue
         if not palavra[:1].isupper() or dob in _CARGOS_E_PAPEIS or dob in gramaticais or vistas > 9:
             return False
@@ -288,15 +345,27 @@ _DEPOIS_MUNICIPIO = re.compile(
 #: Coari", "Naturalidade: Coari").
 _LUGAR_ANTES = re.compile(
     r"(?:\bem|\bmunic[íi]pio(?:[ \t]+de[ \t]+[\wÀ-ú]+)?[ \t]*:|\bcidade[ \t]*:|\bnaturalidade[ \t]*:|"
-    r"\blocal[ \t]*:)[ \t]*$", re.IGNORECASE)
+    r"\blocal[ \t]*:|\bnatura(?:l|is)[ \t]+d[eoa]|\bprocedentes?[ \t]+d[eoa]|\boriund[oa]s?[ \t]+d[eoa])[ \t]*$",
+    re.IGNORECASE)
+#: Designação de lugar que não é município da lista do IBGE e antecede seu nome próprio ("distrito de
+#: Fulano", "povoado Fulano", "Região Administrativa de Fulano", "Município Fulano", de outro país).
+_LUGAR_PROPRIO_ANTES = re.compile(
+    r"\b(?:distritos?|povoados?|localidades?|lugarejos?|vilarejos?|regi(?:[ãa]o|[õo]es)[ \t]+administrativas?|"
+    r"munic[íi]pio|subdistritos?|n[úu]cleos?[ \t]+rura(?:l|is)|vilas?)(?:[ \t]+d[eoa]s?)?[ \t]+$",
+    re.IGNORECASE)
 #: Unidade administrativa de abrangência municipal antes de "de" ("Superintendência Regional de Ensino
 #: de", "Unidade Local de Execução de", "municípios de", "etapa regional de"): entre o núcleo e o "de"
 #: só há palavras com inicial maiúscula ou conectores.
 _UNIDADE_DE_MUNICIPIO = re.compile(
     r"\b(?:munic[íi]pios|regional|regionais|superintend[êe]ncias?|ger[êe]ncias?|coordenadorias?|delegacias?|"
     r"unidades?|ag[êe]ncias?|n[úu]cleos?|escrit[óo]rios?|polos?|seccional|subse[çc][ãa]o|promotorias?|"
-    r"defensorias?|procuradorias?|cart[óo]rios?|diretorias?|subprefeituras?|campi)"
-    r"(?:[ \t]+(?-i:[A-ZÀ-Ý][\wÀ-ú]*|d[aeo]s?|e)){0,5}[ \t]+d[eoa][ \t]*$",
+    r"defensorias?|procuradorias?|cart[óo]rios?|diretorias?|subprefeituras?|campi|"
+    # Órgão, colegiado ou cargo de abrangência municipal ("CONSELHO TUTELAR DE", "Conselho Municipal do
+    # Idoso de", "Prefeito Municipal de", "Câmara Municipal de").
+    r"conselhos?|secretarias?|prefeit[oa]s?|c[âa]maras?|f[óo]runs?|varas?|juizados?|comarcas?|batalh(?:[ãa]o|[õo]es)|"
+    r"companhias?|comandos?|guardas?|institutos?|funda[çc](?:[ãa]o|[õo]es)|autarquias?|cons[óo]rcios?|"
+    r"hospita(?:l|is)|policl[íi]nicas?|escolas?|col[ée]gios?|creches?|centros?|postos?)"
+    r"(?:[ \t]+(?-i:[A-ZÀ-Ý][\wÀ-ú]*|d[aeo]s?|e|DE|D[AO]S?|E)){0,6}[ \t]+d[eoa][ \t]*$",
     re.IGNORECASE,
 )
 #: Separador de itens de uma enumeração de lugares ("Coari, Tefé e de Codajás").
@@ -382,6 +451,261 @@ def _municipio_em_contexto(texto: str, inicio: int) -> bool:
 _TRAVESSAO_ANTES = re.compile(r"[ \t]+[–—-][ \t]*$")
 
 
+def _municipio_registravel(texto: str, inicio: int, fim: int) -> bool:
+    """Indica se o município em ``texto[inicio:fim]`` é citado como lugar em contexto inequívoco.
+
+    Vale o mesmo que em :func:`_municipio_em_contexto`, exceto a preposição "em" antes de nome de uma
+    só palavra ("em Vitória"), insuficiente para tratar como lugar as demais menções do documento.
+    """
+    if _DEPOIS_MUNICIPIO.match(texto, fim):
+        return True
+    if texto[fim:fim + 1] == " " and texto[fim + 1:fim + 2].isupper():
+        return False
+    janela = max(0, inicio - 80)
+    lugar = _LUGAR_ANTES.search(texto, janela, inicio)
+    if lugar and (" " in texto[inicio:fim].strip() or lugar.group().strip().lower() != "em"):
+        return True
+    if _UNIDADE_DE_MUNICIPIO.search(texto, janela, inicio) or _MUNICIPIO_INSTITUCIONAL.search(texto, janela, inicio):
+        return True
+    travessao = _TRAVESSAO_ANTES.search(texto, max(0, inicio - 6), inicio)
+    if travessao and _instituicao_antes(texto, travessao.start()):
+        return True
+    return _municipio_vizinho(texto, inicio, fim)
+
+
+#: Designação de lugar ou de logradouro seguida do nome próprio, para o registro dos nomes de lugar do
+#: documento. No plural, o nome é o primeiro de uma enumeração ("distritos de Fulano, Beltrano e
+#: Sicrano", "ruas Fulano de Tal, Beltrano e Sicrano").
+_LUGAR_OU_LOGRADOURO = re.compile(
+    r"\b(?:(?P<plural>distritos|povoados|localidades|vilas|ruas|avenidas|travessas|alamedas|pra[çc]as|vielas|"
+    r"becos|estradas|logradouros)|distrito|povoado|localidade|lugarejo|vilarejo|vila|subdistrito|"
+    r"regi[ãa]o[ \t]+administrativa|rua|avenida|av\.|travessa|alameda|pra[çc]a|largo|viela|beco|estrada)"
+    r"(?:[ \t]+d[eoa]s?)?[ \t]+", re.IGNORECASE)
+#: Nome próprio de lugar: palavras com inicial maiúscula, ligadas por "de", "da", "do"… ("Pedro do Rio").
+_NOME_PROPRIO = re.compile(r"\p{Lu}[\p{L}'’-]*(?:[ \t]+(?:(?:d[aeo]s?|D[AEO]S?)[ \t]+)?\p{Lu}[\p{L}'’-]*){0,5}")
+#: Separador de itens numa enumeração de nomes de lugar.
+_SEPARADOR_ENUMERACAO = re.compile(r"[ \t]*[,;][ \t]*(?:e[ \t]+)?|[ \t]+e[ \t]+")
+#: Título do homenageado no início do nome de logradouro ("Rua Professora Fulana").
+_TITULO_LOGRADOURO = re.compile(
+    r"(?:(?:professora?|prof[aª]?\.?|doutora?|dra?\.|coronel|cel\.|general|marechal|major|capit[ãa]o|tenente|"
+    r"padre|pe\.|frei|irm[ãa]|monsenhor|dom|dona|deputad[oa]|senador[a]?|governador[a]?|prefeit[oa]|presidente|"
+    r"vereador[a]?|engenheir[oa]|comendador[a]?|desembargador[a]?|ministr[oa]|bar[ãa]o|visconde)[ \t]+)+",
+    re.IGNORECASE)
+
+
+@cache
+def _regioes_df():
+    """Regiões administrativas do Distrito Federal (ver :data:`themis_lgpd.reconhecedores.localizacao.REGIOES_DF`)."""
+    from .localizacao import REGIOES_DF
+
+    return re.compile(r"(?<![\w])(?:" + "|".join(
+        re.escape(r).replace(r"\ ", r"[ \t]+") for r in sorted(REGIOES_DF, key=len, reverse=True)) + r")(?!\w)")
+
+
+def _lugar_em(texto: str, inicio: int) -> int | None:
+    """Fim do município ou da região administrativa do DF que começa em ``inicio``, ou ``None``."""
+    from .localizacao import municipio_em
+
+    fim = municipio_em(texto, inicio)
+    if fim is None and (m := _regioes_df().match(texto, inicio)):
+        fim = m.end()
+    return fim
+
+
+def _regiao_registravel(texto: str, inicio: int, fim: int) -> bool:
+    """Indica se a região administrativa do DF em ``texto[inicio:fim]`` é citada como lugar: com a UF,
+    após "em", rótulo ou "Região Administrativa", em linha de endereço ou numa enumeração de lugares."""
+    if _DEPOIS_MUNICIPIO.match(texto, fim) or _linha_de_endereco(texto, inicio):
+        return True
+    if texto[fim:fim + 1] == " " and texto[fim + 1:fim + 2].isupper():
+        return False
+    janela = max(0, inicio - 60)
+    if _LUGAR_ANTES.search(texto, janela, inicio) or _LUGAR_PROPRIO_ANTES.search(texto, janela, inicio):
+        return True
+    seguinte = _ITEM_SEGUINTE.match(texto, fim)
+    if seguinte and _lugar_em(texto, seguinte.end()) is not None:
+        return True
+    anterior = _ITEM_ANTERIOR.search(texto, max(0, inicio - 12), inicio)
+    if anterior:
+        for p in list(_TOKEN.finditer(texto, max(0, anterior.start() - 50), anterior.start()))[-5:]:
+            if _lugar_em(texto, p.start()) == anterior.start():
+                return True
+    return False
+
+
+@cache
+def _primeiras_palavras_de_municipio() -> frozenset[str]:
+    """Primeiras palavras dos nomes de município, para descartar depressa as que não iniciam nenhum."""
+    from .localizacao import municipios
+
+    return frozenset(nome.split()[0] for nome in municipios())
+
+
+def _chave_lugar(nome: str) -> str:
+    return " ".join(dobrar(nome).split())
+
+
+@lru_cache(maxsize=8)
+def _lugares_do_documento(texto: str):
+    """Padrão dos nomes de lugar e de logradouro que o próprio documento identifica, ou ``None``.
+
+    Um município citado em contexto inequívoco ("PREFEITURA MUNICIPAL DE FULANO DE TAL", "Fulano de
+    Tal/UF", "Fulano de Tal, 07/04/2027", coluna ou enumeração de municípios), um distrito,
+    povoado ou região administrativa ("distrito de Fulano") e um logradouro ("Rua Fulano de Tal", "ruas
+    Fulano, Beltrano e Sicrano") continuam sendo o lugar nas demais menções do documento, inclusive como
+    sujeito de oração ("Fulano de Tal ampliou o atendimento", "a Beltrano já está concluída").
+
+    Returns:
+        Os nomes registrados e as palavras que os compõem, dobrados (sem acentos, em minúsculas), ou
+        ``None``.
+    """
+    from .localizacao import municipio_em
+
+    chaves: set[str] = set()
+    iniciais = _primeiras_palavras_de_municipio()
+    for m in _TOKEN.finditer(texto):
+        if not m.group()[:1].isupper() or dobrar(m.group()) not in iniciais:
+            continue
+        fim = municipio_em(texto, m.start())
+        if fim is not None and _municipio_registravel(texto, m.start(), fim):
+            chaves.add(_chave_lugar(texto[m.start():fim]))
+    for m in _regioes_df().finditer(texto):
+        if _regiao_registravel(texto, m.start(), m.end()):
+            chaves.add(_chave_lugar(m.group()))
+    for m in _LUGAR_OU_LOGRADOURO.finditer(texto):
+        pos = m.end()
+        while (titulo := _TITULO_LOGRADOURO.match(texto, pos)) is not None:
+            pos = titulo.end()
+        while (item := _NOME_PROPRIO.match(texto, pos)) is not None:
+            if dobrar(item.group().split()[0]) not in NAO_INICIAM_NOME:
+                chaves.add(_chave_lugar(item.group()))
+            sep = _SEPARADOR_ENUMERACAO.match(texto, item.end())
+            if not m.group("plural") or sep is None:
+                break
+            pos = sep.end()
+    chaves = {c for c in chaves if len(c) >= 4}
+    if not chaves:
+        return None
+    return frozenset(chaves), frozenset(p for c in chaves for p in c.split())
+
+
+@lru_cache(maxsize=32)
+def _padrao_de_lugares(chaves: frozenset[str]):
+    """Padrão que encontra no texto original, sem distinção de caixa e acentos, os nomes registrados."""
+    return re.compile(r"(?<![\w])(?:" + "|".join(
+        "".join(_SEM_ACENTO.get(ch) or (r"\s+" if ch == " " else re.escape(ch)) for ch in c)
+        for c in sorted(chaves, key=len, reverse=True)) + r")(?!\w)", re.IGNORECASE)
+
+
+#: Letra sem acento → classe com as variantes acentuadas, para buscar no texto original os nomes
+#: registrados na forma dobrada.
+_SEM_ACENTO = {"a": "[aáàâãä]", "e": "[eéèêë]", "i": "[iíìîï]", "o": "[oóòôõö]", "u": "[uúùûü]", "c": "[cç]",
+               "n": "[nñ]"}
+
+
+#: Pronome de tratamento ou parentesco logo antes de um nome ("Dona Fulana", "a filha Fulana"): a
+#: menção é de pessoa, ainda que o nome coincida com o de um lugar do documento.
+_PESSOA_LOGO_ANTES = re.compile(
+    r"(?:\b(?:sr|sra|srta|dr|dra|prof|profa|enf)\.|\b(?:senhor|senhora|dona|seu|doutor|doutora)|"
+    r"\b(?:filh[oa]s?|net[oa]s?|irm[ãa]o?s?|espos[oa]|marido|companheir[oa]|m[ãa]e|pai|av[óô]|ti[oa]|sobrinh[oa]|"
+    r"prim[oa]|genitor[a]?|entead[oa]|cunhad[oa]|sogr[oa]))[ \t]*,?[ \t]*$", re.IGNORECASE)
+
+
+def _pessoa_antes(texto: str, inicio: int) -> bool:
+    """Indica se o nome que começa em ``inicio`` vem logo após tratamento, parentesco, rótulo ou papel."""
+    janela = max(0, inicio - 60)
+    if _PESSOA_LOGO_ANTES.search(texto, janela, inicio):
+        return True
+    return any(m.end() == inicio for padrao in (GATILHOS_ROTULO, GATILHOS_PAPEL)
+               for m in padrao.finditer(texto, janela, inicio))
+
+
+def _lugar_do_documento(texto: str, inicio: int) -> bool:
+    """Indica se a palavra em ``inicio`` integra uma menção a lugar ou logradouro identificado no próprio
+    documento (ver :func:`_lugares_do_documento`).
+
+    Não vale quando o nome continua além do lugar ("Fulano de Tal Souza") nem quando é precedido de
+    tratamento, parentesco, rótulo ou papel ("a filha Fulana", "Dona Fulana").
+    """
+    registro = _lugares_do_documento(texto)
+    palavra = _TOKEN.match(texto, inicio)
+    if registro is None or palavra is None or dobrar(palavra.group()) not in registro[1]:
+        return False
+    # Busca local: os nomes registrados têm no máximo algumas palavras.
+    for m in _padrao_de_lugares(registro[0]).finditer(texto, max(0, inicio - 80), inicio + 80):
+        a, b = m.span()
+        if a <= inicio < b:
+            continua = texto[b:b + 1] == " " and texto[b + 1:b + 2].isupper()
+            if not continua and not _pessoa_antes(texto, a):
+                return True
+    return False
+
+
+#: Designação de pessoa jurídica ao fim da razão social ("Ltda.", "S.A.", "EIRELI", "& Cia.").
+_DESIGNACAO_EMPRESA = r"(?:(?i:ltda|eireli|epp)\.?(?!\w)|(?-i:S\.[ \t]?A\.?|S/A)(?!\w)|&[ \t]*(?i:cia)\b)"
+#: Razão social a partir da palavra: palavras com inicial maiúscula, iniciais, conectivos e "&" até a
+#: designação de empresa ("F. B. Fulano Comércio de Ferragens Ltda.", "Fulano & Beltrano Engenharia
+#: Ltda."), ou sobrenomes ligados por "&" ("Fulano & Beltrano").
+_RAZAO_SOCIAL = re.compile(
+    r"(?:(?:\p{Lu}[\p{L}'’-]*\.?|d[aeo]s?|e|&)[ \t]+){0,9}" + _DESIGNACAO_EMPRESA
+    + r"|\p{Lu}[\p{L}'’-]*(?:[ \t]+\p{Lu}[\p{L}'’-]*){0,2}[ \t]*&[ \t]*\p{Lu}")
+
+
+def _razao_social(texto: str, inicio: int) -> bool:
+    """Indica se a palavra em ``inicio`` integra a razão social de uma empresa (ver :data:`_RAZAO_SOCIAL`)."""
+    if _RAZAO_SOCIAL.match(texto, inicio):
+        return True
+    antes = texto[max(0, inicio - 4):inicio]
+    return antes.rstrip(" \t").endswith("&")
+
+
+#: Sigla de escola ("EEF", "EEIEF", "EMEIEF", "EEM"): "E", "E" ou "M" e letras de etapa ou modalidade.
+_SIGLA_ESCOLA = re.compile(r"E[EM][EIFMBPTAJ]{0,4}[FMBPTI]")
+
+
+def _nucleo(palavra: str) -> bool:
+    """Indica se a palavra designa instituição, unidade, logradouro ou outra entidade (ver
+    :data:`_NUCLEOS_INSTITUICAO` e :data:`_NUCLEOS_PROPRIOS`)."""
+    dob = dobrar(palavra.rstrip(".")).replace(".", "")
+    return (dob in _NUCLEOS_INSTITUICAO or (palavra[:1].isupper() and dob in _NUCLEOS_PROPRIOS)
+            or _SIGLA_ESCOLA.fullmatch(palavra) is not None)
+
+
+def _continua_celula_de_instituicao(texto: str, inicio: int) -> bool:
+    """Indica se a palavra em ``inicio`` continua, na linha de baixo, o nome de instituição da célula
+    acima, em tabela alinhada por espaços ("EEF VEREADOR FULANO" / "DE TAL", na mesma coluna)."""
+    ini_linha = texto.rfind("\n", 0, inicio) + 1
+    antes = texto[ini_linha:inicio]
+    if ini_linha == 0:
+        return False
+    # A palavra pode estar no meio da célula ("DE TAL"): vale a coluna em que a célula começa.
+    corte = antes.rfind("  ")
+    celula = antes[corte + 2:] if corte >= 0 else antes
+    coluna = len(antes) - len(celula.lstrip(" \t"))
+    if not re.fullmatch(r"[ \t]*(?:(?:\p{Lu}[\p{L}'’-]*|d[aeo]s?)[ \t]+)*", celula):
+        return False
+    ini_acima = texto.rfind("\n", 0, ini_linha - 1) + 1
+    acima = texto[ini_acima:ini_linha - 1]
+    if len(acima) <= coluna or acima[coluna].isspace() or (coluna and not acima[coluna - 1].isspace()) \
+            or "  " not in acima.strip():
+        return False
+    palavra = _PALAVRA_CADEIA.match(acima, coluna)
+    return palavra is not None and _nucleo(palavra.group())
+
+
+#: Linha de endereço rotulada ("Endereço:", "END.:", "Residência:"): após vírgula ou travessão vêm
+#: complemento, bairro, cidade e UF, não pessoas ("END.: Rua Fulano, 10 – Bairro Beltrano – Cidade/UF").
+_LINHA_DE_ENDERECO = re.compile(
+    r"^[ \t]*(?:endere[çc]o(?:[ \t]+(?:residencial|completo|atual))?|end\.?|resid[êe]ncia|domic[íi]lio|logradouro)"
+    r"[ \t]*:[^\n]*?\d[^\n]*(?:,|[ \t][–—-])[ \t]*$", re.IGNORECASE)
+
+
+def _linha_de_endereco(texto: str, inicio: int) -> bool:
+    """Indica se a palavra em ``inicio`` está numa linha de endereço, após vírgula ou travessão."""
+    ini_linha = texto.rfind("\n", 0, inicio) + 1
+    return _LINHA_DE_ENDERECO.match(texto[ini_linha:inicio]) is not None
+
+
 #: Expressões após as quais vem um nome de pessoa: apresentação ("meu nome é"), papéis processuais
 #: ("requerente:", "réu:"), tratamento ("Sr."), fecho de mensagem ("Atenciosamente,") e parentesco
 #: ("meu filho"). O nome pode estar na mesma linha ou na seguinte.
@@ -390,10 +714,12 @@ GATILHOS = re.compile(
     r"\b(?:meus|seus|os)\s+dados(?:\s+(?:principais|pessoais|cadastrais))?\s+(?:s[ãa]o|:)|"
     r"\bdados\s+d[oa]\s+(?:requerente|titular|interessad[oa]|solicitante|servidor(?:a)?)\s+(?:s[ãa]o|:)|"
     r"\b(?:eu\s+)?sou\s+(?:o|a)\b|\beu\s+sou\b|\bem nome de|\bnomes?\s+(?:s[ãa]o|é)|"
-    r"\beu,|\bnome(?:\s+completo)?(?:\s+d[oa]\s+\w+)?\s*:|\brequerente\s*:?|\binteressad[oa]\s*:?|"
+    r"\beu,|\bnome(?:[ \t]+(?:completo|civil|social|adotad[oa]|de[ \t]+registro|de[ \t]+guerra|religios[oa]|"
+    r"ind[íi]gena|art[íi]stico|de[ \t]+batismo))*(?:\s+d[oa]\s+\w+)?(?:[ \t]+(?:no|na|em)[ \t]+[\wÀ-ú]+)?"
+    r"(?:[ \t]*\([^()\n]{1,40}\))?\s*:|\brequerente\s*:?|\binteressad[oa]\s*:?|"
     r"\bsolicitante\s*:?|\bdenunciante\s*:?|\bdenunciad[oa]\s*:?|\breclamante\s*:?|\bpaciente\s*:?|"
     r"\bservidor(?:a)?(?:\s+p[úu]blic[oa])?|\bfuncion[áa]ri[oa]|\bcolaborador(?:a)?|\bestagi[áa]ri[oa]|"
-    r"\b(?:sr|sra|srta|dr|dra|prof|profa)\.|\bsenhor(?:a)?|\bdoutor(?:a)?|\bdona|\bfilh[oa] de|"
+    r"\b(?:sr|sra|srta|dr|dra|prof|profa)\.|\bsenhor(?:a)?|\bdoutor(?:a)?|\bdona|(?-i:\bSeu)|\bfilh[oa]s? de|"
     r"\bm[ãa]e\s*:|\bpai\s*:|\bgenitor(?:a)?\s*:?|\bc[ôo]njuge\s*:?|\bassinad[oa](?:\s+eletronicamente)?\s+por|"
     r"\batenciosamente,?|\bcordialmente,?|\batt\.?,?|\batte\.?,?|\bgrat[oa],?|\bobrigad[oa],?|\bprezad[oa]s?|"
     r"\babra[çc]os?,?|\babs,?|\bbeijos?,?|\bvlw,?|\bvaleu,?|\bsauda[çc][õo]es,?|\brespeitosamente,?|"
@@ -657,11 +983,24 @@ def contexto_nao_pessoal(texto: str, inicio: int) -> bool:
     Maria da Penha", "Prefeitura Municipal de Dom Eliseu", "Unidade Básica de Saúde Doutor Fulano",
     "João Pessoa, 3 de outubro de 2025". A regra é a mesma no reconhecimento de nomes, na propagação
     de valores tarjados e na verificação final.
+
+    Também integram nome de lugar ou entidade: a palavra que é ela própria o núcleo ("Praça Vereador
+    Fulano", "EEF PROFESSORA FULANA"); o nome de embarcação, equipamento, honraria ou operação ("B/M
+    Comandante Fulano", "Operação Fulana"); o nome após "distrito de", "povoado", "Região Administrativa
+    de"; a razão social ("Fulano & Beltrano Engenharia Ltda."); a continuação, na linha de baixo, do nome
+    de instituição de uma célula de tabela; e as demais menções a município, distrito ou logradouro que
+    o documento identifica (ver :func:`_lugares_do_documento`).
     """
+    palavra = _PALAVRA_CADEIA.match(texto, inicio)
+    if palavra is not None and _nucleo(palavra.group()) and re.match(r"[ \t]+\p{Lu}", texto[palavra.end():]):
+        return True
     janela = max(0, inicio - 45)
     if _EXCECOES_ANTES.search(texto, janela, inicio) or _SANTOS_ANTES.search(texto, janela, inicio):
         return True
-    if _instituicao_antes(texto, inicio):
+    if _instituicao_antes(texto, inicio) or _LUGAR_PROPRIO_ANTES.search(texto, janela, inicio):
+        return True
+    if _razao_social(texto, inicio) or _continua_celula_de_instituicao(texto, inicio) \
+            or _linha_de_endereco(texto, inicio):
         return True
     from .localizacao import municipio_em
 
@@ -675,7 +1014,7 @@ def contexto_nao_pessoal(texto: str, inicio: int) -> bool:
                 return True
         if _municipio_em_contexto(texto, ini):
             return True
-    return False
+    return _lugar_do_documento(texto, inicio)
 
 
 class ReconhecedorNomesLista:
@@ -737,7 +1076,8 @@ GATILHOS_ROTULO = re.compile(
     r"nomead[oa]|empossad[oa]|exonerad[oa]|candidat[oa]|recebido[ \t]+por|elaborado[ \t]+por|assinatura|"
     r"nome[ \t]+(?:social|civil)|filia[çc][ãa]o|reclamad[oa]|representante(?:[ \t]+legal)?|servidor(?:\(a\)|a)?|"
     r"interessad[oa]|requerente|recorrente|recorrid[oa]|paciente|v[íi]tima|testemunhas?|acusad[oa]|investigad[oa]|"
-    r"denunciad[oa])(?:\(?s\)?|es)?[ \t]*:[ \t]*\n?[ \t]*", re.IGNORECASE)
+    r"denunciad[oa]|int[ée]rprete|manifestante|acompanhante|cuidador[a]?|respons[áa]vel[ \t]+familiar)"
+    r"(?:\(?s\)?|es|\((?:[oa]|[oa]s|es)\))?(?:[ \t]*\([^()\n]{1,40}\))?[ \t]*:[ \t]*\n?[ \t]*", re.IGNORECASE)
 
 #: Papel ou ato que antecede o nome em despachos, portarias e relatórios ("a agente FULANA", "conduzido
 #: por FULANO", "Exonerar FULANO", "Designar os servidores FULANO", "do Vereador Fulano de Tal").
@@ -750,7 +1090,8 @@ GATILHOS_PAPEL = re.compile(
     r"candidat[oa]s?|conselheir[oa]s?|genitor(?:es|a)?|diretor(?:es|as|a)?|coordenador(?:es|as|a)?|chefe|gerente|"
     r"secret[áa]ri[oa]s?|membros?|contribuinte|declarante|condutor(?:es|a)?|propriet[áa]ri[oa]s?|"
     r"vereador(?:es|as|a)?|prefeit[oa]s?|deputad[oa]s?|senador(?:es|as|a)?|governador(?:es|a)?|ju[íi]z(?:es|a)?|"
-    r"promotor(?:es|as|a)?|delegad[oa]s?|defensor(?:es|as|a)?|procurador(?:es|as|a)?|relator(?:es|as|a)?)"
+    r"promotor(?:es|as|a)?|delegad[oa]s?|defensor(?:es|as|a)?|procurador(?:es|as|a)?|relator(?:es|as|a)?|"
+    r"autor(?:es|as|a)?[ \t]+d[oa][ \t]+fato|comunicantes?|noticiantes?|ofendid[oa]s?)"
     r"|\b(?:conduzid[oa]|praticad[oa]|cometid[oa]|subscrit[oa]|elaborad[oa]|formalizad[oa]|ajuizad[oa]|"
     r"impetrad[oa]|interpost[oa]|apresentad[oa]|lavrad[oa]|registrad[oa]|recebid[oa])[ \t]+por"
     r"|^[ \t]*(?:nomear|exonerar|designar|dispensar|aposentar|remover|ceder|lotar|readaptar|reintegrar|reconduzir|"
@@ -767,13 +1108,65 @@ _VERBOS_DE_ATO = frozenset({
     "reconhecer", "deferir", "indeferir", "cessar", "tornar", "intimar", "notificar", "citar", "absolvo", "condeno",
 })
 
+#: Apresentação explícita ("meu nome é", "me chamo", "se chama"): vale como rótulo de campo, e o nome
+#: pode estar fora das listas.
+_APRESENTACAO = re.compile(r"(?:meu nome|me chamo|se chama)", re.IGNORECASE)
+#: Pronome de tratamento como gatilho ("Sr.", "Dona", "Senhora"): a palavra seguinte com inicial
+#: maiúscula é nome, ainda que fora das listas ("Sr. Fulano") ou coincidente com palavra comum ("Dona
+#: Fulana", com prenome que é também substantivo).
+_TRATAMENTO = re.compile(r"(?:(?:sr|sra|srta|dr|dra|prof|profa)\.|(?:senhor|senhora|doutor|doutora|dona)\b|(?-i:Seu))",
+                         re.IGNORECASE)
+#: Parentesco ou convivência antes do nome, com ou sem vírgula ("a esposa, FULANA DE TAL", "o
+#: companheiro FULANO", "seu marido, Fulano", "a filha Fulana").
+GATILHOS_PARENTESCO = re.compile(
+    r"\b(?:[oa]s?|seus?|suas?|meus?|minhas?|d[oa]s?|pel[oa]s?|ao|à|com[ \t]+[oa])[ \t]+"
+    r"(?-i:companheir[oa]|espos[oa]|marido|filh[oa]s?|irm[ãa]o?s?|pai|m[ãa]e|av[óô]s?|bisav[óô]|net[oa]s?|"
+    r"bisnet[oa]s?|sobrinh[oa]s?|genitor[a]?|entead[oa]s?|cunhad[oa]s?|sogr[oa]|genro|nora|ti[oa]s?|prim[oa]s?|"
+    r"namorad[oa]|ex-companheir[oa]|ex-marido|ex-espos[oa]|padrasto|madrasta|afilhad[oa]|padrinho|madrinha)"
+    r"(?:[ \t]+(?:mais[ \t]+(?:velh[oa]|nov[oa])|ca[çc]ula|d[oa][ \t]+(?:casal|requerente|titular|v[íi]tima|"
+    r"declarante|assistid[oa]|paciente|usu[áa]ri[oa]|respons[áa]vel|entrevistad[oa])))?[ \t]*,?[ \t]+",
+    re.IGNORECASE)
+#: Papel em linha própria, como título de seção, com o nome na linha seguinte ("VÍTIMA⏎FULANA DE TAL",
+#: "TESTEMUNHAS⏎FULANO", "VÍTIMA/COMUNICANTE⏎FULANA").
+_PAPEIS_CABECALHO = (r"V[ÍI]TIMAS?|AUTOR(?:A|ES|AS)?|TESTEMUNHAS?|COMUNICANTES?|MANIFESTANTES?|REQUERENTES?|"
+                     r"DECLARANTES?|ASSISTID[OA]S?|INTERESSAD[OA]S?|DENUNCIANTES?|DENUNCIAD[OA]S?|INVESTIGAD[OA]S?|"
+                     r"NOTICIANTES?|OFENDID[OA]S?|ENVOLVID[OA]S?|CONDUTOR(?:A|ES)?|PROPRIET[ÁA]RI[OA]S?|"
+                     r"RECLAMANTES?|USU[ÁA]RI[OA]S?|PACIENTES?|CRIAN[ÇC]AS?|ADOLESCENTES?|GENITOR(?:A|ES)?|"
+                     r"RESPONS[ÁA]VE(?:L|IS)(?:[ \t]+LEGA(?:L|IS))?|SUSPEIT[OA]S?|AGRESSOR(?:A|ES)?|PARTES?|"
+                     r"REPRESENTANTES?(?:[ \t]+LEGA(?:L|IS))?")
+_CABECALHO_PAPEL = re.compile(
+    rf"^[ \t]*(?:{_PAPEIS_CABECALHO})(?:[ \t]*/[ \t]*(?:{_PAPEIS_CABECALHO}))*[ \t]*\n[ \t]*", re.MULTILINE)
+#: Outra grafia do mesmo nome ("também grafado FULANO", "registrada como FULANA").
+_OUTRA_GRAFIA = re.compile(r"\b(?:tamb[ée]m[ \t]+)?(?:grafad[oa]|registrad[oa][ \t]+como)(?:[ \t]+como)?[ \t]*:?[ \t]+",
+                           re.IGNORECASE)
+#: Posto ou graduação militar abreviado, com a corporação ou o quadro e, às vezes, a matrícula, antes do
+#: nome de guerra em escalas e boletins ("3º SGT PM 100.000-0 FULANO", "SD PM FULANO", "1º TEN QOPM
+#: 000.000-0 F. BELTRANO").
+_POSTO_GRADUACAO = re.compile(
+    r"(?<![\p{L}\d])(?:[1-3][ºo°ª]?[ \t]*)?(?:SD|CB|SGT|TEN|CAP|MAJ|TC|CEL|ST|SUBTEN|ASP)"
+    r"[ \t]+(?:PM|BM|PC|GCM|QOPM|QPPM|QOBM|QPBM|QOEM|QOS|QOA|QPE|PM[A-Z]{2}|BM[A-Z]{2})"
+    r"(?:[ \t]+(?:n[º°o]?[ \t]*)?\d{1,3}(?:\.\d{3})*-?[\dXx])?[ \t]+")
+#: Gentílicos de nacionalidade, que em registros de migrantes seguem o nome em aposto ("FULANO,
+#: venezuelano, …"). Não compõem nome de pessoa.
+_GENTILICOS = (r"(?:(?:brasileir|venezuelan|bolivian|haitian|paraguai|peruan|colombian|argentin|chilen|uruguai|"
+               r"equatorian|cuban|mexican|dominican|surinam|italian|iranian|iraquian|angolan|nigerian|cabo-verdian|"
+               r"mo[çc]ambican|russ|ucranian|indian|paquistan|filipin|vietnamit|s[íi]ri|palestin|eg[íi]pci|"
+               r"marroquin|turc|greg|argelin|corean|japones|chines|portugues|taiwanes|libanes|congoles|senegales|"
+               r"poloneses|frances|ingles|holandes|guianens)[oa]s?"
+               r"|(?:chin|japon|portugu|taiwan|liban|congol|senegal|gan|polon|franc|ingl|holand|irland|guian)[eê]s"
+               r"|alem[ãa](?:o|es|s)?|afeg[ãa](?:o|os|s)?|espanh(?:ol|ola|óis|ois|olas)|[áa]rabes?)")
+
 #: Identificador ou qualificação que segue o nome de uma pessoa em atos e registros oficiais
-#: ("FULANO DE TAL, matrícula", "Fulano de Tal – Matr.", "Fulano de Tal, RG", "Fulano de Tal, 42 anos").
+#: ("FULANO DE TAL, matrícula", "Fulano de Tal – Matr.", "Fulano de Tal, RG", "Fulano de Tal, 42 anos",
+#: "FULANO DE TAL, venezuelano").
 _IDENTIFICADOR_APOS_NOME = re.compile(
     r"[ \t]*(?:,|[–—-]|\()[ \t]*(?:matr[íi]cula|matr?\.|mat\b|rg\b|r\.g\.|cpf\b|c\.p\.f\.|siape\b|masp\b|rf\b|cns\b|"
     r"ctps\b|n[ºo°.]?[ \t]*funcional|identidade\b|inscrit[oa][ \t]+no[ \t]+cpf|portador[a]?[ \t]+d[oa]|"
     r"brasileir[oa]|nascid[oa][ \t]+em|natural[ \t]+de|filh[oa][ \t]+de|\d{1,3}[ \t]+anos\b|"
-    r"sexo[ \t]+(?:masculino|feminino)|(?:crm|coren|cress|crp|oab|crea|cro|crf|crefito|crfa)\b)", re.IGNORECASE)
+    r"sexo[ \t]+(?:masculino|feminino)|(?:crm|coren|cress|crp|oab|crea|cro|crf|crefito|crfa)\b|"
+    r"(?:m[ãa]e|pai|filh[oa]|companheir[oa]|espos[oa]|marido|irm[ãa]o?|av[óô]|net[oa]|sobrinh[oa]|genitor[a]?|"
+    r"entead[oa]|cunhad[oa]|sogr[oa]|respons[áa]vel[ \t]+familiar|chefe[ \t]+d[ae][ \t]+fam[íi]lia)\b|"
+    rf"{_GENTILICOS}(?:[ \t]+naturalizad[oa])?\b)", re.IGNORECASE)
 #: Cargo ou função de pessoa ("Membro", "Secretário de Estado", "Assistente Social"). "Secretaria" sem
 #: acento é o órgão, não a servidora.
 _CARGO = (r"(?:(?:vice|sub|pr[óo])-?)?(?:secret(?:[áa]rio|ária)|diretor[a]?|superintendente|reitor[a]?|prefeit[oa]|"
@@ -801,8 +1194,11 @@ _TITULO_ASSINATURA = re.compile(r"[ \t]*(?:(?:sr|sra|dr|dra|prof|profa|enf|enfa|
 
 #: Célula de tabela em texto, separada por barra vertical ou tabulação.
 _CELULA = re.compile(r"[^|\t]+")
+#: Célula de tabela alinhada por espaços: palavras separadas por um espaço; dois ou mais separam células.
+_CELULA_ALINHADA = re.compile(r"\S+(?: \S+)*")
 #: CPF, inclusive mascarado ("***.938.044-**"), como conteúdo de uma célula.
-_CPF_EM_CELULA = re.compile(r"(?:\d{3}|\*{3})\.(?:\d{3}|\*{3})\.(?:\d{3}|\*{3})-(?:\d{2}|\*{2})|\d{11}")
+_CPF_EM_CELULA = re.compile(r"(?:\d{3}|\*{3})\.(?:\d{3}|\*{3})\.(?:\d{3}|\*{3})-(?:\d{2}|\*{2})|\d{11}"
+                            r"|\d{3}\.\d{5}\.\d{2}-\d|[12789]\d{14}|[12789]\d{2}[ \t]\d{4}[ \t]\d{4}[ \t]\d{4}")
 #: Identificador de pessoa como conteúdo de uma célula: CPF, matrícula com dígito verificador
 #: ("864.694-5", "357760-1 A") ou número com seis dígitos ou mais.
 _IDENTIFICADOR_EM_CELULA = re.compile(
@@ -829,23 +1225,79 @@ _PESSOA_ANTES_DE_INICIAIS = re.compile(
     r"iniciais|alimentand[oa]s?|tutelad[oa]s?|acolhid[oa]s?|educand[oa]s?)[ \t]*:?[ \t]*$", re.IGNORECASE)
 _IDADE_APOS_INICIAIS = re.compile(r"[ \t]*(?:,|\(|–|-)?[ \t]*(?:de[ \t]+)?\d{1,2}[ \t]+(?:anos?|meses|dias)\b",
                                   re.IGNORECASE)
+#: Parentesco ou papel em aposto logo após as iniciais ("F.B., neta da requerente", "B.T., enteado").
+_PARENTESCO_APOS_INICIAIS = re.compile(
+    r"[ \t]*,[ \t]*(?:filh[oa]|net[oa]|sobrinh[oa]|irm[ãa]o?|entead[oa]|prim[oa]|bisnet[oa]|crian[çc]a|"
+    r"adolescente|beb[êe]|rec[ée]m-nascid[oa]|v[íi]tima|testemunha|aluno|aluna|estudante)\b", re.IGNORECASE)
 
 #: Apelido ("vulgo “Fulano”", "conhecido apenas como Fulano"): entre aspas, ou de uma a três palavras
 #: com inicial maiúscula.
 _APELIDO = re.compile(
-    r"\b(?:vulgo|alcunha|apelid(?:o|ad[oa])(?:[ \t]+de)?|identificad[oa][ \t]+como|"
-    r"conhecid[oa][ \t]+(?:apenas[ \t]+|tamb[ée]m[ \t]+|entre[ \t]+[^\n,.;]{1,40}?[ \t]+|na[ \t]+comunidade[ \t]+|"
-    r"no[ \t]+bairro[ \t]+)?(?:como|por))[ \t]*[:,]?[ \t]*"
-    r"(?:[\"“«'‘]([^\"”»'’\n]{2,40})[\"”»'’]"
-    r"|((?-i:\p{Lu}[\p{L}'’-]+)(?:[ \t]+(?:d[aeo]s?[ \t]+)?(?-i:\p{Lu}[\p{L}'’-]+)){0,2}))",
+    r"\b(?:(?P<livre>vulgo|alcunha|apelid(?:o|ad[oa])(?:[ \t]+de)?|"
+    r"(?:prefere|pede[ \t]+para|pediu[ \t]+para|gosta[ \t]+de|quer)[ \t]+ser[ \t]+chamad[oa](?:[ \t]+de)?|"
+    r"(?:nome|apelido)[ \t]+pelo[ \t]+qual[^:\n]{0,40}:|a[ \t]+quem[^\n.;:]{0,30}?chama(?:m|va|vam)?[ \t]+de)|"
+    r"identificad[oa][ \t]+como|conhecid[oa]s?[ \t]+(?:[^\n,.;:\"“]{1,40}?[ \t]+)?(?:como|por)|"
+    r"chamad[oa]s?[ \t]+(?:[^\n,.;:\"“]{1,40}?[ \t]+)?de)[ \t]*[:,]?[ \t]*"
+    r"(?:(?:el|la|o|a)[ \t]+)?(?P<titulo>(?:dona|seu|sr\.?|sra\.?|dr\.?|dra\.?|tia|tio)[ \t]+)?"
+    r"(?:[\"“«'‘](?P<aspas>[^\"”»'’\n]{2,40})[\"”»'’]"
+    r"|(?P<nome>(?-i:\p{Lu}[\p{L}'’-]+)(?:[ \t]+(?:d[aeo]s?[ \t]+)?(?-i:\p{Lu}[\p{L}'’-]+)){0,2}))",
     re.IGNORECASE)
-#: Pessoa citada logo antes de "conhecido como" ("um homem conhecido como", "FULANO, conhecido como").
+#: Segundo apelido coordenado ao primeiro ("conhecidos como el Fulano e la Fulana").
+_APELIDO_COORDENADO = re.compile(r"[ \t]+e[ \t]+(?:(?:el|la|o|a)[ \t]+)?(\p{Lu}[\p{L}'’-]+)")
+#: Apelido ou nome social entre aspas seguido da indicação entre parênteses ("“Fulana” (nome social)").
+_APELIDO_INDICADO = re.compile(r"[\"“]([^\"”\n]{2,40})[\"”][ \t]*\((?:nome[ \t]+social|apelido|alcunha)\)",
+                               re.IGNORECASE)
+#: Pessoa citada logo antes de "conhecido como" ou "chamado de" ("um rapaz conhecido como", "FULANO,
+#: conhecido como", "a sobrinha era chamada de", "três argentinos conhecidos como").
 _PESSOA_ANTES_DE_APELIDO = re.compile(
-    r"(?:\b(?:homem|mulher|rapaz|mo[çc]a|indiv[íi]duo|sujeito|suspeit[oa]|autor[a]?|acusad[oa]|r[ée]u|pessoa|"
-    r"cidad[ãa]o?|morador[a]?|usu[áa]ri[oa]|adolescente|jovem|senhor[a]?|investigad[oa]|denunciad[oa]|"
-    r"traficante|interno|interna|preso|presa|vizinho|vizinha|capataz|servidor[a]?|paciente|v[íi]tima|"
-    r"indiciad[oa]|agressor[a]?)\b[^\n.;]{0,12}|(?-i:\p{Lu}\p{L}+),[ \t]*)$",
+    r"(?:\b(?:homem|homens|mulher|mulheres|rapaz|mo[çc]a|indiv[íi]duos?|sujeitos?|suspeit[oa]s?|autor[a]?|"
+    r"acusad[oa]|r[ée]u|pessoa|cidad[ãa]o?|morador[a]?|usu[áa]ri[oa]|adolescente|jovem|senhor[a]?|investigad[oa]|"
+    r"denunciad[oa]|traficante|interno|interna|preso|presa|vizinho|vizinha|capataz|servidor[a]?|paciente|"
+    r"v[íi]tima|indiciad[oa]|agressor[a]?|ele|ela|deles|delas|filh[oa]|irm[ãa]o?|net[oa]|sobrinh[oa]|"
+    r"companheir[oa]|marido|espos[oa]|pai|m[ãa]e|av[óô]|gerente|dono|dona|comerciante|vendedor[a]?|"
+    rf"criança|menin[oa]|{_GENTILICOS})\b[^\n.;]{{0,25}}|(?-i:\p{{Lu}}\p{{L}}+)[,)][ \t]*)$",
     re.IGNORECASE)
+
+
+#: Sigla de corporação ou quadro entre o papel e o nome ("PM", "BM", "GCM", "QOPM"): sem vogais ou
+#: iniciada pelas siglas usuais. Sobrenomes do Leste Asiático em CAIXA ALTA têm vogais ("FULANO Beltrano").
+_SIGLA_CORPORACAO = re.compile(r"[B-DF-HJ-NP-TV-Z]{2,5}|(?:PM|BM|PC|CBM|GCM|QO|QP)[A-Z]{0,3}")
+#: Pontuação, "e" ou idade logo após um nome isolado em aposto ("a filha Fulana, de 15 anos", "o neto
+#: Fulano (8 anos)", "a irmã Fulana e o cunhado").
+_APOSTO_APOS_NOME = re.compile(r"[ \t]*(?:[,;:(]|\.(?:\s|$)|$)|[ \t]+e[ \t]+", re.MULTILINE)
+
+
+def _isolado_aceito(dob: str, tratamento: bool) -> bool:
+    """Indica se uma palavra fora das listas pode ser, sozinha, o nome de uma pessoa já indicada pelo
+    contexto. Após pronome de tratamento ("Dona Fulana"), aceitam-se também terminações de substantivo
+    abstrato, comuns em prenomes de devoção."""
+    base = dob.split("-")[0]  # "controlador-geral", "coordenadora-adjunta"
+    if len(dob) < 3 or not dob.replace("-", "").isalpha() or base in _CARGOS_E_PAPEIS or base in NAO_INICIAM_NOME:
+        return False
+    return (dob not in _palavras_gramaticais() and dob not in PALAVRAS_COMUNS and dob not in NAO_INICIAM_NOME
+            and dob not in _NAO_COMPLETAM_NOME) if tratamento else _forma_de_nome(dob, rigorosa=False)
+
+
+def _leste_asiatico(toks, a: int, b: int) -> bool:
+    """Indica se os tokens de ``a`` a ``b`` têm a forma de nome do Leste Asiático com o sobrenome em
+    CAIXA ALTA à frente ("FULANO Beltrano", "FULANO Bel-trano", "FULANO Bel Trano"): sobrenome curto,
+    sem conectores, e prenome com inicial maiúscula, às vezes hifenizado."""
+    palavras = [toks[k][2] for k in range(a, b + 1)]
+    return (2 <= len(palavras) <= 4 and palavras[0].isupper() and 2 <= len(palavras[0]) <= 5
+            and re.search(r"[AEIOUY]", palavras[0]) is not None and "-" not in palavras[0]
+            and all(p[:1].isupper() and not p.isupper() and dobrar(p) not in CONECTORES
+                    and dobrar(p) not in _PONTOS_CARDEAIS for p in palavras[1:]))
+
+
+#: Pontos cardeais e designações de área que seguem siglas de unidades ("CRAS Leste", "DRE Centro").
+_PONTOS_CARDEAIS = frozenset({"norte", "sul", "leste", "oeste", "centro", "nordeste", "noroeste", "sudeste", "sudoeste",
+                              "central", "metropolitana", "regional", "capital", "interior", "litoral", "agreste",
+                              "sertao", "serra", "vale"})
+
+
+#: Forma de sigla de órgão ou unidade, distinta de nome em CAIXA ALTA: sem acentos, com até
+#: três letras ou terminada em consoante que não encerra nomes ("SME", "SEMED", "SEDUC").
+_SIGLA = re.compile(r"[A-Z]{2,3}|[A-Z]{3,7}[BCDFGJKPQTVWXY]")
 
 
 def _aceitar_nome(texto: str, toks, a: int, b: int, titulo_aceito: bool) -> bool:
@@ -855,10 +1307,13 @@ def _aceitar_nome(texto: str, toks, a: int, b: int, titulo_aceito: bool) -> bool
     forma de nome (ver :func:`_forma_de_nome`); são exigidas ao menos duas. Sem nenhuma palavra das
     listas, o nome só é aceito em CAIXA ALTA — a forma usual dos nomes em atos oficiais — ou, com
     ``titulo_aceito``, também com iniciais maiúsculas (contexto inequívoco, como um rótulo de campo).
-    Sigla ao lado de palavras com inicial maiúscula ("APS Caruaru", "EEB Professora") não é nome.
+    Sigla ao lado de palavras com inicial maiúscula ("APS Caruaru", "EEB Professora") não é nome, mas o
+    sobrenome do Leste Asiático em CAIXA ALTA antes do prenome é (ver :func:`_leste_asiatico`). Uma
+    palavra com terminação de substantivo abstrato só é aceita num nome de três palavras ou mais com
+    prenome ou sobrenome conhecido (prenomes de devoção, como "FULANA NATIVIDADE DE JESUS").
     """
     pn, sn, amb = prenomes(), sobrenomes(), ambiguos()
-    palavras, conhecida, caixa_alta, minusculas = 0, False, True, False
+    palavras, conhecida, caixa_alta, minusculas, abstratas = 0, False, True, False, 0
     siglas = re.match(r"(?:\p{Lu}\.)+", texto[toks[a][0]:toks[b][1] + 1])
     if siglas and siglas.group().replace(".", "").lower() in _SIGLAS_PONTUADAS:
         return False  # "U.E. Professora Fulana", "S.A."
@@ -876,16 +1331,28 @@ def _aceitar_nome(texto: str, toks, a: int, b: int, titulo_aceito: bool) -> bool
             return False
         if dob in pn or dob in sn:
             conhecida = True
+        elif dob.endswith(_SUFIXOS_ABSTRATOS) and dob.isalpha() and dob not in _palavras_gramaticais()                 and dob not in _NAO_COMPLETAM_NOME:
+            abstratas += 1
         elif not (dob in amb or _forma_de_nome(dob, rigorosa=False)):
             return False
         caixa_alta = caixa_alta and tok.isupper()
         minusculas = minusculas or not tok.isupper()
-    if palavras < 2 or not (conhecida or caixa_alta or titulo_aceito):
+    primeira = toks[a][2]
+    if b > a and _SIGLA.fullmatch(primeira) and dobrar(primeira) not in pn and dobrar(primeira) not in sn:
+        from .localizacao import municipio_em
+
+        if municipio_em(texto, toks[a + 1][0]) == toks[b][1]:
+            return False  # sigla de órgão e município ("SME FULANÓPOLIS", "APS Fulanópolis")
+    leste = _leste_asiatico(toks, a, b)
+    if palavras < 2 or not (conhecida or caixa_alta or titulo_aceito or leste):
         return False
-    if minusculas and any(len(toks[k][2]) > 1 and toks[k][2].isupper() and dobrar(toks[k][2]) not in CONECTORES
-                          for k in range(a, b + 1)):
+    if abstratas and not (abstratas == 1 and conhecida and palavras >= 3):
         return False
-    if not (conhecida or caixa_alta) and any(dobrar(toks[k][2]).endswith(_SUFIXOS_OFICIO) for k in range(a, b + 1)):
+    if minusculas and not leste and any(len(toks[k][2]) > 1 and toks[k][2].isupper()
+                                        and dobrar(toks[k][2]) not in CONECTORES for k in range(a, b + 1)):
+        return False
+    if not (conhecida or caixa_alta or leste) and any(dobrar(toks[k][2]).endswith(_SUFIXOS_OFICIO)
+                                                      for k in range(a, b + 1)):
         return False  # "Operador de Máquinas, matrícula": nome de cargo, não de pessoa
     return not contexto_nao_pessoal(texto, toks[a][0]) and not _empresa_depois(texto, toks[b][1])
 
@@ -922,6 +1389,33 @@ def _nome_antes(texto: str, toks, fins: list[int], fim: int) -> tuple[int, int] 
     return (a, b) if a <= b else None
 
 
+#: Nome invertido, como em listas e tabelas: sobrenome em CAIXA ALTA, vírgula e prenomes ou iniciais
+#: ("SOBRENOME, Fulana de Tal", "SOBRENOME, F. B.", "SOBRENOME, FULANA DE TAL").
+_NOME_INVERTIDO = re.compile(
+    r"(?<![\p{L}\d.])(?P<sobrenome>\p{Lu}[\p{Lu}'’-]+(?: (?:(?:D[AEO]S?|DEL|VON|VAN) )?\p{Lu}[\p{Lu}'’-]+){0,2})"
+    r",[ \t]?(?P<prenomes>(?:\p{Lu}\.[ \t]?){1,4}(?![\p{L}])|\p{Lu}[\p{L}'’-]+"
+    r"(?: (?:d[aeo]s?|D[AEO]S?|\p{Lu}[\p{L}'’-]+|\p{Lu}\.(?![\p{L}]))){0,5})")
+#: Início de célula, de linha ou de item de lista antes do nome invertido.
+_INICIO_DE_ITEM = re.compile(r"(?:^[ \t]*|[\"“;|\t][ \t]*|  [ \t]*|^[ \t]*(?:\d{1,4}[.)º°-]?|[–—•-])[ \t]+)$")
+#: Identificador da pessoa na linha: CPF (inclusive mascarado), RG ou matrícula com dígito, número longo.
+_IDENTIFICADOR_NA_LINHA = re.compile(
+    r"(?:\d{3}|\*{3})\.(?:\d{3}|\*{3})\.(?:\d{3}|\*{3})-(?:\d{2}|\*{2})|\b\d{1,3}(?:\.\d{3}){1,2}-[\dXx]\b|\b\d{6,}\b")
+#: Idade em aposto a um prenome ("Fulana, de 15 anos", "Fulano, 8 anos", "Fulana (4 anos)").
+_EXTENSO = (r"(?:um|uma|dois|duas|tr[êe]s|quatro|cinco|seis|sete|oito|nove|dez|onze|doze|treze|quatorze|catorze|"
+            r"quinze|dezesseis|dezessete|dezoito|dezenove|vinte|trinta|quarenta|cinquenta|sessenta|setenta|oitenta|"
+            r"noventa)(?:[ \t]+e[ \t]+(?:um|uma|dois|duas|tr[êe]s|quatro|cinco|seis|sete|oito|nove))?")
+_PRENOME_COM_IDADE = re.compile(
+    rf"(?<![\p{{L}}\d])((?-i:\p{{Lu}}\p{{Ll}}[\p{{L}}'’-]*))(?:[ \t]*,[ \t]*(?:de|com)?[ \t]*|[ \t]*\([ \t]*)"
+    rf"(?:\d{{1,3}}|{_EXTENSO})[ \t]+(?:anos?|meses)\b", re.IGNORECASE)
+#: Última palavra antes de uma posição, na mesma linha, separada só por espaços.
+_TOKEN_ANTERIOR = re.compile(r"(\p{L}[\p{L}'’-]*)[ \t]+$")
+#: Antes de um prenome em enumeração de pessoas: "e", vírgula ou ponto e vírgula ("…, e Fulana, de 4 anos").
+_ANTES_DE_PRENOME_EM_LISTA = re.compile(r"(?:,|[ \t]e|;)[ \t]+$")
+#: Linha só com um nome em CAIXA ALTA, em lista ("FULANA DE TAL⏎BELTRANO DE TAL⏎…").
+_LINHA_SO_NOME = re.compile(r"[ \t]*(?:\d{1,3}[.)º°-]?[ \t]+)?(\p{Lu}[\p{Lu}'’-]+(?:[ \t](?:D[AEO]S?[ \t]|E[ \t])?"
+                            r"\p{Lu}[\p{Lu}'’-]+){1,6})[ \t]*")
+
+
 class ReconhecedorNomesContexto:
     """Nomes identificados pelo contexto em que aparecem.
 
@@ -947,6 +1441,40 @@ class ReconhecedorNomesContexto:
         saida += self._celulas(texto, toks)
         saida += self._iniciais(texto)
         saida += self._apelidos(texto)
+        saida += self._postos(texto, toks)
+        saida += self._invertidos(texto)
+        saida += self._prenomes_com_idade(texto)
+        saida += self._linhas_de_nomes(texto, toks)
+        saida += self._continuacoes(texto, toks, saida)
+        return saida + self._mesmo_nome_no_documento(texto, saida)
+
+    def _mesmo_nome_no_documento(self, texto: str, achados: list[Deteccao]) -> list[Deteccao]:
+        """Demais menções, no documento, a palavra de um nome reconhecido que coincide com município ("o
+        neto Fulano, de 9 anos, … a matrícula de Fulano").
+
+        A propagação de valores tarjados não alcança essas menções, sinalizadas como localidade. Não vale
+        quando o contexto indica o lugar ("em Fulano", "Fulano/UF") nem quando outro nome segue a palavra.
+        """
+        from .localizacao import municipio_em
+
+        excluidas = CONECTORES | NAO_INICIAM_NOME | PALAVRAS_COMUNS | ambiguos()
+        partes: set[str] = set()
+        for d in achados:
+            for m in _TOKEN.finditer(texto, d.inicio, d.fim):
+                p = m.group()
+                if len(p) >= 4 and p[:1].isupper() and not p.isupper() and dobrar(p) not in excluidas \
+                        and municipio_em(texto, m.start()) == m.end():
+                    partes.add(p)
+        saida: list[Deteccao] = []
+        for p in partes:
+            for m in re.finditer(r"(?<![\w-])" + re.escape(p) + r"(?![\w-])", texto):
+                a, b = m.span()
+                if any(d.inicio <= a and b <= d.fim for d in achados):
+                    continue
+                if texto[b:b + 1] == " " and texto[b + 1:b + 2].isupper():
+                    continue
+                if not contexto_nao_pessoal(texto, a):
+                    saida.append(Deteccao(a, b, "NOME", 0.8, "nomes:mesmo-nome", CONTEXTUAL))
         return saida
 
     def _gatilhos(self, texto: str, toks) -> list[Deteccao]:
@@ -954,22 +1482,29 @@ class ReconhecedorNomesContexto:
         pn, sn = prenomes(), sobrenomes()
         inicios = {t[0]: k for k, t in enumerate(toks)}
         saida: list[Deteccao] = []
-        # Força do gatilho: 0, expressão geral; 1, rótulo de campo ("Nome:", "Membro:"); 2, papel ou ato
-        # de pessoal.
-        achados = [(m, 1 if m.group().rstrip().endswith(":") else 0) for m in GATILHOS.finditer(texto)]
-        achados += [(m, 1) for m in GATILHOS_ROTULO.finditer(texto)]
+        # Força do gatilho: 0, expressão geral; 1, rótulo de campo ("Nome:", "Membro:"), apresentação
+        # explícita, papel em linha de título ou outra grafia do nome; 2, papel ou ato de pessoal; 3,
+        # parentesco.
+        achados = [(m, 1 if m.group().rstrip().endswith(":") or _APRESENTACAO.match(m.group()) else 0)
+                   for m in GATILHOS.finditer(texto)]
+        achados += [(m, 1) for padrao in (GATILHOS_ROTULO, _CABECALHO_PAPEL, _OUTRA_GRAFIA) for m in padrao.finditer(texto)]
         achados += [(m, 2) for m in GATILHOS_PAPEL.finditer(texto)]
+        achados += [(m, 3) for m in GATILHOS_PARENTESCO.finditer(texto)]
         for m, forca in achados:
             k = inicios.get(m.end())
             if k is None:
                 continue
             tok = toks[k][2]
             dob = dobrar(tok)
+            tratamento = forca == 0 and _TRATAMENTO.fullmatch(m.group().strip()) is not None
             if TITULOS.match(tok) and k + 1 < len(toks):
                 k += 1
                 tok, dob = toks[k][2], dobrar(toks[k][2])
-            # Sigla de corporação ou unidade entre o papel e o nome ("o Sargento PM Fulano de Tal").
+                tratamento = True
+            # Sigla de corporação ou unidade entre o papel e o nome ("o Sargento PM Fulano de Tal"); um
+            # sobrenome do Leste Asiático em CAIXA ALTA antes do prenome ("Nome: FULANO Beltrano") não é sigla.
             if forca and 1 < len(tok) <= 5 and tok.isupper() and dob not in pn and dob not in sn \
+                    and _SIGLA_CORPORACAO.fullmatch(tok) \
                     and k + 1 < len(toks) and toks[k + 1][2][:1].isupper() and not toks[k + 1][2].isupper() \
                     and _so_espaco(texto, toks[k][1], toks[k + 1][0]):
                 k += 1
@@ -980,17 +1515,32 @@ class ReconhecedorNomesContexto:
             if not (caixa or dob in pn or dob in sn):
                 continue
             fim_idx = _estender(texto, toks, k, caixa)
-            if forca and caixa:
+            if (forca or tratamento) and caixa:
                 fim_idx = max(fim_idx, _estender_contexto(texto, toks, k))
             palavras = [dobrar(toks[x][2]) for x in range(k, fim_idx + 1)]
-            if any(p in PALAVRAS_COMUNS for p in palavras) or (len(palavras) == 1 and palavras[0] in ambiguos()):
+            if any(p in PALAVRAS_COMUNS for p in palavras):
                 continue
-            if any(p in pn or p in sn for p in palavras):
-                if forca == 2 and not tok.isupper() and sum(p not in CONECTORES for p in palavras) < 2:
+            isolado = sum(p not in CONECTORES for p in palavras) == 1
+            if isolado and palavras[0] in ambiguos() and not (tratamento or forca == 3):
+                continue
+            if isolado and (tratamento or forca == 3) and not (palavras[0] in pn or palavras[0] in sn):
+                # Nome isolado após tratamento ("Sr. Fulano", "Dona Fulana") ou em aposto a parentesco ("a
+                # filha Fulana, de 15 anos"), ainda que fora das listas ou coincidente com palavra comum.
+                if not (caixa and _isolado_aceito(palavras[0], tratamento)
+                        and (tratamento or _APOSTO_APOS_NOME.match(texto, toks[fim_idx][1]))):
+                    continue
+                if contexto_nao_pessoal(texto, toks[k][0]):
+                    continue
+            elif any(p in pn or p in sn for p in palavras):
+                if forca == 2 and not tok.isupper() and isolado:
                     continue  # após papel, nome isolado só em CAIXA ALTA ("o servidor SAMIR")
+                if forca == 3 and isolado and not tok.isupper() and palavras[0] in ambiguos() \
+                        and not _APOSTO_APOS_NOME.match(texto, toks[fim_idx][1]):
+                    continue
                 if contexto_nao_pessoal(texto, toks[k][0]) or _empresa_depois(texto, toks[fim_idx][1]):
                     continue
-            elif forca == 0 or not _aceitar_nome(texto, toks, k, fim_idx, titulo_aceito=forca == 1):
+            elif (forca == 0 and not tratamento) or not _aceitar_nome(
+                    texto, toks, k, fim_idx, titulo_aceito=forca == 1 or tratamento):
                 continue
             saida.append(Deteccao(toks[k][0], toks[fim_idx][1], "NOME", 0.85, self.nome, CONTEXTUAL))
             if forca:
@@ -1058,7 +1608,8 @@ class ReconhecedorNomesContexto:
         Em listas de nomeação, escalas e relações de servidores ("15º | FULANO DE TAL | ***.938.044-**",
         "10254601 | FULANO DE TAL | Agente Administrativo"), a linha com CPF ou matrícula indica que a
         célula ao lado é o nome do titular. Com CPF na linha, nomes com iniciais maiúsculas também são
-        aceitos.
+        aceitos. Sem barra vertical nem tabulação, as células de tabela alinhada por espaços são separadas
+        por dois espaços ou mais ("01   FULANO DE TAL      000.000.000-00   0000000-0").
         """
         pn, sn = prenomes(), sobrenomes()
         saida: list[Deteccao] = []
@@ -1067,9 +1618,12 @@ class ReconhecedorNomesContexto:
         pos = 0
         for linha in texto.split("\n"):
             ini, pos = pos, pos + len(linha) + 1
-            if "|" not in linha and "\t" not in linha:
+            if "|" in linha or "\t" in linha:
+                celulas = [(ini + m.start(), ini + m.end()) for m in _CELULA.finditer(linha)]
+            elif "  " in linha.strip():
+                celulas = [(ini + m.start(), ini + m.end()) for m in _CELULA_ALINHADA.finditer(linha)]
+            else:
                 continue
-            celulas = [(ini + m.start(), ini + m.end()) for m in _CELULA.finditer(linha)]
             ids = [c for c in celulas if _IDENTIFICADOR_EM_CELULA.fullmatch(texto[c[0]:c[1]].strip())]
             if not ids:
                 continue
@@ -1092,34 +1646,242 @@ class ReconhecedorNomesContexto:
                     saida.append(Deteccao(toks[k][0], toks[f][1], "NOME", 0.85, "nomes:tabela", CONTEXTUAL))
         return saida
 
-    def _iniciais(self, texto: str) -> list[Deteccao]:
-        """Iniciais de pessoa: três ou mais letras, ou duas em contexto pessoal ou junto de outras iniciais."""
-        achados = [m for m in _INICIAIS.finditer(texto)
-                   if "".join(ch for ch in m.group() if ch.isalpha()).lower() not in _SIGLAS_PONTUADAS]
+    def _continuacoes(self, texto: str, toks, achados: list[Deteccao]) -> list[Deteccao]:
+        """Restante do nome na linha de baixo, na mesma coluna, em tabela alinhada por espaços.
+
+        Numa célula estreita, o nome continua abaixo do início ("01   FULANA DE TAL     000.000.000-00" /
+        "     DE SOUZA"; "SOBRENOME, Fulana de" / "Tal"). A linha do nome precisa ter outras células; a de
+        baixo, estar em branco até a coluna do nome; e o trecho, ter forma de nome e a mesma caixa.
+        """
+        pn, sn = prenomes(), sobrenomes()
+        inicios = {t[0]: k for k, t in enumerate(toks)}
         saida: list[Deteccao] = []
+        vistos: set[int] = set()
+        for d in achados:
+            ini_linha = texto.rfind("\n", 0, d.inicio) + 1
+            fim_linha = texto.find("\n", d.fim)
+            if fim_linha < 0 or d.inicio in vistos or "\n" in texto[d.inicio:d.fim]:
+                continue
+            antes, depois = texto[ini_linha:d.inicio], texto[d.fim:fim_linha]
+            if (antes.strip() and not antes.endswith("  ")) or (depois.strip() and not depois.startswith("  ")) \
+                    or not (antes.strip() or depois.strip()):
+                continue
+            vistos.add(d.inicio)
+            coluna = d.inicio - ini_linha
+            proxima = texto[fim_linha + 1:texto.find("\n", fim_linha + 1) if "\n" in texto[fim_linha + 1:] else None]
+            if len(proxima) <= coluna or proxima[:coluna].strip() or proxima[coluna].isspace():
+                continue
+            celula = _CELULA_ALINHADA.match(proxima, coluna)
+            a = fim_linha + 1 + coluna
+            k = inicios.get(a)
+            if celula is None or k is None:
+                continue
+            caixa_alta = texto[d.inicio:d.fim].replace(",", "").split()[0].isupper() \
+                and texto[d.inicio:d.fim].upper() == texto[d.inicio:d.fim]
+            f, ok = k, True
+            while f < len(toks) and toks[f][1] <= a + celula.end() - coluna:
+                tok, dob = toks[f][2], dobrar(toks[f][2])
+                if dob not in CONECTORES and not (
+                        tok[:1].isupper() and (tok.isupper() or not caixa_alta) and len(dob) >= 2
+                        and dob not in NAO_INICIAM_NOME and dob not in PALAVRAS_COMUNS and not _nucleo(tok)
+                        and dob.split("-")[0] not in NAO_INICIAM_NOME
+                        and (dob in pn or dob in sn or _forma_de_nome(dob, rigorosa=False))):
+                    ok = False
+                    break
+                f += 1
+            f -= 1
+            if ok and k <= f <= k + 3 and dobrar(toks[f][2]) not in CONECTORES \
+                    and not contexto_nao_pessoal(texto, toks[k][0]):
+                saida.append(Deteccao(toks[k][0], toks[f][1], "NOME", 0.8, "nomes:continuacao", CONTEXTUAL))
+        return saida
+
+    def _iniciais(self, texto: str) -> list[Deteccao]:
+        """Iniciais de pessoa: três ou mais letras, ou duas em contexto pessoal ou junto de outras iniciais.
+
+        Siglas de unidade escritas com pontos ("E.E.E.F.", "E.M.E.B.") não são iniciais. Iniciais de duas
+        letras aceitas pelo contexto valem também nas demais menções do documento ("a criança F.B., 6
+        anos, … a frequência de F.B."), que a propagação não alcança por serem curtas demais.
+        """
+        def letras(m) -> str:
+            return "".join(ch for ch in m.group() if ch.isalpha())
+
+        achados = [m for m in _INICIAIS.finditer(texto)
+                   if letras(m).lower() not in _SIGLAS_PONTUADAS and letras(m).lower() not in _NUCLEOS_INSTITUICAO
+                   and not _SIGLA_ESCOLA.fullmatch(letras(m))]
+        aceitas, pendentes = [], []
         for n, m in enumerate(achados):
-            if sum(ch.isalpha() for ch in m.group()) < 3:
+            if len(letras(m)) < 3:
                 vizinhas = [o for o in achados[max(0, n - 1):n + 2] if o is not m]
                 junto = any(abs(o.start() - m.end()) <= 4 or abs(m.start() - o.end()) <= 4 for o in vizinhas)
                 antes = _PESSOA_ANTES_DE_INICIAIS.search(texto, max(0, m.start() - 40), m.start())
-                if not (junto or antes or _IDADE_APOS_INICIAIS.match(texto, m.end())):
+                if not (junto or antes or _IDADE_APOS_INICIAIS.match(texto, m.end())
+                        or _PARENTESCO_APOS_INICIAIS.match(texto, m.end())):
+                    pendentes.append(m)
                     continue
-            # O ponto final fica fora do trecho, como nas demais anotações de nome.
-            saida.append(Deteccao(m.start(), m.end() - 1, "NOME", 0.8, "nomes:iniciais", CONTEXTUAL))
-        return saida
+            aceitas.append(m)
+        confirmadas = {letras(m) for m in aceitas}
+        aceitas += [m for m in pendentes if letras(m) in confirmadas]
+        # O ponto final fica fora do trecho, como nas demais anotações de nome.
+        return [Deteccao(m.start(), m.end() - 1, "NOME", 0.8, "nomes:iniciais", CONTEXTUAL) for m in aceitas]
 
     def _apelidos(self, texto: str) -> list[Deteccao]:
-        """Apelido de pessoa após "vulgo", "alcunha" ou "conhecido como"."""
+        """Apelido ou nome pelo qual a pessoa é chamada: após "vulgo", "alcunha", "conhecido como",
+        "chamado de", "prefere ser chamada de", "nome pelo qual é conhecida:", ou entre aspas seguido de "(nome
+        social)".
+
+        "Conhecido como" e "chamado de" exigem uma pessoa citada logo antes, pois também designam lugares
+        e programas. O apelido entre aspas vale mesmo se for palavra comum ("Professor"); sem aspas, não. O
+        pronome de tratamento fica fora do trecho ("conhecida como Dona Fulana" → "Fulana").
+        """
         saida: list[Deteccao] = []
         for m in _APELIDO.finditer(texto):
-            if dobrar(m.group()).startswith(("conhecid", "identificad")) and not _PESSOA_ANTES_DE_APELIDO.search(
+            if not m.group("livre") and not m.group("titulo") and not _PESSOA_ANTES_DE_APELIDO.search(
                     texto, max(0, m.start() - 60), m.start()):
                 continue
-            grupo = 1 if m.group(1) else 2
+            grupo = "aspas" if m.group("aspas") else "nome"
             valor = dobrar(m.group(grupo)).split()
-            if not valor or valor[0] in NAO_INICIAM_NOME or any(v in PALAVRAS_COMUNS for v in valor):
+            if not valor or (grupo == "nome" and (valor[0] in NAO_INICIAM_NOME or valor[0] in _palavras_gramaticais()
+                                                  or any(v in PALAVRAS_COMUNS for v in valor))):
                 continue
             saida.append(Deteccao(m.start(grupo), m.end(grupo), "NOME", 0.85, "nomes:apelido", CONTEXTUAL))
+            seguinte = _APELIDO_COORDENADO.match(texto, m.end())
+            if seguinte and dobrar(seguinte.group(1)) not in NAO_INICIAM_NOME | PALAVRAS_COMUNS:
+                saida.append(Deteccao(seguinte.start(1), seguinte.end(1), "NOME", 0.85, "nomes:apelido", CONTEXTUAL))
+        for m in _APELIDO_INDICADO.finditer(texto):
+            saida.append(Deteccao(m.start(1), m.end(1), "NOME", 0.85, "nomes:apelido", CONTEXTUAL))
+        return saida
+
+    def _postos(self, texto: str, toks) -> list[Deteccao]:
+        """Nome de guerra após posto ou graduação, corporação e matrícula em escalas e boletins
+        ("3º SGT PM 100.000-0 FULANO", "SD PM FULANO", "1º TEN QOPM 000.000-0 F. BELTRANO")."""
+        pn, sn = prenomes(), sobrenomes()
+        inicios = {t[0]: k for k, t in enumerate(toks)}
+        saida: list[Deteccao] = []
+        for m in _POSTO_GRADUACAO.finditer(texto):
+            k = inicios.get(m.end())
+            if k is None:
+                continue
+            fim = None
+            for x in range(k, min(k + 4, len(toks))):
+                tok, dob = toks[x][2], dobrar(toks[x][2])
+                if x > k and not (_so_espaco(texto, toks[x - 1][1], toks[x][0])
+                                  or (_inicial(texto, toks[x - 1])
+                                      and re.fullmatch(r"\.[ \t]{0,2}", texto[toks[x - 1][1]:toks[x][0]]))):
+                    break
+                if _inicial(texto, toks[x]) or (dob in CONECTORES and dob != "e" and tok.isupper()):
+                    continue
+                if not tok.isupper() or len(tok) < 2 or dob in NAO_INICIAM_NOME or dob in PALAVRAS_COMUNS \
+                        or not (dob in pn or dob in sn or _forma_de_nome(dob, rigorosa=False)):
+                    break
+                fim = x
+            if fim is not None and not contexto_nao_pessoal(texto, toks[k][0]):
+                saida.append(Deteccao(toks[k][0], toks[fim][1], "NOME", 0.85, "nomes:posto", CONTEXTUAL))
+        return saida
+
+    def _invertidos(self, texto: str) -> list[Deteccao]:
+        """Nome invertido ("SOBRENOME, Fulana de Tal", "SOBRENOME, F. B."), usual em listas, escalas e
+        relações nominais.
+
+        Só vale no início de célula, de linha ou de item (após aspas, ponto e vírgula, barra vertical,
+        tabulação, dois espaços ou número de ordem), o que exclui "diretor da SIGLA, Fulano de Tal". O
+        sobrenome, em CAIXA ALTA, precisa ter forma de nome; os prenomes, ser só iniciais ou ter ao menos uma
+        palavra das listas (em CAIXA ALTA, o primeiro prenome) — exigência dispensada na linha que traz
+        identificador da pessoa (CPF, RG, matrícula). Recusa cabeçalhos e lugares ("BRASÍLIA, Distrito
+        Federal", "MANAUS, AMAZONAS").
+        """
+        pn, sn = prenomes(), sobrenomes()
+        saida: list[Deteccao] = []
+        for m in _NOME_INVERTIDO.finditer(texto):
+            ini_linha = texto.rfind("\n", 0, m.start()) + 1
+            if not _INICIO_DE_ITEM.search(texto[ini_linha:m.start()]):
+                continue
+            sobrenomes_ = [dobrar(p) for p in m.group("sobrenome").split() if dobrar(p) not in CONECTORES]
+            if any(len(p) < 3 or p in NAO_INICIAM_NOME or p in PALAVRAS_COMUNS or p in _NUCLEOS_INSTITUICAO
+                   or not (p in pn or p in sn or _forma_de_nome(p, rigorosa=False)) for p in sobrenomes_):
+                continue
+            prenomes_ = m.group("prenomes").rstrip()
+            palavras = [p for p in prenomes_.split() if dobrar(p) not in CONECTORES]
+            if re.fullmatch(r"(?:\p{Lu}\.[ \t]?)+", prenomes_):
+                if "".join(ch for ch in prenomes_ if ch.isalpha()).lower() in _SIGLAS_PONTUADAS:
+                    continue
+            else:
+                dobradas = [dobrar(p.rstrip(".")) for p in palavras]
+                if any(d in NAO_INICIAM_NOME or d in PALAVRAS_COMUNS
+                       or not (d in pn or d in sn or _forma_de_nome(d, rigorosa=False)) for d in dobradas):
+                    continue
+                fim_linha = texto.find("\n", m.end())
+                linha = texto[ini_linha:fim_linha if fim_linha >= 0 else None]
+                if not _IDENTIFICADOR_NA_LINHA.search(linha):
+                    if prenomes_.split()[0].isupper() and dobradas[0] not in pn:
+                        continue
+                    if not any(d in pn or d in sn for d in dobradas):
+                        continue
+            if contexto_nao_pessoal(texto, m.start()):
+                continue
+            saida.append(Deteccao(m.start(), m.start("prenomes") + len(prenomes_), "NOME", 0.85, "nomes:invertido",
+                                  CONTEXTUAL))
+        return saida
+
+    def _prenomes_com_idade(self, texto: str) -> list[Deteccao]:
+        """Prenome isolado com a idade em aposto ("Fulana, de 15 anos"; "…, e Fulano (8 anos)").
+
+        Vale para prenome das listas, não ambíguo, ou, em enumeração de pessoas (após vírgula ou "e"), para
+        palavra com forma de nome que não seja município. Prenome precedido de outra palavra com inicial
+        maiúscula é parte de um nome mais longo, tratado pelos demais reconhecedores.
+        """
+        from .localizacao import municipio_em
+
+        pn, amb = prenomes(), ambiguos()
+        saida: list[Deteccao] = []
+        for m in _PRENOME_COM_IDADE.finditer(texto):
+            a, b = m.span(1)
+            anterior = _TOKEN_ANTERIOR.search(texto, max(0, a - 40), a)
+            if anterior and anterior.group(1)[:1].isupper():
+                continue
+            dob = dobrar(m.group(1))
+            if dob in NAO_INICIAM_NOME or dob in PALAVRAS_COMUNS or dob in amb:
+                continue
+            if dob not in pn:
+                em_lista = _ANTES_DE_PRENOME_EM_LISTA.search(texto, max(0, a - 6), a)
+                if not (em_lista and _forma_de_nome(dob) and municipio_em(texto, a) is None):
+                    continue
+            if contexto_nao_pessoal(texto, a):
+                continue
+            saida.append(Deteccao(a, b, "NOME", 0.8, "nomes:idade", CONTEXTUAL))
+        return saida
+
+    def _linhas_de_nomes(self, texto: str, toks) -> list[Deteccao]:
+        """Nomes em CAIXA ALTA, um por linha, em lista de três linhas ou mais (relação de beneficiários,
+        lista de presença sem colunas). Cada linha precisa ter forma de nome e uma palavra das listas."""
+        pn, sn = prenomes(), sobrenomes()
+        inicios = {t[0]: k for k, t in enumerate(toks)}
+        fins = {t[1]: k for k, t in enumerate(toks)}
+        candidatas: list[tuple[int, int] | None] = []
+        pos = 0
+        for linha in texto.split("\n"):
+            ini, pos = pos, pos + len(linha) + 1
+            m = _LINHA_SO_NOME.fullmatch(linha)
+            achado = None
+            if m:
+                k, f = inicios.get(ini + m.start(1)), fins.get(ini + m.end(1))
+                if k is not None and f is not None and any(dobrar(toks[x][2]) in pn or dobrar(toks[x][2]) in sn
+                                                           for x in range(k, f + 1)) \
+                        and _aceitar_nome(texto, toks, k, f, titulo_aceito=False):
+                    achado = (k, f)
+            candidatas.append(achado)
+        saida: list[Deteccao] = []
+        n = 0
+        while n < len(candidatas):
+            if candidatas[n] is None:
+                n += 1
+                continue
+            fim_bloco = n
+            while fim_bloco + 1 < len(candidatas) and candidatas[fim_bloco + 1] is not None:
+                fim_bloco += 1
+            if fim_bloco - n >= 2:
+                for k, f in candidatas[n:fim_bloco + 1]:
+                    saida.append(Deteccao(toks[k][0], toks[f][1], "NOME", 0.8, "nomes:lista-de-nomes", CONTEXTUAL))
+            n = fim_bloco + 1
         return saida
 
 
@@ -1205,9 +1967,13 @@ def partes(texto: str, limite: int = 100_000, sobreposicao: int = 2_000):
         inicio = recuo + 1 if recuo > inicio else max(inicio + 1, fim - sobreposicao)
 
 
-#: Razão social logo após o nome ("Panificadora Paulo Afonso Ltda.", "Comercial Fulano S/A"): o nome
-#: integra o de uma empresa.
-_RAZAO_SOCIAL_DEPOIS = re.compile(r"[ \t]*(?:(?i:ltda|eireli|epp)\b|(?-i:S\.?[ \t]?A\.?|S/A)(?!\w))")
+#: Razão social logo após o nome ("Panificadora Fulano de Tal Ltda.", "Comercial Fulano S/A"), também
+#: com o ramo de atividade entre o nome e a designação ("Fulano de Tal Comércio de Ferragens Ltda.") ou
+#: com outro sócio após "&" ("Fulano & Beltrano"): o nome integra o de uma empresa.
+_RAZAO_SOCIAL_DEPOIS = re.compile(
+    r"[ \t]*(?:(?i:ltda|eireli|epp)\b|(?-i:S\.?[ \t]?A\.?|S/A)(?!\w))"
+    r"|(?:[ \t]+(?:\p{Lu}[\p{L}'’-]*\.?|d[aeo]s?|e|&)){1,6}[ \t]*(?:(?i:ltda|eireli|epp)\b|(?-i:S\.[ \t]?A\.?|S/A)(?!\w))"
+    r"|[ \t]*&[ \t]*\p{Lu}")
 
 
 def _empresa_depois(texto: str, fim: int) -> bool:
@@ -1272,9 +2038,16 @@ def _segmentos(texto: str, ent) -> list[list]:
     return segmentos
 
 
+#: Pronome de tratamento abreviado ("V. Sa.", "V. S.ª", "V. Exa.", "V. Ex.ª", "V. Ema.", "V. M.").
+_PRONOME_DE_TRATAMENTO = re.compile(r"V\.?[ 	]*(?:S|Sa|Sas|S\.a|Ex|Exa|Exas|Ex\.a|Ema|Emas|M|Mag\.a|Maga|A)\.?",
+                                    re.IGNORECASE)
+
+
 def _nome_do_segmento(texto: str, tokens: list, pessoa: bool, score: float) -> Deteccao | None:
     """Valida um trecho de entidade do modelo como nome de pessoa (ver :func:`filtrar_entidade_nlp`)."""
     pn, sn = prenomes(), sobrenomes()
+    if tokens and _PRONOME_DE_TRATAMENTO.fullmatch(texto[tokens[0].idx:tokens[-1].idx + len(tokens[-1].text)]):
+        return None  # "V. Sa.", "V. Exa.": pronome de tratamento abreviado
     # Títulos, cargos e marcadores de lista antes do nome ("Dr.", "Vereador", "I.") ficam fora do trecho.
     while tokens and (TITULOS.match(tokens[0].text) or len(tokens[0].text) == 1
                       or re.fullmatch(r"[IVXLC]+", tokens[0].text)
@@ -1327,6 +2100,11 @@ def _nome_do_segmento(texto: str, tokens: list, pessoa: bool, score: float) -> D
     inicio = tokens[0].idx
     fim = inicio + len(texto_ent)
     if contexto_nao_pessoal(texto, inicio) or _empresa_depois(texto, fim):
+        return None
+    # O modelo cortou o nome de um município ("por Fulano Beltrano em …" → "Fulano").
+    fim_lugar = _lugar_em(texto, inicio)
+    if fim_lugar is not None and fim_lugar > fim and not (
+            texto[fim_lugar:fim_lugar + 1] == " " and texto[fim_lugar + 1:fim_lugar + 2].isupper()):
         return None
     return Deteccao(inicio, fim, "NOME", score, "nomes:modelo", NER)
 
