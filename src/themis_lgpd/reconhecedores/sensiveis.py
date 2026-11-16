@@ -1336,8 +1336,8 @@ class ContextoDocumental:
         if len(linha) <= 100 and not linha.endswith((".", ";", ":")) and _REGISTRO_PROFISSIONAL.search(linha):
             return ISENCAO_ASSINATURA
         # O rótulo pode vir depois de outro campo na mesma linha, separado por travessão, barra vertical,
-        # ponto e vírgula ou tabulação ("DN 01/02/2019 – pessoa com deficiência: …").
-        separador = max((p + len(s) for s in (" – ", " | ", ";", "\t") if (p := texto.rfind(s, inicio_linha, ini)) >= 0),
+        # ponto e vírgula, tabulação ou espaços ("DN 01/02/2019 – pessoa com deficiência: …").
+        separador = max((p + len(s) for s in (" – ", " | ", ";", "\t", "  ") if (p := texto.rfind(s, inicio_linha, ini)) >= 0),
                         default=-1)
         if (_ROTULO_DEPOIS.match(texto, fim) and not origem.startswith(ORIGEM_CLINICA)
                 and (_ANTES_DO_ROTULO.fullmatch(texto, inicio_linha, ini)
@@ -1670,6 +1670,11 @@ INTIMIDADE_CONTEXTUAL = [
     # :data:`INTIMIDADE_SEMANTICA`).
     Padrao("VIOLENCIA", r"\b(?:medo|v[íi]tima|sofr(?:e|o|i|endo|eu|ia)|alvo)\s+de\s+(?:" + _TIPO_VIOLENCIA + r")",
            0.95, camada=CONTEXTUAL, nome="intimidade:violencia"),
+    # Classificação do caso pelo técnico ("Considerando tratar-se, em tese, de estupro de vulnerável", "caso
+    # notificado como violência psicológica").
+    Padrao("VIOLENCIA", r"(?<=\b(?:tratar-se|trata-se|tratando-se)(?:,?\s+em\s+tese,?)?\s+de\s+|"
+                        r"\b(?:caso|fato|situa[çc][ãa]o|ocorr[êe]ncia)\s+(?:foi\s+)?(?:classificad|tipificad|notificad|enquadrad)[oa]\s+"
+                        r"como\s+)(?:" + _TIPO_VIOLENCIA + r")", 0.9, camada=CONTEXTUAL, nome="intimidade:classificacao"),
     # Relatos em primeira pessoa de ameaça, agressão, fuga ou risco à vida.
     Padrao("VIOLENCIA",
            r"\b(?:estou\s+em\s+perigo|corro\s+risco|fugindo\s+de\s+casa|preciso\s+de\s+abrigo|casa[- ]abrigo|"

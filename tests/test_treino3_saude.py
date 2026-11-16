@@ -197,3 +197,14 @@ def test_trecho_do_classificador_sem_termo_de_saude():
     assert ctx.isencao(texto, ini, ini + len("fck 35 MPa"), "semantica", "aprendido:dado_saude", "SAUDE") == S.ISENCAO_FRAGMENTO
     ini = texto.index("e que perdeu")
     assert ctx.isencao(texto, ini, ini + 12, "semantica", "aprendido:dado_saude", "SAUDE") == S.ISENCAO_FRAGMENTO
+
+
+def test_violencia_classificada_pelo_tecnico(anon):
+    r = anon.anonimizar("Considerando tratar-se, em tese, de abuso sexual, o caso foi encaminhado à delegacia.")
+    assert _tarjado(r, "abuso sexual")
+
+
+def test_rotulo_de_campo_depois_de_outro_campo_fica_legivel(anon):
+    r = anon.anonimizar("Sexo: masculino   Identidade de gênero: homem cisgênero")
+    assert _legivel(r, "Identidade de gênero")
+    assert _tarjado(r, "homem cisgênero")
