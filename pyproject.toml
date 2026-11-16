@@ -85,7 +85,7 @@ version = { attr = "themis_lgpd._versao.__version__" }
 where = ["src"]
 
 [tool.setuptools.package-data]
-themis_lgpd = ["dados/*.txt", "ui/*.toml"]
+themis_lgpd = ["dados/*.txt", "dados/modelos/sensivel/*", "ui/*.toml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -40,6 +40,19 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
   coordenadas da página exibida, a página gerada sai na orientação de exibição e o texto de cabeça para
   baixo é lido na ordem correta; teste de regressão nas quatro rotações, com releitura por OCR.
 
+### Adicionado — classificador treinado de dados sensíveis
+
+- Classificador de trechos (componente `spancat` do spaCy) para dados de saúde e quase-identificadores,
+  treinado sobre a partição de ajuste do EliMC/esic-ner (`benchmark/treino/treinar_spancat.py`) e
+  acoplado ao pipeline do `pt_core_news_lg` com o mesmo vocabulário e os mesmos vetores (artefato de
+  6,8 MB em `dados/modelos/sensivel`). Reconhece condições descritas com palavras próprias ("dores
+  fortes no joelho", "falta de ar") e descrições de servidores por função, local e horário. Os dados de
+  saúde continuam sujeitos à regra de vínculo do perfil. Desligável com `THEMIS_MODELO_SENSIVEL=0`.
+- Na partição de seleção, comparação pareada com a versão anterior: entidades protegidas 92,3% → 94,2%,
+  pedidos com vazamento 17,0% → 15,3% (8 deixaram de vazar, nenhum passou a vazar), dados de saúde
+  53,1% → 58,1%, quase-identificadores sinalizados 41,3% → 84,1%; tarja fora do gabarito +0,07 ponto e
+  textos públicos do benchmark nacional 100% preservados (`benchmark/treino/ablacao_spancat.json`).
+
 ### Adicionado — cobertura nacional
 
 - Endereços de todo o país: abreviações (Av., Trav., Pça., Lgo., Rod., Estr.), número com milhar,
