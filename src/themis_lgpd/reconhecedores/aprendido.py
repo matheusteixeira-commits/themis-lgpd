@@ -276,12 +276,13 @@ def selecionar(candidatos: list[tuple[int, int, str, float]], limiares: dict[str
 def candidatos_do_doc(doc) -> list[tuple[int, int, str, float]]:
     """Trechos ``(início, fim, rótulo, probabilidade)`` registrados pelo componente no documento.
 
-    Trechos mais curtos que o mínimo do rótulo (:data:`MINIMO_DE_TOKENS`) são descartados.
+    Trechos mais curtos que o mínimo do rótulo (:data:`MINIMO_DE_TOKENS`) são descartados. O componente de
+    rótulo único grava as probabilidades com formato ``(n, 1)``; o vetor é achatado antes da conversão.
     """
     if NOME_COMPONENTE not in doc.spans:
         return []
     grupo = doc.spans[NOME_COMPONENTE]
-    probabilidades = grupo.attrs.get("scores", ())
+    probabilidades = numpy.ravel(grupo.attrs.get("scores", ()))
     return [(s.start_char, s.end_char, s.label_, float(p)) for s, p in zip(grupo, probabilidades)
             if len(s) >= MINIMO_DE_TOKENS.get(s.label_, 1)]
 

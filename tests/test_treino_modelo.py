@@ -4,6 +4,7 @@ Cobre a seleção dos trechos, a conversão da probabilidade em confiança, o fu
 e o carregamento sobre o vocabulário e os vetores do modelo de linguagem. Os exemplos são fictícios.
 """
 
+import numpy
 import pytest
 import spacy
 
@@ -34,6 +35,17 @@ def test_rotulos_diferentes_nao_disputam_o_mesmo_trecho():
 def test_limiar_proprio_de_cada_rotulo():
     candidatos = [(0, 5, "DADO_SAUDE", 0.55), (10, 20, "QUASI_IDENTIFICADOR", 0.55)]
     assert A.selecionar(candidatos, {"DADO_SAUDE": 0.6, "QUASI_IDENTIFICADOR": 0.5}) == [candidatos[1]]
+
+
+@pytest.mark.filterwarnings("error::DeprecationWarning")
+def test_probabilidades_gravadas_uma_por_linha():
+    # Formato usado pelo componente de rótulo único; versões recentes do NumPy recusam float() de vetor.
+    doc = spacy.blank("pt")("Sinto dores fortes no joelho.")
+    doc.spans[A.NOME_COMPONENTE] = [doc[1:3], doc[4:5]]
+    doc.spans[A.NOME_COMPONENTE].attrs["scores"] = numpy.array([[0.9], [0.3]])
+    candidatos = A.candidatos_do_doc(doc)
+    assert [(i, f, p) for i, f, _, p in candidatos] == [(6, 18, 0.9), (22, 28, 0.3)]
+    assert all(type(p) is float for *_, p in candidatos)
 
 
 def test_confianca_parte_do_minimo_do_perfil_no_limiar():
