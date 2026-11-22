@@ -7,7 +7,7 @@ spacy==3.8.18
 # O setuptools da imagem base embute versões de wheel e jaraco.context com vulnerabilidades
 # conhecidas (CVE-2026-24049, CVE-2026-23949); a versão abaixo traz as cópias corrigidas.
 setuptools==84.2.1
-regex==2026.11.9
+regex==2026.11.19
 ftfy==6.3.1
 pdfplumber==0.11.10
 pdfminer.six==20260107
